@@ -1,9 +1,9 @@
-import { TechniqueCategory } from "./data-model";
+import { Category } from "./data-model";
 
 export const seeder: {
   key: string;
   label: string;
-  category: TechniqueCategory;
+  category: Category;
 }[] = [
   // MARK: SUMBISSIONS
   // Armbars

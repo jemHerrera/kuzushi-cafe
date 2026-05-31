@@ -16,7 +16,7 @@ export type AgeClass =
 
 export type Intensity = "playful" | "casual" | "competitive";
 
-export type TechniqueCategory =
+export type Category =
   | "submission"
   | "takedown"
   | "sweep"
@@ -25,12 +25,13 @@ export type TechniqueCategory =
   | "back-take"
   | "leg-entry"
   | "escape"
+  | "tap"
   | "off-balance"
   | "position"
   | "guard-retention"
   | "other";
 
-export type NotificationCategory = "technique-partner" | "chat";
+export type NotificationCategory = "journal-entry-partner" | "chat";
 
 // Database tables
 export interface Account {
@@ -56,16 +57,16 @@ export interface Account {
 }
 
 // Consolidates all types of intended attempt
-export interface Technique {
+export interface JournalEntry {
   id: string;
 
   account: Account; // many-to-one
 
   // Details
   name: string; // What was intention? Could be anything from submission, off-balance, takedown, etc. Rear Naked Choke, Dummy Sweep, Kuzushi, Imanari Roll, Guard Pass. Use tags in the front-end for selection
-  category: TechniqueCategory; // Based on tags picked from technique, automatically infer. If a new technique is created, create a new tag and save the user-picked category assignment
-  setup: string; // What is the setup to execute the technique? could be from a position, guard, or another submission. Use tags
-  isSuccessful: boolean; // Whether the technique execution was successful. Success criteria is completely based on the user
+  category: Category; // Based on tags picked from the journal entry, automatically infer. If a new journal entry is created, create a new tag and save the user-picked category assignment
+  setup: string; // What is the setup to execute the journal entry? Could be from a position, guard, or another submission. Use tags
+  isSuccessful: boolean; // Whether the journal entry execution was successful. Success criteria is completely based on the user. Hide UI if category is 'tap'
   notes?: string; // longer text
   intensity: Intensity;
   isNoGi?: boolean;
@@ -86,7 +87,7 @@ export interface TechniqueTag {
   key: string; // PK in kebab-format
 
   label: string;
-  category: TechniqueCategory;
+  category: Category;
   generatedBy?: Account; // if undefined, means system generated
   isPublic: boolean; // Admin should constantly review user entries and mark as public
 

@@ -3,7 +3,7 @@ import {
   Belt,
   Intensity,
   NotificationCategory,
-  TechniqueCategory,
+  Category,
   WeightClass,
 } from "./data-model";
 
@@ -42,12 +42,12 @@ export interface IAccountManager {
   }>;
 }
 
-export type TechniqueDetail = {
+export type JournalEntryDetail = {
   id: string;
-  object: "technique";
+  object: "journal_entry";
   accountId: string;
   name: string;
-  category: TechniqueCategory;
+  category: Category;
   setup: string;
   isSuccessful: boolean;
   notes?: string;
@@ -68,30 +68,30 @@ export type TechniqueTagDetail = {
   id: string;
   object: "technique_tag";
   label: string;
-  category: TechniqueCategory;
+  category: Category;
   generatedBy?: string; // accountId
   isPublic: boolean;
   createdAt: number;
   updatedAt: number;
 };
 
-export interface ITechniqueManager {
-  createTechnique: (params: {}) => Promise<TechniqueDetail>; // TODO. In endpoint level, may create tag as well
-  updateTechnique: (params: {}) => Promise<TechniqueDetail>; // TODO
-  getTechnique: (params: { id: string }) => Promise<TechniqueDetail>;
-  getTechniques: (params: {
+export interface IJournalEntryManager {
+  createJournalEntry: (params: {}) => Promise<JournalEntryDetail>; // TODO. In endpoint level, may create tag as well
+  updateJournalEntry: (params: {}) => Promise<JournalEntryDetail>; // TODO
+  getJournalEntry: (params: { id: string }) => Promise<JournalEntryDetail>;
+  getJournalEntries: (params: {
     filter: {};
     sort?: {};
     limit: number;
     offset: number;
-  }) => Promise<{ items: TechniqueDetail[]; limit: number; offset: number }>;
-  deleteTechniques: (params: { id: string[] }) => Promise<{ deleted: true }>;
-  assignFriendToTechnique: (params: {
+  }) => Promise<{ items: JournalEntryDetail[]; limit: number; offset: number }>;
+  deleteJournalEntries: (params: { id: string[] }) => Promise<{ deleted: true }>;
+  assignFriendToJournalEntry: (params: {
     accountId: string;
-    techniqueId: string;
-  }) => Promise<TechniqueDetail>; // Use NotificationManager.sendFriendAssignment notification to friend
+    journalEntryId: string;
+  }) => Promise<JournalEntryDetail>; // Use NotificationManager.sendJournalEntryAssignment notification to friend
   createTag: (params: {
-    category: string;
+    category: Category;
     generatedBy: string;
     label: string;
     isPublic: boolean;
@@ -105,7 +105,7 @@ export interface ITechniqueManager {
   updateTag: (params: {
     id: string;
     options: {
-      category?: string;
+      category?: Category;
       label?: string;
       isPublic: boolean;
     };
@@ -129,8 +129,8 @@ export type NotificationDetail = {
 };
 
 export interface INotificationManager {
-  sendTechniqueAssignmentNotification: (params: {
+  sendJournalEntryAssignmentNotification: (params: {
     accountId: string;
-    techniqueId: string;
+    journalEntryId: string;
   }) => Promise<NotificationDetail>;
 }
