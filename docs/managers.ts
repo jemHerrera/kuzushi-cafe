@@ -5,6 +5,8 @@ import {
   Intensity,
   NotificationCategory,
   Category,
+  AccountPrivacySettings,
+  PrivacyType,
   WeightClass,
 } from "./data-model";
 
@@ -54,6 +56,16 @@ export type AuthSessionDetail = {
   isProfileComplete: boolean;
 };
 
+export type PublicAccountSummary = {
+  id: string;
+  object: "public_account_summary";
+  firstName?: string;
+  lastName?: string;
+  profilePhoto?: string;
+  belt?: Belt;
+  relationshipStatus?: FriendRelationshipStatus;
+};
+
 export type FriendRelationshipStatus =
   | "none"
   | "pending-inbound"
@@ -61,6 +73,8 @@ export type FriendRelationshipStatus =
   | "accepted"
   | "blocked"
   | "removed";
+
+export type FriendRequestDirection = "inbound" | "outbound";
 
 export interface IAuthManager {
   signIn: (params: SignInParams) => Promise<SignInResult>;
@@ -83,25 +97,109 @@ export interface IAccountManager {
     weight?: WeightClass;
     birthday?: Date;
   }) => Promise<AccountDetail>;
-  sendFriendRequest: (params: { id: string }) => Promise<{ sent: true }>;
-  acceptFriendRequest: (params: { id: string }) => Promise<{ accepted: true }>;
-  removeFriend: (params: { id: string }) => Promise<{ removed: true }>;
+  getPrivacySettings: (params: {
+    accountId: string;
+  }) => Promise<AccountPrivacySettings>;
+  updatePrivacySettings: (params: {
+    accountId: string;
+    options: {
+      profile?: PrivacyType;
+      journalEntries?: PrivacyType;
+      submissions?: PrivacyType;
+      sweeps?: PrivacyType;
+      reversals?: PrivacyType;
+      backtakes?: PrivacyType;
+      guardPasses?: PrivacyType;
+      taps?: PrivacyType;
+    };
+  }) => Promise<AccountPrivacySettings>;
+  searchPublicProfiles: (params: {
+    viewerAccountId?: string;
+    search?: string;
+    limit: number;
+    offset: number;
+  }) => Promise<{
+    items: PublicAccountSummary[];
+    limit: number;
+    offset: number;
+  }>;
+  sendFriendRequest: (params: {
+    fromAccountId: string;
+    toAccountId: string;
+  }) => Promise<{ sent: true }>;
+  acceptFriendRequest: (params: {
+    accountId: string;
+    requesterAccountId: string;
+  }) => Promise<{ accepted: true }>;
+  cancelFriendRequest: (params: {
+    fromAccountId: string;
+    toAccountId: string;
+  }) => Promise<{ canceled: true }>;
+  removeFriend: (params: {
+    accountId: string;
+    friendAccountId: string;
+  }) => Promise<{ removed: true }>;
+  blockAccount: (params: {
+    accountId: string;
+    blockedAccountId: string;
+  }) => Promise<{ blocked: true }>;
+  unblockAccount: (params: {
+    accountId: string;
+    blockedAccountId: string;
+  }) => Promise<{ unblocked: true }>;
   getFriendRelationshipStatus: (params: {
-    id: string;
+    accountId: string;
+    otherAccountId: string;
   }) => Promise<{ status: FriendRelationshipStatus }>;
-  getFriends: (params: {
-    id: string;
+  getFriendRequests: (params: {
+    accountId: string;
+    direction: FriendRequestDirection;
     limit: number;
     offset: number;
   }) => Promise<{
     items: AccountDetail[];
+    limit: number;
+    offset: number;
+  }>;
+  getFriends: (params: {
+    accountId: string;
+    search?: string;
+    limit: number;
+    offset: number;
+  }) => Promise<{
+    items: AccountDetail[];
+    limit: number;
+    offset: number;
+  }>;
+  searchFriends: (params: {
+    accountId: string;
+    search: string;
+    limit: number;
+    offset: number;
+  }) => Promise<{
+    items: AccountDetail[];
+    limit: number;
+    offset: number;
   }>;
   getPotentialFriends: (params: {
-    id: string;
+    accountId: string;
+    search?: string;
     limit: number;
     offset: number;
   }) => Promise<{
-    items: AccountDetail[];
+    items: PublicAccountSummary[];
+    limit: number;
+    offset: number;
+  }>;
+  searchPotentialFriends: (params: {
+    accountId: string;
+    search: string;
+    limit: number;
+    offset: number;
+  }) => Promise<{
+    items: PublicAccountSummary[];
+    limit: number;
+    offset: number;
   }>;
 }
 
@@ -192,8 +290,17 @@ export interface IJournalEntryManager {
   // - Partner inputs are mutually exclusive: friend partner, custom partner, or no partner.
   getJournalEntry: (params: { id: string }) => Promise<JournalEntryDetail>;
   getJournalEntries: (params: {
+    accountId: string;
     filter: JournalEntryFilters;
     sort?: JournalEntrySort; // default: trainedAt desc
+    limit: number;
+    offset: number;
+  }) => Promise<{ items: JournalEntryDetail[]; limit: number; offset: number }>;
+  searchJournalEntries: (params: {
+    accountId: string;
+    search: string;
+    filter?: Omit<JournalEntryFilters, "search">;
+    sort?: JournalEntrySort;
     limit: number;
     offset: number;
   }) => Promise<{ items: JournalEntryDetail[]; limit: number; offset: number }>;
@@ -213,12 +320,20 @@ export interface IJournalEntryManager {
   getTags: (params: {
     filter: {
       search?: string;
+      category?: Category;
       accountId?: string; // returns public tags plus this account's own tags
     };
     sort?: {
       field: "label" | "category" | "createdAt";
       direction: "asc" | "desc";
     };
+    limit: number;
+    offset: number;
+  }) => Promise<{ items: TechniqueTagDetail[]; limit: number; offset: number }>;
+  searchSavedTechniqueTags: (params: {
+    accountId: string;
+    search: string;
+    category?: Category;
     limit: number;
     offset: number;
   }) => Promise<{ items: TechniqueTagDetail[]; limit: number; offset: number }>;
@@ -235,6 +350,61 @@ export interface IJournalEntryManager {
     masterId: string;
     ids: string[];
   }) => Promise<TechniqueTagDetail>;
+}
+
+export type AggregateTimeline = "week" | "month" | "year" | "custom";
+
+export type AggregateStatsDetail = {
+  object: "aggregate_stats";
+  accountId: string;
+  category?: Category;
+  timeline: AggregateTimeline;
+  startAt: number;
+  endAt: number;
+  successfulOnly: boolean;
+  attempts: number;
+  successes: number;
+  series: {
+    label: string;
+    attempts: number;
+    successes: number;
+  }[];
+  stats: {
+    label: string;
+    count: number;
+    percentage: number;
+  }[];
+};
+
+export interface IAggregateManager {
+  getAggregateStats: (params: {
+    accountId: string;
+    category?: Category;
+    timeline: AggregateTimeline;
+    startDate?: Date;
+    endDate?: Date;
+    successfulOnly?: boolean;
+  }) => Promise<AggregateStatsDetail>;
+  getCategoryBreakdown: (params: {
+    accountId: string;
+    timeline: AggregateTimeline;
+    startDate?: Date;
+    endDate?: Date;
+    successfulOnly?: boolean;
+  }) => Promise<{
+    object: "category_breakdown";
+    accountId: string;
+    timeline: AggregateTimeline;
+    startAt: number;
+    endAt: number;
+    successfulOnly: boolean;
+    items: {
+      category: Category;
+      attempts: number;
+      successes: number;
+      percentage: number;
+    }[];
+  }>;
 }
 
 export type NotificationDetail = {
@@ -264,4 +434,37 @@ export interface INotificationManager {
   markAllNotificationsAsRead: (params: {
     accountId: string;
   }) => Promise<{ updated: true }>;
+}
+
+export type DonationCheckoutStatus =
+  | "success"
+  | "canceled"
+  | "retryable-failure";
+
+export type DonationCheckoutSessionDetail = {
+  object: "donation_checkout_session";
+  id: string;
+  accountId: string;
+  amount: number;
+  currency: "usd";
+  checkoutUrl: string;
+  status: DonationCheckoutStatus;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export interface IDonationManager {
+  createCheckoutSession: (params: {
+    accountId: string;
+    amount: number;
+    currency?: "usd";
+    successUrl: string;
+    cancelUrl: string;
+  }) => Promise<DonationCheckoutSessionDetail>;
+  getCheckoutStatus: (params: {
+    accountId: string;
+    sessionId: string;
+  }) => Promise<{
+    status: DonationCheckoutStatus;
+  }>;
 }
