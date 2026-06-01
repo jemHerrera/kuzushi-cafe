@@ -5,7 +5,7 @@ export const seeder: {
   label: string;
   category: Category;
 }[] = [
-  // MARK: SUMBISSIONS
+  // MARK: SUBMISSIONS
   // Armbars
   { key: "armbar", label: "Armbar", category: "submission" },
   {
@@ -181,6 +181,11 @@ export const seeder: {
   {
     key: "bicep-slicer",
     label: "Bicep Slicer",
+    category: "submission",
+  },
+  {
+    key: "clover-leaf",
+    label: "Clover Leaf",
     category: "submission",
   },
   {

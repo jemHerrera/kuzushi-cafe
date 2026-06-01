@@ -1,0 +1,207 @@
+# UI
+
+## Molecules
+
+- `ButtonPrimary`
+- `ButtonSecondary`
+- `TechniqueTagSelectMenu` - Single-select menu with search. Shows technique name and category, plus an "Add technique" action.
+- `FriendsSelectMenu` - Single-select menu with avatar, name, and belt.
+- `TechniqueCategoryPill`
+- `TechniqueCategoryPillSelect` - Single-select menu with color-coded category pills.
+- `IconButton`
+- `Avatar`
+- `Search`
+- `JournalEntrySearch`
+- `FriendSearch`
+- `PublicProfileSearch`
+- `SavedTechniqueSearch`
+- `NotificationItem`
+  - Heading
+  - Body
+  - Link
+  - Mark-as-read button
+- `UserSummary` - Avatar, first name, last name, and belt color.
+- `DonationBanner`
+- `DonationModal`
+- `AlertBanner`
+- `CategorySelect` - Color-coded category options. Includes Gi/No-Gi toggle.
+- `DateSelector`
+- `StatsChart`
+- `StatsRow` - Label, progress line, count, and percentage.
+
+## Components
+
+- `SidePanel`
+  - `Avatar`, first name, last name, and belt color.
+  - New entry button.
+  - `Search` for finding other user profiles.
+  - Friends button that opens `FriendsListModal`.
+  - My Profile
+  - Settings
+  - Saved Techniques
+  - Donation banner at the bottom.
+  - Contact Us link at the bottom.
+- `Header`
+  - Transparent background.
+  - `AlertBanner`
+  - Notifications button that opens `NotificationList`.
+- `FriendsListModal`
+  - `Search` for filtering friends.
+  - `UserSummary`
+  - Add friend action.
+  - Remove friend action.
+- `CustomPartnerInput` - Weight select, age select, belt select, and add button.
+- `TrainingPartnerInput` - `FriendsSelectMenu` or `CustomPartnerInput`.
+  - Includes a "No partner" option for solo drilling, unknown partners, or entries where partner details should not be recorded.
+- `JournalEntryCreate` (Modal)
+  - `CategorySelect`
+  - Technique (`TechniqueTag`, maps to `JournalEntry.name`)
+  - Setup (`TechniqueTag`, maps to `JournalEntry.setup`)
+  - Notes text area
+  - Intensity single-select field
+  - Gi/No-Gi toggle
+  - `TrainingPartnerInput`
+  - "This is an attempt" field.
+  - "This technique was successful" field, hidden when category is `tap`.
+  - Trained date, defaulting to `createdDate` when left blank.
+  - Add button.
+- `JournalEntryUpdate` (Modal)
+  - `CategorySelect`
+  - Technique (`TechniqueTag`, maps to `JournalEntry.name`)
+  - Setup (`TechniqueTag`, maps to `JournalEntry.setup`)
+  - Notes text area
+  - Intensity single-select field
+  - Gi/No-Gi toggle
+  - `TrainingPartnerInput`
+  - "This is an attempt" field.
+  - "This technique was successful" field, hidden when category is `tap`.
+  - Trained date: `DateSelector`
+  - Delete button with confirmation.
+  - Update button.
+- `MyProfile` (Modal)
+  - Profile photo.
+  - First name.
+  - Last name.
+  - Belt select.
+  - Weight select.
+  - Birthday date selector.
+- `CompleteProfile` (Page)
+  - First name.
+  - Last name.
+  - Belt select.
+  - Weight select.
+  - Birthday date selector.
+  - Continue button.
+- `PrivacySettings` (Modal)
+  - Profile three-way toggle: public, friends-only, private.
+  - Journal entries three-way toggle: public, friends-only, private.
+  - Submissions three-way toggle: public, friends-only, private.
+  - Sweeps three-way toggle: public, friends-only, private.
+  - Reversals three-way toggle: public, friends-only, private.
+  - Back takes three-way toggle: public, friends-only, private.
+  - Guard passes three-way toggle: public, friends-only, private.
+  - Taps three-way toggle: public, friends-only, private.
+- `PublicProfile` (Modal)
+  - Profile photo.
+  - Name.
+  - Add friend, friend request pending, already friends, and unfriend states.
+  - Belt.
+  - Weight.
+  - Aggregate views, scoped by privacy settings.
+  - Journal entries, scoped by privacy settings.
+- `NotificationList` (Side Panel)
+  - Title.
+  - Mark all as read.
+  - `NotificationItem`
+- `SavedTechniqueTagList` (Side Panel)
+  - Search.
+  - Add button.
+  - `SavedTechniqueTagItem` - Name, `TechniqueCategoryPill`, edit icon button, and delete icon button.
+  - `SavedTechniqueUpsert` - Name text field and `TechniqueCategoryPillSelect`.
+- `JournalEntryFilters`
+  - Search.
+  - Category multi-select filter.
+  - Success filter.
+  - Gi/No-Gi filter.
+  - Add new journal entry button.
+- `JournalEntryHeading`
+  - Sortable headings:
+    - Category
+    - Technique
+    - Successful
+    - Training partner
+    - Trained date
+- `JournalEntryRow`
+  - Category
+  - Technique
+  - Successful
+  - Training partner avatar
+  - Trained date
+  - Edit action
+  - Delete action with confirmation
+- `JournalEntryPagination`
+- `JournalEntryTable` - Responsive table that remains usable on mobile.
+  - `JournalEntryFilters`
+  - `JournalEntryHeading`
+  - `JournalEntryRow`
+  - `JournalEntryPagination`
+- `AggregateViewFilters`
+  - Timeline: this week, this month, this year, or custom date range.
+  - Success: all attempts or successful only.
+- `AggregateView`
+  - Title.
+  - `AggregateViewFilters`
+  - Bar chart, with attempt and success values depending on the selected filter.
+  - `StatsRow` list.
+- `AggregateOverview`
+  - Category pill filters, such as submissions and taps.
+  - `AggregateView` based on the selected category.
+
+## Pages
+
+- Unauthenticated marketing and landing page with sign-in split.
+- Complete-profile page for authenticated users with missing required profile fields.
+- Authenticated home page.
+  - `AggregateOverview`
+  - `JournalEntryTable`
+
+## Decisions
+
+- Use account-level and category-level privacy settings for scoped profile, journal, and aggregate views.
+- Technique and setup inputs should support saved tags and free text. Use fuzzy-searchable select fields with an "Add `{searchString}`" option.
+- The "Add `{searchString}`" option has two modes:
+  - `Create saved tag`: opens tag creation and uses the selected journal category as the tag category.
+  - `Use as custom text`: stores the search string directly without creating a saved tag.
+- Category-specific privacy settings currently cover `AggregateView` visibility for submissions, sweeps, reversals, back takes, guard passes, and taps. Add more category privacy controls later as the product needs them.
+- Friend/profile UI must handle these relationship states: add friend, pending inbound, pending outbound, accepted, blocked or removed, and unfriend confirmation.
+- `TrainingPartnerInput` allows exactly one mode: no partner, friend partner, or custom partner.
+- All list UIs need loading, error, empty, retry, and paginated states. Do not use infinite scroll.
+- Notification links should deep-link mainly to profile pages, with support for opening a journal-entry modal when relevant.
+- `DonationBanner` opens `DonationModal`. The modal should include preset amounts, a custom amount field, a short support note, and a continue button that redirects to Stripe Checkout.
+- Donation checkout return states should include success, canceled, and retryable failure.
+- Use surface-specific search:
+  - `JournalEntrySearch`: technique, setup, notes, category, partner name, and trained date.
+  - `FriendSearch`: first name, last name, and belt.
+  - `PublicProfileSearch`: visible public profile fields only.
+  - `SavedTechniqueSearch`: tag label and category.
+- If category is `tap`, hide success UI. `isSuccessful` should not be collected for tap entries.
+- `JournalEntryCreate` and `JournalEntryUpdate` both include "This is an attempt" and "This technique was successful" fields. Use normal form-field styling, not toggle styling.
+- Intensity is optional and does not affect aggregate views for now.
+- Use horizontal scrolling for `JournalEntryTable` on mobile.
+- Empty states:
+  - No journal entries: explain that entries track training patterns; primary action is "Add journal entry".
+  - No saved techniques: explain that saved techniques make entry creation faster; primary action is "Add technique".
+  - No friends: explain that friends can be tagged as training partners; primary action is "Find friends".
+  - No notifications: show a quiet empty state with no primary action.
+  - No aggregate data: explain that charts appear after journal entries are created; primary action is "Add journal entry".
+- Loading states should use skeleton rows for tables and lists, skeleton summary blocks for aggregate views, and disabled submit buttons during form submission.
+- Journal-entry rows include edit and delete actions. Delete requires confirmation.
+- `JournalEntryUpdate` includes a delete button with confirmation.
+- Authentication UI should cover Google SSO, magic-link email entry, OTP or magic-link confirmation, expired-link handling, auth errors, loading states, and post-auth onboarding.
+- Authenticated users with incomplete required profile fields should be redirected to `CompleteProfile`.
+- Users can see their own saved technique tags and public tags. Admins may later mark user-created tags as public. There is no pending tag state, and public/private tag status is not visible to normal users.
+- Public profiles always show profile picture, first name, last name, and friendship status. Depending on privacy settings, additional profile, aggregate, and journal sections stack below.
+- Journal-entry default sort is trained date descending.
+- Journal-entry filters should persist in the URL.
+- The unauthenticated split page should be simple and make login immediately accessible.
+- On the authenticated home page, `JournalEntryTable` should be the first thing users see.

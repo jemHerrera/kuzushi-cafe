@@ -1,8 +1,16 @@
-export type Belt = "white" | "blue" | "purple" | "brown" | "black" | "coral";
+export type Belt =
+  | "unknown"
+  | "white"
+  | "blue"
+  | "purple"
+  | "brown"
+  | "black"
+  | "coral";
 
 // feather: <=150, light: 151-180, middle: 181-200, heavy: >200
-export type WeightClass = "feather" | "light" | "middle" | "heavy";
+export type WeightClass = "unknown" | "feather" | "light" | "middle" | "heavy";
 export type AgeClass =
+  | "unknown"
   | "kid" // <12
   | "teen"
   | "young-adult" //19-29
@@ -31,7 +39,10 @@ export type Category =
   | "guard-retention"
   | "other";
 
-export type NotificationCategory = "journal-entry-partner" | "chat";
+export type NotificationCategory = "journal-entry-partner" | "chat"; // chat is reserved for a future feature
+
+export type PrivacyType = "public" | "friends-only" | "private";
+export type AuthProvider = "google" | "magic-link";
 
 // Database tables
 export interface Account {
@@ -48,15 +59,17 @@ export interface Account {
   weight: WeightClass;
   birthday: Date;
 
-  // metadata
-  googleUserId: string;
-  googleEmailAddress?: string;
+  // auth metadata
+  authUserId: string;
+  authProvider: AuthProvider;
+
+  privacySettings: AccountPrivacySettings; // one-to-one
 
   createdDate: Date;
   updatedDate: Date;
 }
 
-// Consolidates all types of intended attempt
+// Consolidates all types of training notes and intended attempts
 export interface JournalEntry {
   id: string;
 
@@ -64,11 +77,12 @@ export interface JournalEntry {
 
   // Details
   name: string; // What was intention? Could be anything from submission, off-balance, takedown, etc. Rear Naked Choke, Dummy Sweep, Kuzushi, Imanari Roll, Guard Pass. Use tags in the front-end for selection
-  category: Category; // Based on tags picked from the journal entry, automatically infer. If a new journal entry is created, create a new tag and save the user-picked category assignment
-  setup: string; // What is the setup to execute the journal entry? Could be from a position, guard, or another submission. Use tags
-  isSuccessful: boolean; // Whether the journal entry execution was successful. Success criteria is completely based on the user. Hide UI if category is 'tap'
+  category: Category; // User-picked category
+  setup: string; // What is the setup to execute the journal entry? Could be from a position, guard, another submission, a saved tag, or free text
+  isAttempt: boolean; // Whether this entry represents an intentional technique attempt
+  isSuccessful?: boolean; // Undefined for taps and other entries where success does not apply
   notes?: string; // longer text
-  intensity: Intensity;
+  intensity?: Intensity;
   isNoGi?: boolean;
 
   // Training Partner
@@ -78,7 +92,7 @@ export interface JournalEntry {
   partnerAge?: AgeClass;
   partnerBelt?: Belt;
 
-  trainedDate: Date;
+  trainedDate: Date; // defaults to createdDate when not provided
   createdDate: Date;
   updatedDate: Date;
 }
@@ -103,6 +117,22 @@ export interface Notification {
   category: NotificationCategory;
   account: Account;
   isRead: boolean;
+
+  createdDate: Date;
+  updatedDate: Date;
+}
+
+export interface AccountPrivacySettings {
+  accountId: string;
+
+  profile: PrivacyType; // default: public
+  journalEntries: PrivacyType; // default: friends-only
+  submissions: PrivacyType; // default: friends-only
+  sweeps: PrivacyType; // default: friends-only
+  reversals: PrivacyType; // default: friends-only
+  backtakes: PrivacyType; // default: friends-only
+  guardPasses: PrivacyType; // default: friends-only
+  taps: PrivacyType; // default: friends-only
 
   createdDate: Date;
   updatedDate: Date;

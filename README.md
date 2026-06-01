@@ -14,14 +14,27 @@ Finally, UX is important. Manual entries involve a lot of friction, so the exper
 - In-app notifications
 - Simple data visualization
 - Fuzzy Search
-- Donations
+- Donations through Stripe Checkout
+
+## Future Features
+
+- Points system with multipliers based on belt, age, and weight
+- Chat and conversation notifications
 
 ## Monetization
 
-The aim is to keep the app free. As much as possible, the app will be ad-free or have minimal ads. The main source of revenue will be donations.
+The aim is to keep the app free. As much as possible, the app will be ad-free or have minimal ads. The main source of revenue will be donations. Donation UI should stay minimal: a donation banner, a small modal with preset and custom amounts, Stripe Checkout redirect, and success, cancellation, and retryable failure states.
 
 ## Tech Stack
 
 - Node.js, TypeScript
 - Supabase
 - Next.js, React, Vercel
+- Stripe
+- Tailwind CSS or shadcn/ui
+- Zod for validation
+
+## Todos
+
+- Finalize managers.ts
+- Finalize ui.md
