@@ -41,13 +41,13 @@ Middleware should stay coarse-grained. Resource-specific checks belong in endpoi
 - Enforce domain invariants.
 - Avoid repeated request-level checks like session validation.
 
-Examples: create journal entries, manage friends, assign training partners, manage tags, return training stats.
+Examples: create journal entries, manage training partners, assign training partners, manage tags, return training stats.
 
 Journal-entry managers should enforce these invariants:
 
 - If category is `tap`, clear `isSuccessful`.
 - If `trainedDate` is omitted, default it to `createdDate`.
-- Accept exactly one training partner mode: no partner, friend partner, or custom partner.
+- Accept exactly one training partner mode: no partner, account-backed training partner, or custom partner.
 - Keep individual journal-entry privacy out of the model; use account and category privacy settings for scoped views.
 
 ### Database

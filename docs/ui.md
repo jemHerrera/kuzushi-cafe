@@ -5,14 +5,14 @@
 - `ButtonPrimary`
 - `ButtonSecondary`
 - `TechniqueTagSelectMenu` - Single-select menu with search. Shows technique name and category, plus an "Add technique" action.
-- `FriendsSelectMenu` - Single-select menu with avatar, name, and belt.
+- `TrainingPartnerSelectMenu` - Single-select menu with list of [avatar, name, and belt], also has "Add custom partner" button.
 - `TechniqueCategoryPill`
 - `TechniqueCategoryPillSelect` - Single-select menu with color-coded category pills.
 - `IconButton`
 - `Avatar`
 - `Search`
 - `JournalEntrySearch`
-- `FriendSearch`
+- `TrainingPartnerSearch`
 - `PublicProfileSearch`
 - `SavedTechniqueSearch`
 - `NotificationItem`
@@ -35,7 +35,7 @@
   - `Avatar`, first name, last name, and belt color.
   - New entry button.
   - `Search` for finding other user profiles.
-  - Friends button that opens `FriendsListModal`.
+  - Training Partners button that opens `TrainingPartnersListModal`.
   - My Profile
   - Settings
   - Saved Techniques
@@ -45,13 +45,13 @@
   - Transparent background.
   - `AlertBanner`
   - Notifications button that opens `NotificationList`.
-- `FriendsListModal`
-  - `Search` for filtering friends.
+- `CustomPartnerInput` - Back button, first name, last name, weight select, age select, belt select, and add button.
+- `TrainingPartnersListModal`
+  - `Search` for filtering training partners.
   - `UserSummary`
-  - Add friend action.
-  - Remove friend action.
-- `CustomPartnerInput` - Weight select, age select, belt select, and add button.
-- `TrainingPartnerInput` - `FriendsSelectMenu` or `CustomPartnerInput`.
+  - Add custom training partner action.
+  - Remove training partner action.
+- `TrainingPartnerInput` - `TrainingPartnerSelectMenu` or `CustomPartnerInput`.
   - Includes a "No partner" option for solo drilling, unknown partners, or entries where partner details should not be recorded.
 - `JournalEntryCreate` (Modal)
   - `CategorySelect`
@@ -93,18 +93,18 @@
   - Birthday date selector.
   - Continue button.
 - `PrivacySettings` (Modal)
-  - Profile three-way toggle: public, friends-only, private.
-  - Journal entries three-way toggle: public, friends-only, private.
-  - Submissions three-way toggle: public, friends-only, private.
-  - Sweeps three-way toggle: public, friends-only, private.
-  - Reversals three-way toggle: public, friends-only, private.
-  - Back takes three-way toggle: public, friends-only, private.
-  - Guard passes three-way toggle: public, friends-only, private.
-  - Taps three-way toggle: public, friends-only, private.
+  - Profile three-way toggle: public, training-partners, private.
+  - Journal entries three-way toggle: public, training-partners, private.
+  - Submissions three-way toggle: public, training-partners, private.
+  - Sweeps three-way toggle: public, training-partners, private.
+  - Reversals three-way toggle: public, training-partners, private.
+  - Back takes three-way toggle: public, training-partners, private.
+  - Guard passes three-way toggle: public, training-partners, private.
+  - Taps three-way toggle: public, training-partners, private.
 - `PublicProfile` (Modal)
   - Profile photo.
   - Name.
-  - Add friend, friend request pending, already friends, and unfriend states.
+  - Add training partner, training partner request pending, already training partners, and remove training partner states.
   - Belt.
   - Weight.
   - Aggregate views, scoped by privacy settings.
@@ -173,15 +173,16 @@
   - `Create saved tag`: opens tag creation and uses the selected journal category as the tag category.
   - `Use as custom text`: stores the search string directly without creating a saved tag.
 - Category-specific privacy settings currently cover `AggregateView` visibility for submissions, sweeps, reversals, back takes, guard passes, and taps. Add more category privacy controls later as the product needs them.
-- Friend/profile UI must handle these relationship states: add friend, pending inbound, pending outbound, accepted, blocked or removed, and unfriend confirmation.
-- `TrainingPartnerInput` allows exactly one mode: no partner, friend partner, or custom partner.
+- Training-partner/profile UI must handle these relationship states: add training partner, pending inbound, pending outbound, accepted, blocked or removed, and remove training partner confirmation.
+- Removing an account-backed training partner should keep historical/custom partner details visible by using the stored first name, last name, age, weight, and belt snapshot after the account link is cleared.
+- `TrainingPartnerInput` allows exactly one mode: no partner, account-backed training partner, or custom partner.
 - All list UIs need loading, error, empty, retry, and paginated states. Do not use infinite scroll.
 - Notification links should deep-link mainly to profile pages, with support for opening a journal-entry modal when relevant.
 - `DonationBanner` opens `DonationModal`. The modal should include preset amounts, a custom amount field, a short support note, and a continue button that redirects to Stripe Checkout.
 - Donation checkout return states should include success, canceled, and retryable failure.
 - Use surface-specific search:
   - `JournalEntrySearch`: technique, setup, notes, category, partner name, and trained date.
-  - `FriendSearch`: first name, last name, and belt.
+  - `TrainingPartnerSearch`: first name, last name, and belt.
   - `PublicProfileSearch`: visible public profile fields only.
   - `SavedTechniqueSearch`: tag label and category.
 - If category is `tap`, hide success UI. `isSuccessful` should not be collected for tap entries.
@@ -191,7 +192,7 @@
 - Empty states:
   - No journal entries: explain that entries track training patterns; primary action is "Add journal entry".
   - No saved techniques: explain that saved techniques make entry creation faster; primary action is "Add technique".
-  - No friends: explain that friends can be tagged as training partners; primary action is "Find friends".
+  - No training partners: explain that training partners can be tagged in journal entries; primary action is "Find training partners".
   - No notifications: show a quiet empty state with no primary action.
   - No aggregate data: explain that charts appear after journal entries are created; primary action is "Add journal entry".
 - Loading states should use skeleton rows for tables and lists, skeleton summary blocks for aggregate views, and disabled submit buttons during form submission.
@@ -200,7 +201,7 @@
 - Authentication UI should cover Google SSO, magic-link email entry, OTP or magic-link confirmation, expired-link handling, auth errors, loading states, and post-auth onboarding.
 - Authenticated users with incomplete required profile fields should be redirected to `CompleteProfile`.
 - Users can see their own saved technique tags and public tags. Admins may later mark user-created tags as public. There is no pending tag state, and public/private tag status is not visible to normal users.
-- Public profiles always show profile picture, first name, last name, and friendship status. Depending on privacy settings, additional profile, aggregate, and journal sections stack below.
+- Public profiles always show profile picture, first name, last name, and training partner status. Depending on privacy settings, additional profile, aggregate, and journal sections stack below.
 - Journal-entry default sort is trained date descending.
 - Journal-entry filters should persist in the URL.
 - The unauthenticated split page should be simple and make login immediately accessible.

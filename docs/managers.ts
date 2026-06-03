@@ -63,10 +63,10 @@ export type PublicAccountSummary = {
   lastName?: string;
   profilePhoto?: string;
   belt?: Belt;
-  relationshipStatus?: FriendRelationshipStatus;
+  relationshipStatus?: TrainingPartnerRelationshipStatus;
 };
 
-export type FriendRelationshipStatus =
+export type TrainingPartnerRelationshipStatus =
   | "none"
   | "pending-inbound"
   | "pending-outbound"
@@ -74,7 +74,32 @@ export type FriendRelationshipStatus =
   | "blocked"
   | "removed";
 
-export type FriendRequestDirection = "inbound" | "outbound";
+export type TrainingPartnerRequestDirection = "inbound" | "outbound";
+
+export type TrainingPartnerDetail =
+  | {
+      id: string;
+      object: "training_partner";
+      accountId: string;
+      firstName?: string;
+      lastName?: string;
+      profilePhoto?: string;
+      belt: Belt;
+      weight: WeightClass;
+      createdAt: number;
+      updatedAt: number;
+    }
+  | {
+      id: string;
+      object: "custom_training_partner";
+      firstName?: string;
+      lastName?: string;
+      weight?: WeightClass;
+      age?: AgeClass;
+      belt?: Belt;
+      createdAt: number;
+      updatedAt: number;
+    };
 
 export interface IAuthManager {
   signIn: (params: SignInParams) => Promise<SignInResult>;
@@ -123,21 +148,21 @@ export interface IAccountManager {
     limit: number;
     offset: number;
   }>;
-  sendFriendRequest: (params: {
+  sendTrainingPartnerRequest: (params: {
     fromAccountId: string;
     toAccountId: string;
   }) => Promise<{ sent: true }>;
-  acceptFriendRequest: (params: {
+  acceptTrainingPartnerRequest: (params: {
     accountId: string;
     requesterAccountId: string;
   }) => Promise<{ accepted: true }>;
-  cancelFriendRequest: (params: {
+  cancelTrainingPartnerRequest: (params: {
     fromAccountId: string;
     toAccountId: string;
   }) => Promise<{ canceled: true }>;
-  removeFriend: (params: {
+  removeTrainingPartner: (params: {
     accountId: string;
-    friendAccountId: string;
+    trainingPartnerId: string;
   }) => Promise<{ removed: true }>;
   blockAccount: (params: {
     accountId: string;
@@ -147,13 +172,13 @@ export interface IAccountManager {
     accountId: string;
     blockedAccountId: string;
   }) => Promise<{ unblocked: true }>;
-  getFriendRelationshipStatus: (params: {
+  getTrainingPartnerRelationshipStatus: (params: {
     accountId: string;
     otherAccountId: string;
-  }) => Promise<{ status: FriendRelationshipStatus }>;
-  getFriendRequests: (params: {
+  }) => Promise<{ status: TrainingPartnerRelationshipStatus }>;
+  getTrainingPartnerRequests: (params: {
     accountId: string;
-    direction: FriendRequestDirection;
+    direction: TrainingPartnerRequestDirection;
     limit: number;
     offset: number;
   }) => Promise<{
@@ -161,27 +186,35 @@ export interface IAccountManager {
     limit: number;
     offset: number;
   }>;
-  getFriends: (params: {
+  getTrainingPartners: (params: {
     accountId: string;
     search?: string;
     limit: number;
     offset: number;
   }) => Promise<{
-    items: AccountDetail[];
+    items: TrainingPartnerDetail[];
     limit: number;
     offset: number;
   }>;
-  searchFriends: (params: {
+  searchTrainingPartners: (params: {
     accountId: string;
     search: string;
     limit: number;
     offset: number;
   }) => Promise<{
-    items: AccountDetail[];
+    items: TrainingPartnerDetail[];
     limit: number;
     offset: number;
   }>;
-  getPotentialFriends: (params: {
+  createCustomTrainingPartner: (params: {
+    accountId: string;
+    firstName?: string;
+    lastName?: string;
+    partnerWeight?: WeightClass;
+    partnerAge?: AgeClass;
+    partnerBelt?: Belt;
+  }) => Promise<TrainingPartnerDetail>;
+  getPotentialTrainingPartners: (params: {
     accountId: string;
     search?: string;
     limit: number;
@@ -191,7 +224,7 @@ export interface IAccountManager {
     limit: number;
     offset: number;
   }>;
-  searchPotentialFriends: (params: {
+  searchPotentialTrainingPartners: (params: {
     accountId: string;
     search: string;
     limit: number;
@@ -216,7 +249,10 @@ export type JournalEntryDetail = {
   intensity?: Intensity;
   isNoGi?: boolean;
   trainingPartner?: {
+    id: string;
     accountId?: string;
+    firstName?: string;
+    lastName?: string;
     weight?: WeightClass;
     age?: AgeClass;
     belt?: Belt;
@@ -260,7 +296,9 @@ export interface IJournalEntryManager {
     notes?: string;
     intensity?: Intensity;
     isNoGi?: boolean;
-    trainingPartnerAccountId?: string;
+    trainingPartnerId?: string;
+    partnerFirstName?: string;
+    partnerLastName?: string;
     partnerWeight?: WeightClass;
     partnerAge?: AgeClass;
     partnerBelt?: Belt;
@@ -277,7 +315,9 @@ export interface IJournalEntryManager {
       notes?: string;
       intensity?: Intensity;
       isNoGi?: boolean;
-      trainingPartnerAccountId?: string;
+      trainingPartnerId?: string;
+      partnerFirstName?: string;
+      partnerLastName?: string;
       partnerWeight?: WeightClass;
       partnerAge?: AgeClass;
       partnerBelt?: Belt;
@@ -287,7 +327,10 @@ export interface IJournalEntryManager {
   // Manager invariants:
   // - If category is "tap", isSuccessful is always cleared.
   // - trainedDate defaults to createdDate when omitted.
-  // - Partner inputs are mutually exclusive: friend partner, custom partner, or no partner.
+  // - Partner inputs are mutually exclusive: training partner, custom partner, or no partner.
+  // - Account-backed training partner assignments must reference an accepted TrainingPartner row owned by the entry owner.
+  // - Removing an account-backed training partner clears partner on both reciprocal TrainingPartner rows instead of deleting them.
+  // - Removed rows snapshot the former partner's firstName, lastName, age, weight, and belt for historical journal display.
   getJournalEntry: (params: { id: string }) => Promise<JournalEntryDetail>;
   getJournalEntries: (params: {
     accountId: string;
@@ -307,10 +350,11 @@ export interface IJournalEntryManager {
   deleteJournalEntries: (params: {
     id: string[];
   }) => Promise<{ deleted: true }>;
-  assignFriendToJournalEntry: (params: {
+  assignTrainingPartnerToJournalEntry: (params: {
     accountId: string;
+    trainingPartnerId: string;
     journalEntryId: string;
-  }) => Promise<JournalEntryDetail>; // Use NotificationManager.sendJournalEntryAssignment notification to friend
+  }) => Promise<JournalEntryDetail>; // Use NotificationManager.sendJournalEntryAssignment notification to the account-backed training partner
   createTag: (params: {
     category: Category;
     generatedBy: string;

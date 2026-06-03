@@ -6,7 +6,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 
 - Protected endpoints use auth middleware to refresh and validate the session, then expose the authenticated `accountId` to the handler.
 - Auth-only endpoints should redirect or reject authenticated users where appropriate.
-- Public endpoints may still read the current session when present so profile and friendship state can be scoped to the viewer.
+- Public endpoints may still read the current session when present so profile and training-partner state can be scoped to the viewer.
 - List endpoints use `limit` and `offset`; journal-entry filters and sorting should stay URL-backed on the client.
 - Endpoint handlers validate and normalize input, enforce resource-specific authorization, then call managers with trusted params.
 
@@ -62,7 +62,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 
 ### `GET /api/accounts/search`
 
-- UI: `PublicProfileSearch`, side-panel profile search, find friends.
+- UI: `PublicProfileSearch`, side-panel profile search, find training partners.
 - Auth middleware: optional; required if blocked/removed relationship state must affect results.
 - Input query:
   - `search?: string`
@@ -76,11 +76,11 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - UI: `PublicProfile` modal.
 - Auth middleware: optional.
 - Input path: `id`.
-- Output: public profile detail with privacy-scoped profile fields, aggregate visibility flags, journal visibility flags, and `FriendRelationshipStatus` for authenticated viewers.
+- Output: public profile detail with privacy-scoped profile fields, aggregate visibility flags, journal visibility flags, and `TrainingPartnerRelationshipStatus` for authenticated viewers.
 - Manager methods:
   - `IAccountManager.getAccount`
   - `IAccountManager.getPrivacySettings`
-  - `IAccountManager.getFriendRelationshipStatus` when authenticated
+  - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated
   - Endpoint stitches visible profile fields, aggregate sections, and journal sections based on privacy.
 
 ### `GET /api/account/privacy`
@@ -107,94 +107,112 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - Output: `AccountPrivacySettings`.
 - Manager methods: `IAccountManager.updatePrivacySettings({ accountId, options })`.
 
-## Friends
+## Training Partners
 
-### `GET /api/friends`
+Accepted account-backed training partners are stored as two `TrainingPartner` rows: one owned by each account. Removing a training partner keeps both rows, clears each row's `partner`, and snapshots the former partner's first name, last name, age, weight, and belt onto the row. Custom training partners are single owner-only rows and do not have requests or reciprocal account links.
 
-- UI: `FriendsListModal`, `FriendsSelectMenu`, `TrainingPartnerInput`.
+### `GET /api/training-partners`
+
+- UI: `TrainingPartnersListModal`, `TrainingPartnerSelectMenu`, `TrainingPartnerInput`.
 - Auth middleware: yes.
 - Input query:
   - `search?: string`
   - `limit: number`
   - `offset: number`
-- Output: `{ items: AccountDetail[]; limit: number; offset: number }`.
-- Manager methods: `IAccountManager.getFriends({ accountId, search, limit, offset })`, or `IAccountManager.searchFriends` when `search` is present.
+- Output: `{ items: TrainingPartnerDetail[]; limit: number; offset: number }`.
+- Manager methods: `IAccountManager.getTrainingPartners({ accountId, search, limit, offset })`, or `IAccountManager.searchTrainingPartners` when `search` is present.
 
-### `GET /api/friends/potential`
+### `GET /api/training-partners/potential`
 
-- UI: `FriendsListModal` add friend action, empty-state "Find friends".
+- UI: `TrainingPartnersListModal` add training partner action, empty-state "Find training partners".
 - Auth middleware: yes.
 - Input query:
   - `search?: string`
   - `limit: number`
   - `offset: number`
 - Output: `{ items: PublicAccountSummary[]; limit: number; offset: number }`.
-- Manager methods: `IAccountManager.getPotentialFriends({ accountId, search, limit, offset })`, or `IAccountManager.searchPotentialFriends` when `search` is present.
+- Manager methods: `IAccountManager.getPotentialTrainingPartners({ accountId, search, limit, offset })`, or `IAccountManager.searchPotentialTrainingPartners` when `search` is present.
 
-### `GET /api/friends/requests`
+### `POST /api/training-partners/custom`
 
-- UI: pending inbound and pending outbound friend request states.
+- UI: `CustomPartnerInput`, `TrainingPartnersListModal` add custom training partner action.
+- Auth middleware: yes.
+- Input:
+  - `firstName?: string`
+  - `lastName?: string`
+  - `partnerWeight?: WeightClass`
+  - `partnerAge?: AgeClass`
+  - `partnerBelt?: Belt`
+- Output: `TrainingPartnerDetail`.
+- Manager methods: `IAccountManager.createCustomTrainingPartner({ accountId: session.account.id, ... })`.
+- Side effects: creates one owner-only `TrainingPartner` row with no reciprocal row.
+
+### `GET /api/training-partners/requests`
+
+- UI: pending inbound and pending outbound training partner request states.
 - Auth middleware: yes.
 - Input query:
   - `direction: "inbound" | "outbound"`
   - `limit: number`
   - `offset: number`
 - Output: `{ items: AccountDetail[]; limit: number; offset: number }`.
-- Manager methods: `IAccountManager.getFriendRequests({ accountId, direction, limit, offset })`.
+- Manager methods: `IAccountManager.getTrainingPartnerRequests({ accountId, direction, limit, offset })`.
 
-### `GET /api/friends/:id/status`
+### `GET /api/training-partners/:id/status`
 
 - UI: `PublicProfile` relationship states.
 - Auth middleware: yes.
-- Input path: `id`.
-- Output: `{ status: FriendRelationshipStatus }`.
-- Manager methods: `IAccountManager.getFriendRelationshipStatus({ accountId, otherAccountId: id })`.
+- Input path: `id` is the other account id.
+- Output: `{ status: TrainingPartnerRelationshipStatus }`.
+- Manager methods: `IAccountManager.getTrainingPartnerRelationshipStatus({ accountId, otherAccountId: id })`.
 
-### `POST /api/friends/:id/request`
+### `POST /api/training-partners/:id/request`
 
-- UI: add friend.
+- UI: add training partner.
 - Auth middleware: yes.
-- Input path: `id`.
+- Input path: `id` is the recipient account id.
 - Output: `{ sent: true }`.
-- Manager methods: `IAccountManager.sendFriendRequest({ fromAccountId: session.account.id, toAccountId: id })`.
+- Manager methods: `IAccountManager.sendTrainingPartnerRequest({ fromAccountId: session.account.id, toAccountId: id })`.
 
-### `POST /api/friends/:id/accept`
+### `POST /api/training-partners/:id/accept`
 
-- UI: pending inbound friend request state.
+- UI: pending inbound training partner request state.
 - Auth middleware: yes.
-- Input path: `id`.
+- Input path: `id` is the requester account id.
 - Output: `{ accepted: true }`.
-- Manager methods: `IAccountManager.acceptFriendRequest({ accountId: session.account.id, requesterAccountId: id })`.
+- Manager methods: `IAccountManager.acceptTrainingPartnerRequest({ accountId: session.account.id, requesterAccountId: id })`.
+- Side effects: deletes the pending request and creates both reciprocal `TrainingPartner` rows, one owned by the accepting account and one owned by the requester.
 
-### `DELETE /api/friends/:id/request`
+### `DELETE /api/training-partners/:id/request`
 
-- UI: pending outbound friend request cancellation.
+- UI: pending outbound training partner request cancellation.
 - Auth middleware: yes.
-- Input path: `id`.
+- Input path: `id` is the recipient account id.
 - Output: `{ canceled: true }`.
-- Manager methods: `IAccountManager.cancelFriendRequest({ fromAccountId: session.account.id, toAccountId: id })`.
+- Manager methods: `IAccountManager.cancelTrainingPartnerRequest({ fromAccountId: session.account.id, toAccountId: id })`.
 
-### `DELETE /api/friends/:id`
+### `DELETE /api/training-partners/:id`
 
-- UI: remove friend, unfriend confirmation.
+- UI: remove training partner confirmation.
 - Auth middleware: yes.
-- Input path: `id`.
+- Input path: `id` is the `TrainingPartner` row id owned by the authenticated account.
 - Output: `{ removed: true }`.
-- Manager methods: `IAccountManager.removeFriend({ accountId: session.account.id, friendAccountId: id })`.
+- Manager methods: `IAccountManager.removeTrainingPartner({ accountId: session.account.id, trainingPartnerId: id })`.
+- Side effects: for account-backed partners, clears `partner` on both reciprocal `TrainingPartner` rows and copies each former partner's first name, last name, age, weight, and belt into the corresponding owner-only snapshot fields. For custom partners, clears no account link because none exists and leaves the owner-only row intact.
 
-### `POST /api/friends/:id/block`
+### `POST /api/training-partners/:id/block`
 
 - UI: blocked relationship state.
 - Auth middleware: yes.
-- Input path: `id`.
+- Input path: `id` is the blocked account id.
 - Output: `{ blocked: true }`.
 - Manager methods: `IAccountManager.blockAccount({ accountId: session.account.id, blockedAccountId: id })`.
 
-### `DELETE /api/friends/:id/block`
+### `DELETE /api/training-partners/:id/block`
 
 - UI: blocked relationship state recovery.
 - Auth middleware: yes.
-- Input path: `id`.
+- Input path: `id` is the blocked account id.
 - Output: `{ unblocked: true }`.
 - Manager methods: `IAccountManager.unblockAccount({ accountId: session.account.id, blockedAccountId: id })`.
 
@@ -230,8 +248,8 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
   - `intensity?: Intensity`
   - `isNoGi?: boolean`
   - exactly one partner mode:
-    - `trainingPartnerAccountId?: string`
-    - custom partner fields: `partnerWeight?: WeightClass`, `partnerAge?: AgeClass`, `partnerBelt?: Belt`
+    - `trainingPartnerId?: string`
+    - custom partner fields: `partnerFirstName?: string`, `partnerLastName?: string`, `partnerWeight?: WeightClass`, `partnerAge?: AgeClass`, `partnerBelt?: Belt`
     - no partner fields
   - `trainedDate?: string` ISO date
   - optional endpoint convenience: `createNameTag?: boolean`, `createSetupTag?: boolean`
@@ -239,7 +257,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - Manager methods:
   - `IJournalEntryManager.createJournalEntry`
   - optionally `IJournalEntryManager.createTag` before creation when the user chooses "Create saved tag"
-  - `IJournalEntryManager.assignFriendToJournalEntry` and `INotificationManager.sendJournalEntryAssignmentNotification` if partner assignment notification is handled after creation instead of inside `createJournalEntry`
+  - `IJournalEntryManager.assignTrainingPartnerToJournalEntry` and `INotificationManager.sendJournalEntryAssignmentNotification` if partner assignment notification is handled after creation instead of inside `createJournalEntry`
 
 ### `GET /api/journal-entries/:id`
 
@@ -258,7 +276,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - Output: `JournalEntryDetail`.
 - Manager methods:
   - `IJournalEntryManager.updateJournalEntry`
-  - `IJournalEntryManager.assignFriendToJournalEntry` and `INotificationManager.sendJournalEntryAssignmentNotification` when assigning a new friend partner needs notification
+  - `IJournalEntryManager.assignTrainingPartnerToJournalEntry` and `INotificationManager.sendJournalEntryAssignmentNotification` when assigning a new account-backed training partner needs notification
 
 ### `DELETE /api/journal-entries/:id`
 
@@ -279,7 +297,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - Output: `{ items: JournalEntryDetail[]; limit: number; offset: number; visibility: PrivacyType }`.
 - Manager methods:
   - `IAccountManager.getPrivacySettings`
-  - `IAccountManager.getFriendRelationshipStatus` when authenticated
+  - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated
   - `IJournalEntryManager.getJournalEntries({ accountId: id, filter, sort, limit, offset })` after the endpoint determines the viewer can see entries.
 
 ### `GET /api/aggregates`
@@ -309,7 +327,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - Output: same aggregate response plus `visibility: PrivacyType`.
 - Manager methods:
   - `IAccountManager.getPrivacySettings`
-  - `IAccountManager.getFriendRelationshipStatus` when authenticated
+  - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated
   - `IAggregateManager.getAggregateStats({ accountId: id, category, timeline, startDate, endDate, successfulOnly })` after the endpoint determines the viewer can see aggregates.
 
 ## Technique Tags

@@ -22,7 +22,7 @@ export type AgeClass =
   | "80s"
   | "90s";
 
-export type Intensity = "playful" | "casual" | "competitive";
+export type Intensity = "playful" | "casual" | "intense";
 
 export type Category =
   | "submission"
@@ -41,7 +41,7 @@ export type Category =
 
 export type NotificationCategory = "journal-entry-partner" | "chat"; // chat is reserved for a future feature
 
-export type PrivacyType = "public" | "friends-only" | "private";
+export type PrivacyType = "public" | "training-partners" | "private";
 export type AuthProvider = "google" | "magic-link";
 
 // Database tables
@@ -64,6 +64,42 @@ export interface Account {
   authProvider: AuthProvider;
 
   privacySettings: AccountPrivacySettings; // one-to-one
+  trainingPartnerRequestsSent: TrainingPartnerRequest[];
+  trainingPartnerRequestsReceived: TrainingPartnerRequest[];
+  trainingPartners: TrainingPartner[];
+  trainingPartnerBy: TrainingPartner[];
+
+  createdDate: Date;
+  updatedDate: Date;
+}
+
+export interface TrainingPartnerRequest {
+  id: string;
+  requester: Account; // many-to-one
+  recipient: Account; // many-to-one
+  // One pending request may exist between two accounts at a time.
+  // Accepting a request deletes it and creates reciprocal TrainingPartner rows.
+
+  createdDate: Date;
+  updatedDate: Date;
+}
+
+export interface TrainingPartner {
+  id: string;
+  owner: Account; // many-to-one
+  partner?: Account; // many-to-one, nullable because training partner can be custom
+  // Account-backed training partners are reciprocal: when account A accepts account B,
+  // one row is created for owner A -> partner B and one row for owner B -> partner A.
+  // Removing either side keeps both rows, clears partner on both rows, and copies
+  // the former partner's first name, last name, age, weight, and belt into the
+  // owner-only snapshot fields below.
+  // Snapshot age is derived from the former partner's birthday at removal time.
+  // If training partner not available, allow custom partner stat entry.
+  firstName?: string;
+  lastName?: string;
+  partnerWeight?: WeightClass;
+  partnerAge?: AgeClass;
+  partnerBelt?: Belt;
 
   createdDate: Date;
   updatedDate: Date;
@@ -86,11 +122,7 @@ export interface JournalEntry {
   isNoGi?: boolean;
 
   // Training Partner
-  trainingPartner?: Account; // many-to-one
-  // If training partner not available, allow custom partner stat entry
-  partnerWeight?: WeightClass;
-  partnerAge?: AgeClass;
-  partnerBelt?: Belt;
+  trainingPartner?: TrainingPartner; // many-to-one
 
   trainedDate: Date; // defaults to createdDate when not provided
   createdDate: Date;
@@ -126,13 +158,13 @@ export interface AccountPrivacySettings {
   accountId: string;
 
   profile: PrivacyType; // default: public
-  journalEntries: PrivacyType; // default: friends-only
-  submissions: PrivacyType; // default: friends-only
-  sweeps: PrivacyType; // default: friends-only
-  reversals: PrivacyType; // default: friends-only
-  backtakes: PrivacyType; // default: friends-only
-  guardPasses: PrivacyType; // default: friends-only
-  taps: PrivacyType; // default: friends-only
+  journalEntries: PrivacyType; // default: training-partners
+  submissions: PrivacyType; // default: training-partners
+  sweeps: PrivacyType; // default: training-partners
+  reversals: PrivacyType; // default: training-partners
+  backtakes: PrivacyType; // default: training-partners
+  guardPasses: PrivacyType; // default: training-partners
+  taps: PrivacyType; // default: training-partners
 
   createdDate: Date;
   updatedDate: Date;
