@@ -13,15 +13,12 @@ export default function Home() {
 
         <div className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="max-w-2xl">
-            <p className="mb-4 text-sm font-medium uppercase tracking-wide text-emerald-700">
-              Mindful mat notes
-            </p>
-            <h1 className="text-4xl font-semibold leading-tight text-zinc-950 sm:text-6xl">
-              Track grappling progress with intention.
+            <h1 className="text-5xl italic font-black leading-tight text-zinc-950 sm:text-6xl">
+              Track mat progress with intention.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-zinc-700">
-              Kuzushi Cafe helps BJJ hobbyists record training sessions, reflect
-              on problems, and turn journal entries into visible progress.
+              Kuzushi Cafe is a free grappling journaling and tracking app. No
+              ads, no clutter, no persistent subscription popups.
             </p>
           </div>
 
