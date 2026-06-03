@@ -67,8 +67,9 @@ For Vercel, configure these environment variables:
 
 - [x] Scaffold the Next.js TypeScript app with Tailwind CSS or shadcn/ui, linting, formatting, and baseline test tooling.
 - [x] Configure Supabase, environment variables, local development scripts, and deployment settings for Vercel.
-- [ ] Translate `docs/data-model.ts` into database migrations with tables, foreign keys, constraints, indexes, privacy defaults, and RLS policies.
+- [x] Translate `docs/data-model.ts` into database migrations with tables, foreign keys, constraints, indexes, privacy defaults, and RLS policies.
 - [ ] Seed public technique tags from `docs/seeder.ts`.
+- [ ] Implement all components and create a components page library
 - [ ] Implement authentication with Google SSO, magic-link email, session refresh middleware, sign-out, auth-only redirects, and protected-route handling.
 - [ ] Implement account creation after provider identity verification, profile completion checks, and the complete-profile redirect flow.
 - [ ] Build account and privacy managers from `docs/managers.ts`, including public-profile visibility and relationship status helpers.
@@ -92,4 +93,5 @@ For Vercel, configure these environment variables:
 - [ ] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
 - [ ] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.
 - [ ] Add integration tests for managers, endpoint authorization, journal-entry invariants, privacy scoping, training-partner relationships, and donation status handling.
+- [ ] Add /privacy-policy and /terms-of-service
 - [ ] Add end-to-end tests for sign-in, profile completion, journal entry CRUD, filters and sorting, training-partner requests, public profile visibility, saved techniques, notifications, and donation checkout return flows.
