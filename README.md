@@ -34,10 +34,39 @@ The aim is to keep the app free. As much as possible, the app will be ad-free or
 - Tailwind CSS or shadcn/ui
 - Zod for validation
 
+## Local Development
+
+Use a native Node.js 22 install for parity with Vercel and the Supabase CLI.
+Copy `.env.example` to `.env.local`, then fill in the Supabase anon and
+service-role keys from `supabase status` after starting the local stack.
+
+```bash
+npm install
+npm run supabase:start
+npm run dev
+```
+
+Useful local commands:
+
+- `npm run dev` starts the Next.js app.
+- `npm run dev:local` starts Supabase, then starts Next.js.
+- `npm run supabase:status` prints local API, Studio, and auth keys.
+- `npm run supabase:reset` rebuilds the local database from migrations and seed files.
+- `npm run supabase:types` regenerates `src/lib/supabase/database.types.ts`.
+
+For Vercel, configure these environment variables:
+
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`
+- `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET`
+
 ## Todos
 
 - [x] Scaffold the Next.js TypeScript app with Tailwind CSS or shadcn/ui, linting, formatting, and baseline test tooling.
-- [ ] Configure Supabase, environment variables, local development scripts, and deployment settings for Vercel.
+- [x] Configure Supabase, environment variables, local development scripts, and deployment settings for Vercel.
 - [ ] Translate `docs/data-model.ts` into database migrations with tables, foreign keys, constraints, indexes, privacy defaults, and RLS policies.
 - [ ] Seed public technique tags from `docs/seeder.ts`.
 - [ ] Implement authentication with Google SSO, magic-link email, session refresh middleware, sign-out, auth-only redirects, and protected-route handling.
