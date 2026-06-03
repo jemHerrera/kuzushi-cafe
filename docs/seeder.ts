@@ -125,6 +125,11 @@ export const seeder: {
     category: "submission",
   },
   {
+    key: "mexicana",
+    label: "Mexicana",
+    category: "submission",
+  },
+  {
     key: "omoplata",
     label: "Omoplata",
     category: "submission",
