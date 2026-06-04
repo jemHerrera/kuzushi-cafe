@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-stone-50 text-zinc-950">
@@ -6,15 +8,18 @@ export default function Home() {
           <span className="text-sm font-semibold uppercase tracking-wide text-zinc-700">
             Kuzushi Cafe
           </span>
-          <span className="rounded-full border border-zinc-300 px-3 py-1 text-sm text-zinc-600">
-            Scaffold
-          </span>
+          <Link
+            className="rounded-full border border-zinc-300 px-3 py-1 text-sm font-semibold text-zinc-700 transition hover:bg-white"
+            href="/components"
+          >
+            Component library
+          </Link>
         </header>
 
         <div className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="max-w-2xl">
-            <h1 className="text-5xl italic font-black leading-tight text-zinc-950 sm:text-6xl">
-              Track mat progress with intention.
+            <h1 className="text-5xl font-black italic leading-tight text-zinc-950 sm:text-6xl">
+              Track grappling progress with intention.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-zinc-700">
               Kuzushi Cafe is a free grappling journaling and tracking app. No
