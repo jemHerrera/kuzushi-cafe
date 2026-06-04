@@ -50,8 +50,11 @@ Useful local commands:
 
 - `npm run dev` starts the Next.js app.
 - `npm run dev:local` starts Supabase, then starts Next.js.
+- Supabase scripts load `.env.local`, call the installed macOS arm64 CLI directly, and disable CLI telemetry to avoid local wrapper architecture issues.
 - `npm run supabase:status` prints local API, Studio, and auth keys.
 - `npm run supabase:reset` rebuilds the local database from migrations and seed files.
+- `npm run supabase:link` links the repo using `SUPABASE_PROJECT_REF` from `.env.local`.
+- `npm run supabase:push` applies pending local migrations to the linked Supabase project.
 - `npm run supabase:types` regenerates `src/lib/supabase/database.types.ts`.
 
 For Vercel, configure these environment variables:
@@ -68,7 +71,7 @@ For Vercel, configure these environment variables:
 - [x] Scaffold the Next.js TypeScript app with Tailwind CSS or shadcn/ui, linting, formatting, and baseline test tooling.
 - [x] Configure Supabase, environment variables, local development scripts, and deployment settings for Vercel.
 - [x] Translate `docs/data-model.ts` into database migrations with tables, foreign keys, constraints, indexes, privacy defaults, and RLS policies.
-- [ ] Seed public technique tags from `docs/seeder.ts`.
+- [x] Seed public technique tags from `docs/seeder.ts`.
 - [ ] Implement all components and create a components page library
 - [ ] Implement authentication with Google SSO, magic-link email, session refresh middleware, sign-out, auth-only redirects, and protected-route handling.
 - [ ] Implement account creation after provider identity verification, profile completion checks, and the complete-profile redirect flow.
