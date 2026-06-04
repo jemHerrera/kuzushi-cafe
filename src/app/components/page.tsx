@@ -47,6 +47,7 @@ import {
   TrainingPartnersListModal,
   UserSummary,
 } from "@/components/kuzushi-ui";
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 const sections = [
@@ -55,7 +56,7 @@ const sections = [
     items: [
       { name: "ButtonPrimary", element: <ButtonPrimary /> },
       { name: "ButtonSecondary", element: <ButtonSecondary /> },
-      { name: "IconButton", element: <IconButton label="Example icon button" icon="+" /> },
+      { name: "IconButton", element: <IconButton label="Example icon button" icon={<Plus className="size-4" />} /> },
     ],
   },
   {

@@ -1,3 +1,4 @@
+import { Pencil, Trash2 } from "lucide-react";
 import { IconButton } from "./IconButton";
 import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import { UserSummary } from "./UserSummary";
@@ -22,8 +23,8 @@ export function JournalEntryRow({ entry }: { entry: JournalEntry }) {
       <td className="whitespace-nowrap px-3 py-3 text-sm text-zinc-700">{entry.trainedDate}</td>
       <td className="whitespace-nowrap px-3 py-3">
         <div className="flex gap-2">
-          <IconButton label="Edit entry" icon="edit" />
-          <IconButton label="Delete entry" icon="x" />
+          <IconButton label="Edit entry" icon={<Pencil className="size-4" />} />
+          <IconButton label="Delete entry" icon={<Trash2 className="size-4" />} />
         </div>
       </td>
     </tr>

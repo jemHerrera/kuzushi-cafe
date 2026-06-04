@@ -1,3 +1,4 @@
+import { ArrowLeft, Plus } from "lucide-react";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ModalFrame } from "./ModalFrame";
 import { Field, SelectInput, TextInput } from "./shared";
@@ -5,7 +6,10 @@ import { Field, SelectInput, TextInput } from "./shared";
 export function CustomPartnerInput() {
   return (
     <ModalFrame title="Add custom partner">
-      <button className="w-fit text-sm font-semibold text-zinc-700">Back</button>
+      <button className="inline-flex w-fit items-center gap-2 text-sm font-semibold text-zinc-700">
+        <ArrowLeft className="size-4" />
+        Back
+      </button>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="First name">
           <TextInput value="Alex" />
@@ -30,7 +34,10 @@ export function CustomPartnerInput() {
           </SelectInput>
         </Field>
       </div>
-      <ButtonPrimary>Add partner</ButtonPrimary>
+      <ButtonPrimary>
+        <Plus className="size-4" />
+        Add partner
+      </ButtonPrimary>
     </ModalFrame>
   );
 }

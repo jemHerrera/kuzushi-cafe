@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { Search } from "./Search";
 import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import { sampleTechniques, type Technique } from "./shared";
@@ -22,7 +23,8 @@ export function TechniqueTagSelectMenu({
             <TechniqueCategoryPill category={technique.category} />
           </button>
         ))}
-        <button className="rounded-md border border-dashed border-zinc-300 px-3 py-2 text-left text-sm font-semibold text-zinc-900">
+        <button className="inline-flex items-center gap-2 rounded-md border border-dashed border-zinc-300 px-3 py-2 text-left text-sm font-semibold text-zinc-900">
+          <Plus className="size-4" />
           Add &quot;{search}&quot;
         </button>
       </div>

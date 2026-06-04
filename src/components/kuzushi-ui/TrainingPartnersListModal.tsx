@@ -1,3 +1,4 @@
+import { Minus } from "lucide-react";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { IconButton } from "./IconButton";
 import { ModalFrame } from "./ModalFrame";
@@ -13,7 +14,7 @@ export function TrainingPartnersListModal() {
         {samplePartners.map((partner) => (
           <div key={partner.initials} className="flex items-center gap-2">
             <UserSummary partner={partner} />
-            <IconButton label="Remove training partner" icon="-" />
+            <IconButton label="Remove training partner" icon={<Minus className="size-4" />} />
           </div>
         ))}
       </div>

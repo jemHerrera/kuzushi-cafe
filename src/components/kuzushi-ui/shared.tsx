@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export type Category =
   | "submission"
@@ -102,10 +105,10 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-zinc-800">
+    <Label className="grid gap-2 text-sm font-medium leading-normal text-zinc-800">
       {label}
       {children}
-    </label>
+    </Label>
   );
 }
 
@@ -117,8 +120,8 @@ export function TextInput({
   value?: string;
 }) {
   return (
-    <input
-      className="h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900"
+    <Input
+      className="h-11 rounded-md bg-white px-3 text-sm text-zinc-900"
       defaultValue={value}
       placeholder={placeholder}
     />
@@ -127,8 +130,8 @@ export function TextInput({
 
 export function SelectInput({ children }: { children: ReactNode }) {
   return (
-    <select className="h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-900">
+    <NativeSelect className="w-full" size="default">
       {children}
-    </select>
+    </NativeSelect>
   );
 }

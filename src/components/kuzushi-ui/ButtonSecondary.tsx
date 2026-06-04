@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
+import { Button } from "@/components/ui/button";
 
 export function ButtonSecondary({ children = "Cancel" }: { children?: ReactNode }) {
   return (
-    <button className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50">
+    <Button variant="outline" className="h-10 gap-2 rounded-md px-4 font-semibold">
       {children}
-    </button>
+    </Button>
   );
 }

@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { ButtonPrimary } from "./ButtonPrimary";
 
 export function EmptyState({
@@ -12,7 +13,10 @@ export function EmptyState({
       <h3 className="text-base font-bold text-zinc-950">{title}</h3>
       <p className="mx-auto mt-2 max-w-sm text-sm text-zinc-600">{body}</p>
       <div className="mt-4">
-        <ButtonPrimary>Add journal entry</ButtonPrimary>
+        <ButtonPrimary>
+          <Plus className="size-4" />
+          Add journal entry
+        </ButtonPrimary>
       </div>
     </div>
   );

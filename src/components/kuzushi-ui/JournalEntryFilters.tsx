@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { JournalEntrySearch } from "./JournalEntrySearch";
 import { SelectInput } from "./shared";
@@ -16,7 +17,10 @@ export function JournalEntryFilters() {
       <SelectInput>
         <option>Gi and No-Gi</option>
       </SelectInput>
-      <ButtonPrimary>Add entry</ButtonPrimary>
+      <ButtonPrimary>
+        <Plus className="size-4" />
+        Add entry
+      </ButtonPrimary>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { UserMinus, UserPlus } from "lucide-react";
 import { AggregateOverview } from "./AggregateOverview";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
@@ -15,8 +16,14 @@ export function PublicProfile() {
           <p className="text-sm text-zinc-600">Purple belt - 145 lb</p>
         </div>
         <div className="ml-auto flex flex-wrap gap-2">
-          <ButtonPrimary>Add partner</ButtonPrimary>
-          <ButtonSecondary>Remove</ButtonSecondary>
+          <ButtonPrimary>
+            <UserPlus className="size-4" />
+            Add partner
+          </ButtonPrimary>
+          <ButtonSecondary>
+            <UserMinus className="size-4" />
+            Remove
+          </ButtonSecondary>
         </div>
       </div>
       <AggregateOverview />

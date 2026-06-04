@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { IconButton } from "./IconButton";
 
 export function NotificationItem({
@@ -19,7 +20,7 @@ export function NotificationItem({
             {link}
           </a>
         </div>
-        <IconButton label="Mark as read" icon="ok" />
+        <IconButton label="Mark as read" icon={<Check className="size-4" />} />
       </div>
     </article>
   );
