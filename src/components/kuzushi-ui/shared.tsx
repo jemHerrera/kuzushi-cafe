@@ -141,6 +141,21 @@ export function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+export function formatWeightClass(weight: Partner["weight"]) {
+  return weight === "unknown" ? "Unknown weight" : weight;
+}
+
+export function formatAgeClass(age: Partner["age"]) {
+  if (age === "unknown") return "Unknown age";
+  if (age === "young-adult") return "young adult";
+
+  return age;
+}
+
+export function getPartnerProfileMeta(partner: Partner) {
+  return `${formatWeightClass(partner.weight)} / ${formatAgeClass(partner.age)}`;
+}
+
 export function Field({
   label,
   children,
@@ -156,6 +171,12 @@ export function Field({
   );
 }
 
+export const formControlClass =
+  "h-11 rounded-md bg-white px-3 text-sm text-zinc-900";
+
+const nativeSelectControlClass =
+  "w-full [&_[data-slot=native-select]]:h-11 [&_[data-slot=native-select]]:rounded-md [&_[data-slot=native-select]]:bg-white [&_[data-slot=native-select]]:pl-3 [&_[data-slot=native-select]]:text-zinc-900";
+
 export function TextInput({
   placeholder,
   value,
@@ -165,7 +186,7 @@ export function TextInput({
 }) {
   return (
     <Input
-      className="h-11 rounded-md bg-white px-3 text-sm text-zinc-900"
+      className={formControlClass}
       defaultValue={value}
       placeholder={placeholder}
     />
@@ -174,7 +195,7 @@ export function TextInput({
 
 export function SelectInput({ children }: { children: ReactNode }) {
   return (
-    <NativeSelect className="w-full" size="default">
+    <NativeSelect className={nativeSelectControlClass} size="default">
       {children}
     </NativeSelect>
   );

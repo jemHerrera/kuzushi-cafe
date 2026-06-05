@@ -5,15 +5,32 @@ import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { JournalEntryTable } from "./JournalEntryTable";
 import { ModalFrame } from "./ModalFrame";
+import { getPartnerProfileMeta, samplePartners, type Partner } from "./shared";
 
-export function PublicProfile() {
+export function PublicProfile({
+  partner = samplePartners[0],
+  onClose,
+  withinDialog = false,
+}: {
+  partner?: Partner;
+  onClose?: () => void;
+  withinDialog?: boolean;
+}) {
   return (
-    <ModalFrame title="Public profile">
+    <ModalFrame
+      title="Public profile"
+      onClose={onClose}
+      withinDialog={withinDialog}
+    >
       <div className="flex flex-wrap items-center gap-4">
-        <Avatar initials="MC" size="lg" />
+        <Avatar initials={partner.initials} size="lg" />
         <div>
-          <h3 className="text-xl font-bold text-zinc-950">Maya Chen</h3>
-          <p className="text-sm text-zinc-600">Purple belt - 145 lb</p>
+          <h3 className="text-xl font-bold text-zinc-950">
+            {partner.firstName} {partner.lastName}
+          </h3>
+          <p className="text-sm capitalize text-zinc-600">
+            {getPartnerProfileMeta(partner)}
+          </p>
         </div>
         <div className="ml-auto flex flex-wrap gap-2">
           <ButtonPrimary>

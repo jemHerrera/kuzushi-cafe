@@ -11,7 +11,14 @@ import {
 } from "react";
 import { Avatar } from "./Avatar";
 import { Search } from "./Search";
-import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
+import {
+  beltBorderStyles,
+  cx,
+  formatAgeClass,
+  getPartnerProfileMeta,
+  samplePartners,
+  type Partner,
+} from "./shared";
 
 type TrainingPartnerSelectMenuProps = {
   partners?: Partner[];
@@ -37,8 +44,7 @@ export function TrainingPartnerSelectMenu({
   const [internalSelectedPartner, setInternalSelectedPartner] =
     useState<Partner | null>(value ?? null);
   const [isUnknownSelected, setIsUnknownSelected] = useState(false);
-  const selectedPartner =
-    value !== undefined ? value : internalSelectedPartner;
+  const selectedPartner = value !== undefined ? value : internalSelectedPartner;
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
   const trimmedQuery = query.trim();
@@ -347,21 +353,6 @@ function scoreOrderedMatch(value: string, query: string) {
 
 function getPartnerLabel(partner: Partner) {
   return `${partner.firstName} ${partner.lastName}`;
-}
-
-function getPartnerProfileMeta(partner: Partner) {
-  return `${formatWeightClass(partner.weight)} / ${formatAgeClass(partner.age)}`;
-}
-
-function formatWeightClass(weight: Partner["weight"]) {
-  return weight === "unknown" ? "Unknown weight" : weight;
-}
-
-function formatAgeClass(age: Partner["age"]) {
-  if (age === "unknown") return "Unknown age";
-  if (age === "young-adult") return "young adult";
-
-  return age;
 }
 
 function normalize(value: string) {

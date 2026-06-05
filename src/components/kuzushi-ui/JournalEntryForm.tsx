@@ -11,9 +11,21 @@ import { TechniqueTagSelectMenu } from "./TechniqueTagSelectMenu";
 import { TrainingPartnerInput } from "./TrainingPartnerInput";
 import { Field, SelectInput } from "./shared";
 
-export function JournalEntryForm({ mode }: { mode: "create" | "update" }) {
+export function JournalEntryForm({
+  mode,
+  onClose,
+  withinDialog = false,
+}: {
+  mode: "create" | "update";
+  onClose?: () => void;
+  withinDialog?: boolean;
+}) {
   return (
-    <ModalFrame title={mode === "create" ? "Add journal entry" : "Update journal entry"}>
+    <ModalFrame
+      title={mode === "create" ? "Add journal entry" : "Update journal entry"}
+      onClose={onClose}
+      withinDialog={withinDialog}
+    >
       <Field label="Category">
         <TechniqueCategoryPillSelect />
       </Field>

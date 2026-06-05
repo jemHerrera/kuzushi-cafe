@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { Input } from "@/components/ui/input";
+import { formControlClass } from "./shared";
 
 export function DateSelector() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -23,7 +24,7 @@ export function DateSelector() {
   return (
     <Input
       ref={inputRef}
-      className="h-11 rounded-md bg-white px-3 text-sm text-zinc-900"
+      className={formControlClass}
       defaultValue="2026-06-03"
       onClick={openDatePicker}
       type="date"
