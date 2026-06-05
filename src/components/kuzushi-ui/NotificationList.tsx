@@ -15,7 +15,7 @@ export function NotificationList() {
       <NotificationItem
         heading="Saved technique updated"
         body="Knee cut pass was added to public techniques."
-        link="Open technique"
+        unread={false}
       />
     </aside>
   );

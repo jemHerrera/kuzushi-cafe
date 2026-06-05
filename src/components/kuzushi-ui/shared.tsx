@@ -12,11 +12,26 @@ export type Category =
   | "tap";
 
 export type Belt = "white" | "blue" | "purple" | "brown" | "black";
+export type WeightClass = "unknown" | "feather" | "light" | "middle" | "heavy";
+export type AgeClass =
+  | "unknown"
+  | "kid"
+  | "teen"
+  | "young-adult"
+  | "30s"
+  | "40s"
+  | "50s"
+  | "60s"
+  | "70s"
+  | "80s"
+  | "90s";
 
 export type Partner = {
   firstName: string;
   lastName: string;
   belt: Belt;
+  weight: WeightClass;
+  age: AgeClass;
   initials?: string;
 };
 
@@ -52,6 +67,14 @@ export const beltStyles: Record<Belt, string> = {
   black: "bg-zinc-950 text-white ring-zinc-950",
 };
 
+export const beltBorderStyles: Record<Belt, string> = {
+  white: "border-zinc-300",
+  blue: "border-blue-600",
+  purple: "border-purple-700",
+  brown: "border-amber-900",
+  black: "border-zinc-950",
+};
+
 export const categories = Object.keys(categoryStyles) as Category[];
 
 export const sampleTechniques: Technique[] = [
@@ -62,9 +85,30 @@ export const sampleTechniques: Technique[] = [
 ];
 
 export const samplePartners: Partner[] = [
-  { firstName: "Maya", lastName: "Chen", belt: "purple", initials: "MC" },
-  { firstName: "Noah", lastName: "Reed", belt: "blue", initials: "NR" },
-  { firstName: "Sam", lastName: "Ito", belt: "brown", initials: "SI" },
+  {
+    firstName: "Maya",
+    lastName: "Chen",
+    belt: "purple",
+    weight: "middle",
+    age: "30s",
+    initials: "MC",
+  },
+  {
+    firstName: "Noah",
+    lastName: "Reed",
+    belt: "blue",
+    weight: "light",
+    age: "young-adult",
+    initials: "NR",
+  },
+  {
+    firstName: "Sam",
+    lastName: "Ito",
+    belt: "brown",
+    weight: "heavy",
+    age: "40s",
+    initials: "SI",
+  },
 ];
 
 export const sampleEntries: JournalEntry[] = [

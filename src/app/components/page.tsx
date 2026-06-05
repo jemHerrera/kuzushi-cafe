@@ -6,7 +6,6 @@ import {
   Avatar,
   ButtonPrimary,
   ButtonSecondary,
-  CategorySelect,
   CompleteProfile,
   CustomPartnerInput,
   DateSelector,
@@ -56,7 +55,15 @@ const sections = [
     items: [
       { name: "ButtonPrimary", element: <ButtonPrimary /> },
       { name: "ButtonSecondary", element: <ButtonSecondary /> },
-      { name: "IconButton", element: <IconButton label="Example icon button" icon={<Plus className="size-4" />} /> },
+      {
+        name: "IconButton",
+        element: (
+          <IconButton
+            label="Example icon button"
+            icon={<Plus className="size-4" />}
+          />
+        ),
+      },
     ],
   },
   {
@@ -85,32 +92,18 @@ const sections = [
     title: "Menus",
     items: [
       { name: "TechniqueTagSelectMenu", element: <TechniqueTagSelectMenu /> },
-      { name: "TrainingPartnerSelectMenu", element: <TrainingPartnerSelectMenu /> },
-      { name: "TechniqueCategoryPillSelect", element: <TechniqueCategoryPillSelect /> },
-      { name: "CategorySelect", element: <CategorySelect /> },
+      {
+        name: "TrainingPartnerSelectMenu",
+        element: <TrainingPartnerSelectMenu />,
+      },
+      {
+        name: "TechniqueCategoryPillSelect",
+        element: <TechniqueCategoryPillSelect />,
+      },
       { name: "DateSelector", element: <DateSelector /> },
     ],
   },
-  {
-    title: "Feedback",
-    items: [
-      { name: "AlertBanner", element: <AlertBanner /> },
-      { name: "DonationBanner", element: <DonationBanner /> },
-      { name: "DonationModal", element: <DonationModal /> },
-      { name: "LoadingState", element: <LoadingState /> },
-      { name: "EmptyState", element: <EmptyState /> },
-    ],
-  },
-  {
-    title: "Stats",
-    items: [
-      { name: "StatsChart", element: <StatsChart /> },
-      { name: "StatsRow", element: <StatsRow /> },
-      { name: "AggregateViewFilters", element: <AggregateViewFilters /> },
-      { name: "AggregateView", element: <AggregateView /> },
-      { name: "AggregateOverview", element: <AggregateOverview /> },
-    ],
-  },
+
   {
     title: "Panels",
     items: [
@@ -124,7 +117,10 @@ const sections = [
     title: "Partners",
     items: [
       { name: "CustomPartnerInput", element: <CustomPartnerInput /> },
-      { name: "TrainingPartnersListModal", element: <TrainingPartnersListModal /> },
+      {
+        name: "TrainingPartnersListModal",
+        element: <TrainingPartnersListModal />,
+      },
       { name: "TrainingPartnerInput", element: <TrainingPartnerInput /> },
     ],
   },
@@ -183,6 +179,26 @@ const sections = [
       { name: "SavedTechniqueUpsert", element: <SavedTechniqueUpsert /> },
     ],
   },
+  {
+    title: "Feedback",
+    items: [
+      { name: "AlertBanner", element: <AlertBanner /> },
+      { name: "DonationBanner", element: <DonationBanner /> },
+      { name: "DonationModal", element: <DonationModal /> },
+      { name: "LoadingState", element: <LoadingState /> },
+      { name: "EmptyState", element: <EmptyState /> },
+    ],
+  },
+  {
+    title: "Stats",
+    items: [
+      { name: "StatsChart", element: <StatsChart /> },
+      { name: "StatsRow", element: <StatsRow /> },
+      { name: "AggregateViewFilters", element: <AggregateViewFilters /> },
+      { name: "AggregateView", element: <AggregateView /> },
+      { name: "AggregateOverview", element: <AggregateOverview /> },
+    ],
+  },
 ];
 
 export default function ComponentsPage() {
@@ -191,7 +207,9 @@ export default function ComponentsPage() {
       <div className="mx-auto grid max-w-7xl gap-8">
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-zinc-200 pb-6">
           <div>
-            <p className="text-sm font-bold uppercase text-zinc-600">Kuzushi Cafe</p>
+            <p className="text-sm font-bold uppercase text-zinc-600">
+              Kuzushi Cafe
+            </p>
             <h1 className="mt-2 text-4xl font-black">Component library</h1>
           </div>
           <Link className="text-sm font-semibold text-zinc-700" href="/">
@@ -201,12 +219,21 @@ export default function ComponentsPage() {
 
         {sections.map((section) => (
           <section key={section.title} className="grid gap-4">
-            <h2 className="text-2xl font-black text-zinc-950">{section.title}</h2>
+            <h2 className="text-2xl font-black text-zinc-950">
+              {section.title}
+            </h2>
             <div className="grid gap-4">
               {section.items.map((item) => (
-                <article key={item.name} className="grid gap-3 rounded-lg border border-zinc-200 bg-white/70 p-4">
-                  <h3 className="text-sm font-bold uppercase text-zinc-500">{item.name}</h3>
-                  <div className="min-w-0 rounded-md bg-stone-50 p-4">{item.element}</div>
+                <article
+                  key={item.name}
+                  className="grid gap-3 rounded-lg border border-zinc-200 bg-white/70 p-4"
+                >
+                  <h3 className="text-sm font-bold uppercase text-zinc-500">
+                    {item.name}
+                  </h3>
+                  <div className="min-w-0 rounded-md bg-stone-50 p-4">
+                    {item.element}
+                  </div>
                 </article>
               ))}
             </div>

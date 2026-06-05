@@ -91,7 +91,7 @@ For Vercel, configure these environment variables:
 - [ ] Build journal-entry create and update modals with category, technique/setup tag inputs, attempt/success fields, intensity, gi/no-gi, partner selection, trained date, delete confirmation, and submit states.
 - [ ] Build the journal-entry table with filters, sortable headings, pagination, horizontal mobile scrolling, edit/delete actions, and URL-persisted filters.
 - [ ] Build aggregate overview and aggregate views with timeline filters, success filters, charts, category pills, loading states, empty states, and stats rows.
-- [ ] Build saved-technique UI with search, add, edit, delete, category pills, and "create saved tag" versus "use custom text" flows from journal forms.
+- [ ] Build saved-technique UI with search, add, edit, delete, category pills, and "create saved tag" flows from journal forms.
 - [ ] Build notification UI with list pagination, deep links, mark-read, mark-all-read, empty state, loading state, error state, and retry.
 - [ ] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
 - [ ] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.

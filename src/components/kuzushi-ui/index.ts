@@ -5,7 +5,6 @@ export { AlertBanner } from "./AlertBanner";
 export { Avatar } from "./Avatar";
 export { ButtonPrimary } from "./ButtonPrimary";
 export { ButtonSecondary } from "./ButtonSecondary";
-export { CategorySelect } from "./CategorySelect";
 export { CompleteProfile } from "./CompleteProfile";
 export { CustomPartnerInput } from "./CustomPartnerInput";
 export { DateSelector } from "./DateSelector";

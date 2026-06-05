@@ -1,7 +1,14 @@
 import { SearchIcon } from "lucide-react";
+import { forwardRef, type ComponentProps } from "react";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
-export function Search({ placeholder = "Search" }: { placeholder?: string }) {
+type SearchProps = ComponentProps<"input">;
+
+export const Search = forwardRef<HTMLInputElement, SearchProps>(function Search(
+  { className, placeholder = "Search", ...props },
+  ref,
+) {
   return (
     <label className="relative block">
       <SearchIcon
@@ -10,9 +17,14 @@ export function Search({ placeholder = "Search" }: { placeholder?: string }) {
         strokeWidth="2"
       />
       <Input
-        className="h-11 rounded-md bg-white pl-9 pr-3 text-sm text-zinc-900"
+        className={cn(
+          "h-11 rounded-md bg-white pl-9 pr-3 text-sm text-zinc-900",
+          className,
+        )}
         placeholder={placeholder}
+        ref={ref}
+        {...props}
       />
     </label>
   );
-}
+});

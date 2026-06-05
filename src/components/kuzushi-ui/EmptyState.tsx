@@ -3,7 +3,7 @@ import { ButtonPrimary } from "./ButtonPrimary";
 
 export function EmptyState({
   title = "No journal entries",
-  body = "Entries track training patterns. Add one to start seeing progress.",
+  body = "Entries track training patterns. Add one to get started.",
 }: {
   title?: string;
   body?: string;

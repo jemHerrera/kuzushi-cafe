@@ -1,19 +1,50 @@
+"use client";
+
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
-import { categories } from "./shared";
+import { categories, categoryStyles, cx, type Category } from "./shared";
 
 export function TechniqueCategoryPillSelect() {
+  const [selectedCategory, setSelectedCategory] =
+    useState<Category>("submission");
+
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-3 shadow-sm">
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <Select
+      value={selectedCategory}
+      onValueChange={(value) => setSelectedCategory(value as Category)}
+    >
+      <SelectTrigger
+        aria-label="Technique category"
+        className={cx(
+          "h-auto rounded-full border px-2.5 py-1 text-xs font-semibold capitalize shadow-none",
+          categoryStyles[selectedCategory],
+        )}
+      >
+        <SelectValue>{selectedCategory}</SelectValue>
+      </SelectTrigger>
+      <SelectContent
+        className="min-w-44 p-1"
+        align="start"
+        position="popper"
+      >
         {categories.map((category) => (
-          <button
+          <SelectItem
             key={category}
-            className="rounded-md border border-zinc-200 p-2 text-left hover:bg-zinc-50"
+            value={category}
+            textValue={category}
+            className="py-1 pr-8 pl-1.5"
           >
             <TechniqueCategoryPill category={category} />
-          </button>
+          </SelectItem>
         ))}
-      </div>
-    </div>
+      </SelectContent>
+    </Select>
   );
 }

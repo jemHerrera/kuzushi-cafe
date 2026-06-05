@@ -4,9 +4,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
-import { CategorySelect } from "./CategorySelect";
 import { DateSelector } from "./DateSelector";
 import { ModalFrame } from "./ModalFrame";
+import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
 import { TechniqueTagSelectMenu } from "./TechniqueTagSelectMenu";
 import { TrainingPartnerInput } from "./TrainingPartnerInput";
 import { Field, SelectInput } from "./shared";
@@ -14,7 +14,9 @@ import { Field, SelectInput } from "./shared";
 export function JournalEntryForm({ mode }: { mode: "create" | "update" }) {
   return (
     <ModalFrame title={mode === "create" ? "Add journal entry" : "Update journal entry"}>
-      <CategorySelect />
+      <Field label="Category">
+        <TechniqueCategoryPillSelect />
+      </Field>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Technique">
           <TechniqueTagSelectMenu />

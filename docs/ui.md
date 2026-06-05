@@ -5,7 +5,7 @@
 - `ButtonPrimary`
 - `ButtonSecondary`
 - `TechniqueTagSelectMenu` - Single-select menu with search. Shows technique name and category, plus an "Add technique" action.
-- `TrainingPartnerSelectMenu` - Single-select menu with list of [avatar, name, and belt], also has "Add custom partner" button.
+- `TrainingPartnerSelectMenu` - Single-select menu with search, unknown partner, list of [avatar, name, weight, and age], and "Add custom partner" button.
 - `TechniqueCategoryPill`
 - `TechniqueCategoryPillSelect` - Single-select menu with color-coded category pills.
 - `IconButton`
@@ -18,13 +18,12 @@
 - `NotificationItem`
   - Heading
   - Body
-  - Link
-  - Mark-as-read button
+  - Clickable container
+  - Read/unread indicator
 - `UserSummary` - Avatar, first name, last name, and belt color.
 - `DonationBanner`
 - `DonationModal`
 - `AlertBanner`
-- `CategorySelect` - Color-coded category options. Includes Gi/No-Gi toggle.
 - `DateSelector`
 - `StatsChart`
 - `StatsRow` - Label, progress line, count, and percentage.
@@ -54,7 +53,7 @@
 - `TrainingPartnerInput` - `TrainingPartnerSelectMenu` or `CustomPartnerInput`.
   - Includes a "No partner" option for solo drilling, unknown partners, or entries where partner details should not be recorded.
 - `JournalEntryCreate` (Modal)
-  - `CategorySelect`
+  - `TechniqueCategoryPillSelect`
   - Technique (`TechniqueTag`, maps to `JournalEntry.name`)
   - Setup (`TechniqueTag`, maps to `JournalEntry.setup`)
   - Notes text area
@@ -66,7 +65,7 @@
   - Trained date, defaulting to `createdDate` when left blank.
   - Add button.
 - `JournalEntryUpdate` (Modal)
-  - `CategorySelect`
+  - `TechniqueCategoryPillSelect`
   - Technique (`TechniqueTag`, maps to `JournalEntry.name`)
   - Setup (`TechniqueTag`, maps to `JournalEntry.setup`)
   - Notes text area
@@ -168,10 +167,7 @@
 ## Decisions
 
 - Use account-level and category-level privacy settings for scoped profile, journal, and aggregate views.
-- Technique and setup inputs should support saved tags and free text. Use fuzzy-searchable select fields with an "Add `{searchString}`" option.
-- The "Add `{searchString}`" option has two modes:
-  - `Create saved tag`: opens tag creation and uses the selected journal category as the tag category.
-  - `Use as custom text`: stores the search string directly without creating a saved tag.
+- Technique and setup inputs should support saved tags. Use fuzzy-searchable select fields with a `Create saved tag "{searchString}"` option that opens tag creation and uses the selected journal category as the tag category.
 - Category-specific privacy settings currently cover `AggregateView` visibility for submissions, sweeps, reversals, back takes, guard passes, and taps. Add more category privacy controls later as the product needs them.
 - Training-partner/profile UI must handle these relationship states: add training partner, pending inbound, pending outbound, accepted, blocked or removed, and remove training partner confirmation.
 - Removing an account-backed training partner should keep historical/custom partner details visible by using the stored first name, last name, age, weight, and belt snapshot after the account link is cleared.
