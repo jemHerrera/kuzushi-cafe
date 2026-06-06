@@ -11,9 +11,13 @@ export function MyProfile({
   withinDialog?: boolean;
 }) {
   return (
-    <ModalFrame title="My profile" onClose={onClose} withinDialog={withinDialog}>
+    <ModalFrame
+      title="My profile"
+      onClose={onClose}
+      withinDialog={withinDialog}
+    >
       <Avatar initials="JH" size="lg" />
-      <ProfileFields />
+      <ProfileFields useAgeClass />
       <ButtonPrimary>Save profile</ButtonPrimary>
     </ModalFrame>
   );

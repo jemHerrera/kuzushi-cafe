@@ -25,6 +25,7 @@
 - `DonationModal`
 - `AlertBanner`
 - `DateSelector`
+- `PropertyField` - Notion-style icon, label, and value row for compact forms.
 - `StatsChart`
 - `StatsRow` - Label, progress line, count, and percentage.
 
@@ -50,8 +51,8 @@
   - `UserSummary`
   - Add custom training partner action.
   - Remove training partner action.
-- `TrainingPartnerInput` - `TrainingPartnerSelectMenu` or `CustomPartnerInput`.
-  - Includes a "No partner" option for solo drilling, unknown partners, or entries where partner details should not be recorded.
+- `TrainingPartnerInput` - Optional `TrainingPartnerSelectMenu` labeled "Partner" with a "Select training partner" placeholder.
+  - Do not show a separate no-partner/training-partner/custom mode toggle.
 - `JournalEntryCreate` (Modal)
   - `TechniqueCategoryPillSelect`
   - Technique (`TechniqueTag`, maps to `JournalEntry.name`)
@@ -60,9 +61,9 @@
   - Intensity single-select field
   - Gi/No-Gi toggle
   - `TrainingPartnerInput`
-  - "This is an attempt" field.
-  - "This technique was successful" field, hidden when category is `tap`.
+  - Optional outcome radio field with mutually exclusive "Attempt" and "Successful" choices, hidden when category is `tap`.
   - Trained date, defaulting to `createdDate` when left blank.
+  - Category and technique are required. All other fields are optional.
   - Add button.
 - `JournalEntryUpdate` (Modal)
   - `TechniqueCategoryPillSelect`
@@ -72,18 +73,18 @@
   - Intensity single-select field
   - Gi/No-Gi toggle
   - `TrainingPartnerInput`
-  - "This is an attempt" field.
-  - "This technique was successful" field, hidden when category is `tap`.
+  - Optional outcome radio field with mutually exclusive "Attempt" and "Successful" choices, hidden when category is `tap`.
   - Trained date: `DateSelector`
+  - Category and technique are required. All other fields are optional.
   - Delete button with confirmation.
   - Update button.
 - `MyProfile` (Modal)
   - Profile photo.
   - First name.
   - Last name.
-  - Belt select.
-  - Weight select.
-  - Birthday date selector.
+  - Belt enum select.
+  - Weight-class enum select.
+  - Age-class enum select.
 - `CompleteProfile` (Page)
   - First name.
   - Last name.
@@ -171,7 +172,7 @@
 - Category-specific privacy settings currently cover `AggregateView` visibility for submissions, sweeps, reversals, back takes, guard passes, and taps. Add more category privacy controls later as the product needs them.
 - Training-partner/profile UI must handle these relationship states: add training partner, pending inbound, pending outbound, accepted, blocked or removed, and remove training partner confirmation.
 - Removing an account-backed training partner should keep historical/custom partner details visible by using the stored first name, last name, age, weight, and belt snapshot after the account link is cleared.
-- `TrainingPartnerInput` allows exactly one mode: no partner, account-backed training partner, or custom partner.
+- `TrainingPartnerInput` is optional and opens account-backed or custom partner selection from one "Partner" field.
 - All list UIs need loading, error, empty, retry, and paginated states. Do not use infinite scroll.
 - Notification links should deep-link mainly to profile pages, with support for opening a journal-entry modal when relevant.
 - `DonationBanner` opens `DonationModal`. The modal should include preset amounts, a custom amount field, a short support note, and a continue button that redirects to Stripe Checkout.
@@ -182,7 +183,7 @@
   - `PublicProfileSearch`: visible public profile fields only.
   - `SavedTechniqueSearch`: tag label and category.
 - If category is `tap`, hide success UI. `isSuccessful` should not be collected for tap entries.
-- `JournalEntryCreate` and `JournalEntryUpdate` both include "This is an attempt" and "This technique was successful" fields. Use normal form-field styling, not toggle styling.
+- `JournalEntryCreate` and `JournalEntryUpdate` use one optional outcome radio field. "Attempt" and "Successful" are mutually exclusive.
 - Intensity is optional and does not affect aggregate views for now.
 - Use horizontal scrolling for `JournalEntryTable` on mobile.
 - Empty states:

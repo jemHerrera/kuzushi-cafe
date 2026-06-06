@@ -2,19 +2,22 @@ import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export function ModalFrame({
   title,
   children,
   onClose,
   withinDialog = false,
+  className,
 }: {
-  title: string;
+  title?: string;
   children: ReactNode;
   onClose?: () => void;
   withinDialog?: boolean;
+  className?: string;
 }) {
-  const heading = withinDialog ? (
+  const heading = !title ? null : withinDialog ? (
     <DialogHeader>
       <DialogTitle className="text-lg font-bold text-zinc-950">
         {title}
@@ -25,8 +28,15 @@ export function ModalFrame({
   );
 
   return (
-    <section className="grid max-w-2xl gap-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-4 border-b border-zinc-200 pb-3">
+    <section
+      className={cn(
+        "grid max-w-2xl gap-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm",
+        className,
+      )}
+    >
+      <div
+        className={`flex items-center gap-4 ${title ? "justify-between" : "justify-end"}`}
+      >
         {heading}
         <Button
           aria-label="Close"

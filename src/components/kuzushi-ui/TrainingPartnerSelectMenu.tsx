@@ -1,45 +1,37 @@
 "use client";
 
 import { Check, ChevronDown, UserPlus, UserRound } from "lucide-react";
-import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-} from "react";
+import { useId, useMemo, useState, type KeyboardEvent } from "react";
+import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
-import { Search } from "./Search";
 import {
-  beltBorderStyles,
-  cx,
-  formatAgeClass,
-  getPartnerProfileMeta,
-  samplePartners,
-  type Partner,
-} from "./shared";
+  SearchSelectPopover,
+  searchSelectOptionClassName,
+} from "./SearchSelectPopover";
+import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
 
 type TrainingPartnerSelectMenuProps = {
   partners?: Partner[];
   value?: Partner | null;
   placeholder?: string;
+  ariaLabel?: string;
   onSelectPartner?: (partner: Partner) => void;
   onSelectUnknownPartner?: () => void;
   onAddCustomPartner?: () => void;
+  variant?: "default" | "property";
 };
 
 export function TrainingPartnerSelectMenu({
   partners = samplePartners,
   value,
-  placeholder = "Select partner",
+  placeholder = "Select training partner",
+  ariaLabel,
   onSelectPartner,
   onSelectUnknownPartner,
   onAddCustomPartner,
+  variant = "default",
 }: TrainingPartnerSelectMenuProps) {
   const listboxId = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [internalSelectedPartner, setInternalSelectedPartner] =
     useState<Partner | null>(value ?? null);
@@ -57,25 +49,6 @@ export function TrainingPartnerSelectMenu({
   const unknownOptionCount = showUnknownPartner ? 1 : 0;
   const addCustomPartnerIndex = unknownOptionCount + visiblePartners.length;
   const optionCount = addCustomPartnerIndex + 1;
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    window.requestAnimationFrame(() => searchInputRef.current?.focus());
-  }, [isOpen]);
-
-  useEffect(() => {
-    function closeOnOutsidePointerDown(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("pointerdown", closeOnOutsidePointerDown);
-    return () => {
-      document.removeEventListener("pointerdown", closeOnOutsidePointerDown);
-    };
-  }, []);
 
   function openMenu() {
     setIsOpen(true);
@@ -148,122 +121,114 @@ export function TrainingPartnerSelectMenu({
       : placeholder;
 
   return (
-    <div ref={rootRef} className="relative">
+    <SearchSelectPopover
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      listboxId={listboxId}
+      searchPlaceholder="Search by name"
+      searchValue={query}
+      onSearchChange={(event) => {
+        setQuery(event.target.value);
+        setActiveIndex(0);
+      }}
+      onSearchKeyDown={handleKeyDown}
+      trigger={
+        <button
+          type="button"
+          aria-label={ariaLabel ? `${ariaLabel}: ${selectedLabel}` : undefined}
+          aria-controls={isOpen ? listboxId : undefined}
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          className={cn(
+            "flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+            variant === "property" &&
+              "min-h-8 border-transparent bg-transparent px-2 py-1 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2",
+          )}
+          onClick={openMenu}
+        >
+          <span className="min-w-0 flex-1 truncate font-medium">
+            {selectedLabel}
+          </span>
+          {selectedPartner ? <PartnerAvatar partner={selectedPartner} /> : null}
+          {variant === "default" ? (
+            <ChevronDown className="size-4 shrink-0 text-zinc-500" />
+          ) : null}
+        </button>
+      }
+    >
+      {showUnknownPartner ? (
+        <button
+          type="button"
+          role="option"
+          aria-selected={isUnknownSelected}
+          className={cx(
+            searchSelectOptionClassName,
+            activeIndex === 0 && "bg-zinc-100",
+          )}
+          onMouseEnter={() => setActiveIndex(0)}
+          onClick={selectUnknownPartner}
+        >
+          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+            <UserRound className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
+            Unknown Partner
+          </span>
+          {isUnknownSelected ? (
+            <Check className="size-4 shrink-0 text-zinc-600" />
+          ) : null}
+        </button>
+      ) : null}
+
+      {visiblePartners.map((partner, index) => {
+        const optionIndex = unknownOptionCount + index;
+        const isSelected =
+          selectedPartner !== null &&
+          getPartnerLabel(selectedPartner) === getPartnerLabel(partner);
+
+        return (
+          <button
+            key={`${partner.firstName}-${partner.lastName}`}
+            type="button"
+            role="option"
+            aria-selected={isSelected}
+            className={cx(
+              searchSelectOptionClassName,
+              activeIndex === optionIndex && "bg-zinc-100",
+            )}
+            onMouseEnter={() => setActiveIndex(optionIndex)}
+            onClick={() => selectPartner(partner)}
+          >
+            <PartnerAvatar partner={partner} />
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
+              {getPartnerLabel(partner)}
+            </span>
+            {isSelected ? (
+              <Check className="size-4 shrink-0 text-zinc-600" />
+            ) : null}
+          </button>
+        );
+      })}
+
       <button
         type="button"
-        aria-controls={isOpen ? listboxId : undefined}
-        aria-expanded={isOpen}
-        aria-haspopup="listbox"
-        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        onClick={openMenu}
+        role="option"
+        aria-selected={false}
+        className={cx(
+          searchSelectOptionClassName,
+          activeIndex === addCustomPartnerIndex && "bg-zinc-100",
+        )}
+        onMouseEnter={() => setActiveIndex(addCustomPartnerIndex)}
+        onClick={addCustomPartner}
       >
-        <span className="min-w-0 flex-1 truncate font-medium">
-          {selectedLabel}
+        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+          <UserPlus className="size-4" />
         </span>
-        {selectedPartner ? <PartnerAvatar partner={selectedPartner} /> : null}
-        <ChevronDown className="size-4 shrink-0 text-zinc-500" />
+        <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
+          Add custom partner
+        </span>
       </button>
-
-      {isOpen ? (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 rounded-lg border border-zinc-200 bg-white p-3 shadow-lg">
-          <Search
-            ref={searchInputRef}
-            aria-controls={listboxId}
-            aria-expanded={isOpen}
-            autoComplete="off"
-            placeholder="Search by first name, last name, weight, or age"
-            role="combobox"
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setActiveIndex(0);
-            }}
-            onKeyDown={handleKeyDown}
-          />
-          <div
-            id={listboxId}
-            role="listbox"
-            className="mt-3 grid max-h-72 gap-2 overflow-y-auto"
-          >
-            {showUnknownPartner ? (
-              <button
-                type="button"
-                role="option"
-                aria-selected={isUnknownSelected}
-                className={cx(
-                  "flex min-h-10 items-center gap-3 rounded-md border border-zinc-200 px-3 py-1.5 text-left hover:bg-zinc-50",
-                  activeIndex === 0 && "bg-zinc-50",
-                )}
-                onMouseEnter={() => setActiveIndex(0)}
-                onClick={selectUnknownPartner}
-              >
-                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200">
-                  <UserRound className="size-4" />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
-                  Unknown Partner
-                </span>
-                {isUnknownSelected ? (
-                  <Check className="size-4 shrink-0 text-zinc-600" />
-                ) : null}
-              </button>
-            ) : null}
-
-            {visiblePartners.map((partner, index) => {
-              const optionIndex = unknownOptionCount + index;
-              const isSelected =
-                selectedPartner !== null &&
-                getPartnerLabel(selectedPartner) === getPartnerLabel(partner);
-
-              return (
-                <button
-                  key={`${partner.firstName}-${partner.lastName}`}
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  className={cx(
-                    "flex min-h-10 items-center gap-3 rounded-md border border-zinc-200 px-3 py-1.5 text-left hover:bg-zinc-50",
-                    activeIndex === optionIndex && "bg-zinc-50",
-                  )}
-                  onMouseEnter={() => setActiveIndex(optionIndex)}
-                  onClick={() => selectPartner(partner)}
-                >
-                  <PartnerAvatar partner={partner} />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
-                    {getPartnerLabel(partner)}
-                  </span>
-                  <span className="shrink-0 text-xs font-semibold text-zinc-500">
-                    {getPartnerProfileMeta(partner)}
-                  </span>
-                  {isSelected ? (
-                    <Check className="size-4 shrink-0 text-zinc-600" />
-                  ) : null}
-                </button>
-              );
-            })}
-
-            <button
-              type="button"
-              role="option"
-              aria-selected={false}
-              className={cx(
-                "flex min-h-10 items-center gap-3 rounded-md border border-dashed border-zinc-300 px-3 py-1.5 text-left hover:bg-zinc-50",
-                activeIndex === addCustomPartnerIndex && "bg-zinc-50",
-              )}
-              onMouseEnter={() => setActiveIndex(addCustomPartnerIndex)}
-              onClick={addCustomPartner}
-            >
-              <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500 ring-1 ring-zinc-200">
-                <UserPlus className="size-4" />
-              </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
-                Add custom partner
-              </span>
-            </button>
-          </div>
-        </div>
-      ) : null}
-    </div>
+    </SearchSelectPopover>
   );
 }
 
@@ -307,12 +272,7 @@ function rankPartners(partners: Partner[], query: string) {
 function scorePartner(partner: Partner, normalizedQuery: string) {
   const fullName = getPartnerLabel(partner);
   const initials = `${partner.firstName[0] ?? ""}${partner.lastName[0] ?? ""}`;
-  const searchableValues = [
-    fullName,
-    initials,
-    partner.weight,
-    formatAgeClass(partner.age),
-  ];
+  const searchableValues = [fullName, initials];
 
   return searchableValues.reduce<number | null>((bestScore, value) => {
     const score = scoreText(value, normalizedQuery);

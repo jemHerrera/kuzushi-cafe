@@ -9,6 +9,10 @@ class ResizeObserverMock {
 }
 
 globalThis.ResizeObserver = ResizeObserverMock;
+Element.prototype.hasPointerCapture = function hasPointerCapture() {
+  return false;
+};
+Element.prototype.releasePointerCapture = function releasePointerCapture() {};
 Element.prototype.scrollIntoView = function scrollIntoView() {};
 
 afterEach(() => {

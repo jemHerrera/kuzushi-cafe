@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { DonationBanner } from "./DonationBanner";
@@ -20,11 +21,21 @@ export function SidePanel() {
   const [isJournalEntryCreateOpen, setIsJournalEntryCreateOpen] =
     useState(false);
   const [isTrainingPartnersOpen, setIsTrainingPartnersOpen] = useState(false);
+  const [trainingPartnersDialogTitle, setTrainingPartnersDialogTitle] =
+    useState("Training partners");
+
+  function setTrainingPartnersOpen(isOpen: boolean) {
+    setIsTrainingPartnersOpen(isOpen);
+
+    if (!isOpen) {
+      setTrainingPartnersDialogTitle("Training partners");
+    }
+  }
 
   const navItems = [
     {
       label: "Training partners",
-      onClick: () => setIsTrainingPartnersOpen(true),
+      onClick: () => setTrainingPartnersOpen(true),
     },
     { label: "Saved Techniques" },
     { label: "Privacy Settings" },
@@ -97,17 +108,21 @@ export function SidePanel() {
       </Dialog>
       <Dialog
         open={isTrainingPartnersOpen}
-        onOpenChange={setIsTrainingPartnersOpen}
+        onOpenChange={setTrainingPartnersOpen}
       >
         <DialogContent
-          className="max-w-2xl bg-transparent p-0 ring-0 sm:max-w-2xl"
+          className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
           showCloseButton={false}
         >
+          <DialogTitle className="sr-only">
+            {trainingPartnersDialogTitle}
+          </DialogTitle>
           <DialogDescription className="sr-only">
             Search, review, and manage your training partners.
           </DialogDescription>
           <TrainingPartnersListModal
-            onClose={() => setIsTrainingPartnersOpen(false)}
+            onClose={() => setTrainingPartnersOpen(false)}
+            onTitleChange={setTrainingPartnersDialogTitle}
             withinDialog
           />
         </DialogContent>

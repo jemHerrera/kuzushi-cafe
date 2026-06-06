@@ -1,7 +1,21 @@
 import { DateSelector } from "./DateSelector";
-import { Field, SelectInput, TextInput } from "./shared";
+import {
+  ageClasses,
+  belts,
+  Field,
+  formatAgeClassOption,
+  formatBelt,
+  formatWeightClassOption,
+  SelectInput,
+  TextInput,
+  weightClasses,
+} from "./shared";
 
-export function ProfileFields() {
+export function ProfileFields({
+  useAgeClass = false,
+}: {
+  useAgeClass?: boolean;
+}) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <Field label="First name">
@@ -12,18 +26,37 @@ export function ProfileFields() {
       </Field>
       <Field label="Belt">
         <SelectInput>
-          <option>Purple</option>
-          <option>Brown</option>
+          {belts.map((belt) => (
+            <option key={belt} value={belt}>
+              {formatBelt(belt)}
+            </option>
+          ))}
         </SelectInput>
       </Field>
       <Field label="Weight">
         <SelectInput>
-          <option>170 lb</option>
+          {weightClasses.map((weight) => (
+            <option key={weight} value={weight}>
+              {formatWeightClassOption(weight)}
+            </option>
+          ))}
         </SelectInput>
       </Field>
-      <Field label="Birthday">
-        <DateSelector />
-      </Field>
+      {useAgeClass ? (
+        <Field label="Age">
+          <SelectInput>
+            {ageClasses.map((age) => (
+              <option key={age} value={age}>
+                {formatAgeClassOption(age)}
+              </option>
+            ))}
+          </SelectInput>
+        </Field>
+      ) : (
+        <Field label="Birthday">
+          <DateSelector />
+        </Field>
+      )}
     </div>
   );
 }

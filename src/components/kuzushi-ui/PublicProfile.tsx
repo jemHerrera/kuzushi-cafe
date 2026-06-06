@@ -17,11 +17,7 @@ export function PublicProfile({
   withinDialog?: boolean;
 }) {
   return (
-    <ModalFrame
-      title="Public profile"
-      onClose={onClose}
-      withinDialog={withinDialog}
-    >
+    <ModalFrame onClose={onClose} withinDialog={withinDialog}>
       <div className="flex flex-wrap items-center gap-4">
         <Avatar initials={partner.initials} size="lg" />
         <div>
