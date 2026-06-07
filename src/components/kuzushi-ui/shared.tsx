@@ -281,7 +281,7 @@ export function SelectInput({
       className={cx(
         nativeSelectControlClass,
         variant === "property" &&
-          "w-fit max-w-full [&_[data-slot=native-select-icon]]:right-1.5 [&_[data-slot=native-select]]:h-8 [&_[data-slot=native-select]]:w-auto [&_[data-slot=native-select]]:max-w-full [&_[data-slot=native-select]]:border-transparent [&_[data-slot=native-select]]:bg-transparent [&_[data-slot=native-select]]:py-1 [&_[data-slot=native-select]]:pr-7 [&_[data-slot=native-select]]:shadow-none [&_[data-slot=native-select]]:hover:bg-zinc-100 [&_[data-slot=native-select]]:focus-visible:ring-2",
+          "w-fit max-w-full [&_[data-slot=native-select-icon]]:right-1.5 [&_[data-slot=native-select]]:h-10 [&_[data-slot=native-select]]:w-auto [&_[data-slot=native-select]]:max-w-full [&_[data-slot=native-select]]:border-transparent [&_[data-slot=native-select]]:bg-transparent [&_[data-slot=native-select]]:py-1 [&_[data-slot=native-select]]:pr-7 [&_[data-slot=native-select]]:shadow-none [&_[data-slot=native-select]]:hover:bg-zinc-100 [&_[data-slot=native-select]]:focus-visible:ring-2",
         className,
       )}
       size="default"

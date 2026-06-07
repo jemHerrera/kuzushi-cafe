@@ -104,7 +104,7 @@ export function JournalEntryForm({
       >
         <Textarea
           id={notesId}
-          className="min-h-8 resize-none border-transparent bg-transparent px-2 py-1 text-sm shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2"
+          className="min-h-10 resize-none border-transparent bg-transparent px-2 py-2 text-sm shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:bg-zinc-100 focus-visible:ring-0"
           placeholder="Add notes"
         />
       </PropertyField>
@@ -137,14 +137,14 @@ export function JournalEntryForm({
             className="flex min-h-8 flex-wrap items-center gap-1"
             name="outcome"
           >
-            <Label className="cursor-pointer min-h-8 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
+            <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
               <RadioGroupItem
                 className="size-3.5 shadow-none cursor-pointer"
                 value="attempt"
               />
               Attempt
             </Label>
-            <Label className="cursor-pointer min-h-8 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
+            <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
               <RadioGroupItem
                 className="size-3.5 shadow-none cursor-pointer"
                 value="successful"

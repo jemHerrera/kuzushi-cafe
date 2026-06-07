@@ -47,8 +47,9 @@ export function TrainingPartnerSelectMenu({
   const showUnknownPartner =
     !trimmedQuery || scoreText("Unknown Partner", trimmedQuery) !== null;
   const unknownOptionCount = showUnknownPartner ? 1 : 0;
+  const canAddCustomPartner = trimmedQuery.length > 0;
   const addCustomPartnerIndex = unknownOptionCount + visiblePartners.length;
-  const optionCount = addCustomPartnerIndex + 1;
+  const optionCount = addCustomPartnerIndex + (canAddCustomPartner ? 1 : 0);
 
   function openMenu() {
     setIsOpen(true);
@@ -109,7 +110,7 @@ export function TrainingPartnerSelectMenu({
       return;
     }
 
-    if (activeIndex === addCustomPartnerIndex) {
+    if (canAddCustomPartner && activeIndex === addCustomPartnerIndex) {
       addCustomPartner();
     }
   }
@@ -142,7 +143,7 @@ export function TrainingPartnerSelectMenu({
           className={cn(
             "flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
             variant === "property" &&
-              "min-h-8 border-transparent bg-transparent px-2 py-1 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2",
+              "min-h-10 border-transparent bg-transparent px-2 py-1 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2",
           )}
           onClick={openMenu}
         >
@@ -210,24 +211,26 @@ export function TrainingPartnerSelectMenu({
         );
       })}
 
-      <button
-        type="button"
-        role="option"
-        aria-selected={false}
-        className={cx(
-          searchSelectOptionClassName,
-          activeIndex === addCustomPartnerIndex && "bg-zinc-100",
-        )}
-        onMouseEnter={() => setActiveIndex(addCustomPartnerIndex)}
-        onClick={addCustomPartner}
-      >
-        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
-          <UserPlus className="size-4" />
-        </span>
-        <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
-          Add custom partner
-        </span>
-      </button>
+      {canAddCustomPartner ? (
+        <button
+          type="button"
+          role="option"
+          aria-selected={false}
+          className={cx(
+            searchSelectOptionClassName,
+            activeIndex === addCustomPartnerIndex && "bg-zinc-100",
+          )}
+          onMouseEnter={() => setActiveIndex(addCustomPartnerIndex)}
+          onClick={addCustomPartner}
+        >
+          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+            <UserPlus className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
+            Add &quot;{trimmedQuery}&quot;
+          </span>
+        </button>
+      ) : null}
     </SearchSelectPopover>
   );
 }

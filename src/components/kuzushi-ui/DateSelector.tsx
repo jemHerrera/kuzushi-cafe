@@ -61,7 +61,7 @@ export function DateSelector({
             "h-11 w-full justify-start rounded-md px-3 text-left text-sm font-normal",
             !selectedDate && "text-muted-foreground",
             variant === "property" &&
-              "h-8 border-transparent bg-transparent px-2 shadow-none hover:bg-zinc-100 focus-visible:ring-2",
+              "h-10 border-transparent bg-transparent px-2 shadow-none hover:bg-zinc-100 focus-visible:ring-2",
           )}
         >
           {variant === "default" ? (
