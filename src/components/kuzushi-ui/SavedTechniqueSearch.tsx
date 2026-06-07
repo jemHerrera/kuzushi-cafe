@@ -1,5 +1,8 @@
+import type { ComponentProps } from "react";
 import { Search } from "./Search";
 
-export function SavedTechniqueSearch() {
-  return <Search placeholder="Search saved techniques" />;
+export function SavedTechniqueSearch(
+  props: Omit<ComponentProps<typeof Search>, "placeholder">,
+) {
+  return <Search placeholder="Search saved techniques" {...props} />;
 }

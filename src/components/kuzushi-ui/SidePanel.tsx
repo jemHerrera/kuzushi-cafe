@@ -13,6 +13,7 @@ import { DonationBanner } from "./DonationBanner";
 import { JournalEntryCreate } from "./JournalEntryCreate";
 import { MyProfile } from "./MyProfile";
 import { PublicProfileSearch } from "./PublicProfileSearch";
+import { SavedTechniqueTagList } from "./SavedTechniqueTagList";
 import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
 import { UserSummary } from "./UserSummary";
 
@@ -21,6 +22,7 @@ export function SidePanel() {
   const [isJournalEntryCreateOpen, setIsJournalEntryCreateOpen] =
     useState(false);
   const [isTrainingPartnersOpen, setIsTrainingPartnersOpen] = useState(false);
+  const [isSavedTechniquesOpen, setIsSavedTechniquesOpen] = useState(false);
   const [trainingPartnersDialogTitle, setTrainingPartnersDialogTitle] =
     useState("My training partners");
 
@@ -37,7 +39,10 @@ export function SidePanel() {
       label: "Training partners",
       onClick: () => setTrainingPartnersOpen(true),
     },
-    { label: "Saved Techniques" },
+    {
+      label: "Saved Techniques",
+      onClick: () => setIsSavedTechniquesOpen(true),
+    },
     { label: "Privacy Settings" },
     { label: "Contact Us" },
   ];
@@ -123,6 +128,23 @@ export function SidePanel() {
           <TrainingPartnersListModal
             onClose={() => setTrainingPartnersOpen(false)}
             onTitleChange={setTrainingPartnersDialogTitle}
+            withinDialog
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isSavedTechniquesOpen}
+        onOpenChange={setIsSavedTechniquesOpen}
+      >
+        <DialogContent
+          className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
+          showCloseButton={false}
+        >
+          <DialogDescription className="sr-only">
+            Search, add, edit, and delete your saved techniques.
+          </DialogDescription>
+          <SavedTechniqueTagList
+            onClose={() => setIsSavedTechniquesOpen(false)}
             withinDialog
           />
         </DialogContent>

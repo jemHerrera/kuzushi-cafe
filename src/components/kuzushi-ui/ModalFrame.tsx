@@ -10,12 +10,14 @@ export function ModalFrame({
   onClose,
   withinDialog = false,
   className,
+  headerAction,
 }: {
   title?: string;
   children: ReactNode;
   onClose?: () => void;
   withinDialog?: boolean;
   className?: string;
+  headerAction?: ReactNode;
 }) {
   const heading = !title ? null : withinDialog ? (
     <DialogHeader>
@@ -38,17 +40,20 @@ export function ModalFrame({
         className={`flex items-center gap-4 ${title ? "justify-between" : "justify-end"}`}
       >
         {heading}
-        <Button
-          aria-label="Close"
-          title="Close"
-          type="button"
-          variant="ghost"
-          size="icon-lg"
-          className="rounded-md text-zinc-700"
-          onClick={onClose}
-        >
-          <X className="size-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {headerAction}
+          <Button
+            aria-label="Close"
+            title="Close"
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            className="rounded-md text-zinc-700"
+            onClick={onClose}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
       </div>
       {children}
     </section>
