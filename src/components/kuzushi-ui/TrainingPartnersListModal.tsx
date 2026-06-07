@@ -15,12 +15,7 @@ import { ButtonPrimary } from "./ButtonPrimary";
 import { CustomPartnerInput } from "./CustomPartnerInput";
 import { ModalFrame } from "./ModalFrame";
 import { PublicProfile } from "./PublicProfile";
-import {
-  beltBorderStyles,
-  cx,
-  samplePartners,
-  type Partner,
-} from "./shared";
+import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
 
 export function TrainingPartnersListModal({
   onClose,
@@ -76,18 +71,18 @@ export function TrainingPartnersListModal({
       title="My training partners"
       onClose={onClose}
       withinDialog={withinDialog}
-      className="p-3 sm:p-5"
+      // className="p-3 sm:p-5"
     >
       <Command
-        className="border border-zinc-200"
         filter={(value, search, keywords) =>
           commandFilter(value, search, keywords)
         }
+        className="p-0 gap-2"
       >
         <CommandInput placeholder="Search training partners" />
         <CommandList className="max-h-96">
           <CommandEmpty>No training partners found.</CommandEmpty>
-          <CommandGroup heading="Training partners">
+          <CommandGroup>
             {samplePartners.map((partner) => (
               <CommandItem
                 key={`${partner.firstName}-${partner.lastName}`}
