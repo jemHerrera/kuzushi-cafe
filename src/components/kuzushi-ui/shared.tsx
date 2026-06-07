@@ -252,17 +252,24 @@ const nativeSelectControlClass =
   "w-full [&_[data-slot=native-select]]:h-11 [&_[data-slot=native-select]]:rounded-md [&_[data-slot=native-select]]:bg-white [&_[data-slot=native-select]]:pl-2 [&_[data-slot=native-select]]:text-zinc-900";
 
 export function TextInput({
-  placeholder,
   value,
+  variant = "default",
+  className,
+  ...props
 }: {
-  placeholder?: string;
   value?: string;
-}) {
+  variant?: "default" | "property";
+} & Omit<ComponentProps<typeof Input>, "defaultValue">) {
   return (
     <Input
-      className={formControlClass}
+      className={cx(
+        formControlClass,
+        variant === "property" &&
+          "h-10 border-transparent bg-transparent px-2 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:bg-zinc-100 focus-visible:ring-2",
+        className,
+      )}
       defaultValue={value}
-      placeholder={placeholder}
+      {...props}
     />
   );
 }
@@ -281,7 +288,7 @@ export function SelectInput({
       className={cx(
         nativeSelectControlClass,
         variant === "property" &&
-          "w-fit max-w-full [&_[data-slot=native-select-icon]]:right-1.5 [&_[data-slot=native-select]]:h-10 [&_[data-slot=native-select]]:w-auto [&_[data-slot=native-select]]:max-w-full [&_[data-slot=native-select]]:border-transparent [&_[data-slot=native-select]]:bg-transparent [&_[data-slot=native-select]]:py-1 [&_[data-slot=native-select]]:pr-7 [&_[data-slot=native-select]]:shadow-none [&_[data-slot=native-select]]:hover:bg-zinc-100 [&_[data-slot=native-select]]:focus-visible:ring-2",
+          "[&_[data-slot=native-select]]:h-10 [&_[data-slot=native-select]]:border-transparent [&_[data-slot=native-select]]:bg-transparent [&_[data-slot=native-select]]:py-1 [&_[data-slot=native-select]]:shadow-none [&_[data-slot=native-select]]:hover:bg-zinc-100 [&_[data-slot=native-select]]:focus-visible:ring-2",
         className,
       )}
       size="default"

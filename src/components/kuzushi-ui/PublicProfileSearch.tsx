@@ -18,12 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar } from "./Avatar";
-import {
-  beltBorderStyles,
-  cx,
-  samplePartners,
-  type Partner,
-} from "./shared";
+import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
 
 export function PublicProfileSearch({
   profiles = samplePartners,
@@ -42,11 +37,14 @@ export function PublicProfileSearch({
         <SearchIcon className="size-4 shrink-0 text-zinc-400" />
         <span className="min-w-0 flex-1 truncate">Search public profiles</span>
       </button>
-      <DialogContent className="overflow-hidden p-0 sm:max-w-2xl" showCloseButton={false}>
+      <DialogContent
+        className="overflow-hidden p-0 sm:max-w-2xl"
+        showCloseButton={false}
+      >
         <DialogHeader>
           <DialogTitle className="sr-only">Search public profiles</DialogTitle>
           <DialogDescription className="sr-only">
-            Find people by name, belt, weight, or age.
+            Find training partners.
           </DialogDescription>
         </DialogHeader>
         <Command
@@ -54,9 +52,9 @@ export function PublicProfileSearch({
             commandFilter(value, search, keywords)
           }
         >
-          <CommandInput placeholder="Search by name, belt, weight, or age" />
+          <CommandInput placeholder="Search training partners" />
           <CommandList className="max-h-96">
-            <CommandEmpty>No public profiles found.</CommandEmpty>
+            <CommandEmpty>No profiles found.</CommandEmpty>
             <CommandGroup heading="Public profiles">
               {profiles.map((profile) => (
                 <CommandItem
@@ -70,7 +68,7 @@ export function PublicProfileSearch({
                     formatAgeClass(profile.age),
                   ]}
                   value={`${profile.firstName}-${profile.lastName}`}
-                  className="min-h-12 gap-3 rounded-md px-3 py-2"
+                  className="min-h-10 gap-3 rounded-md px-3 py-2 cursor-pointer"
                   onSelect={() => setIsOpen(false)}
                 >
                   <span
@@ -85,12 +83,6 @@ export function PublicProfileSearch({
                     <span className="block truncate text-sm font-semibold text-zinc-950">
                       {profile.firstName} {profile.lastName}
                     </span>
-                    <span className="block text-xs capitalize text-zinc-600">
-                      {profile.belt} belt
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-xs font-semibold text-zinc-500">
-                    {profile.weight} / {formatAgeClass(profile.age)}
                   </span>
                 </CommandItem>
               ))}

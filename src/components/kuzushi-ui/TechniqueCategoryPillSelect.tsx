@@ -39,7 +39,7 @@ export function TechniqueCategoryPillSelect({
       <SelectTrigger
         aria-label="Technique category"
         className={cx(
-          "h-auto rounded-full border px-2.5 py-1 text-xs font-semibold capitalize shadow-none",
+          "h-auto w-fit rounded-full border px-2.5 py-1 text-xs font-semibold capitalize shadow-none",
           categoryStyles[selectedCategory],
           variant === "property" && "",
         )}

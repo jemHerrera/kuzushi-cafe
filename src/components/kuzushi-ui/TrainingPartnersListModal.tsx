@@ -2,13 +2,25 @@
 
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { ButtonSecondary } from "./ButtonSecondary";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Avatar } from "./Avatar";
+import { ButtonPrimary } from "./ButtonPrimary";
 import { CustomPartnerInput } from "./CustomPartnerInput";
 import { ModalFrame } from "./ModalFrame";
 import { PublicProfile } from "./PublicProfile";
-import { TrainingPartnerSearch } from "./TrainingPartnerSearch";
-import { UserSummary } from "./UserSummary";
-import { getPartnerProfileMeta, samplePartners, type Partner } from "./shared";
+import {
+  beltBorderStyles,
+  cx,
+  samplePartners,
+  type Partner,
+} from "./shared";
 
 export function TrainingPartnersListModal({
   onClose,
@@ -25,7 +37,7 @@ export function TrainingPartnersListModal({
   function openList() {
     setSelectedPartner(null);
     setView("list");
-    onTitleChange?.("Training partners");
+    onTitleChange?.("My training partners");
   }
 
   function openCustomPartner() {
@@ -61,32 +73,83 @@ export function TrainingPartnersListModal({
 
   return (
     <ModalFrame
-      title="Training partners"
+      title="My training partners"
       onClose={onClose}
       withinDialog={withinDialog}
+      className="p-3 sm:p-5"
     >
-      <TrainingPartnerSearch />
-      <div className="grid gap-2">
-        {samplePartners.map((partner) => (
-          <button
-            aria-label={`View ${partner.firstName} ${partner.lastName} public profile`}
-            key={`${partner.firstName}-${partner.lastName}`}
-            className="rounded-md border border-zinc-200 bg-white p-2 text-left transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-            onClick={() => openPublicProfile(partner)}
-            type="button"
-          >
-            <UserSummary
-              partner={partner}
-              className="min-w-0"
-              meta={getPartnerProfileMeta(partner)}
-            />
-          </button>
-        ))}
-      </div>
-      <ButtonSecondary onClick={openCustomPartner} type="button">
+      <Command
+        className="border border-zinc-200"
+        filter={(value, search, keywords) =>
+          commandFilter(value, search, keywords)
+        }
+      >
+        <CommandInput placeholder="Search training partners" />
+        <CommandList className="max-h-96">
+          <CommandEmpty>No training partners found.</CommandEmpty>
+          <CommandGroup heading="Training partners">
+            {samplePartners.map((partner) => (
+              <CommandItem
+                key={`${partner.firstName}-${partner.lastName}`}
+                keywords={[
+                  partner.firstName,
+                  partner.lastName,
+                  `${partner.firstName} ${partner.lastName}`,
+                  partner.belt,
+                  partner.weight,
+                  formatAgeClass(partner.age),
+                ]}
+                value={`${partner.firstName}-${partner.lastName}`}
+                className="min-h-10 gap-3 rounded-md px-3 py-2 cursor-pointer"
+                onSelect={() => openPublicProfile(partner)}
+              >
+                <span
+                  className={cx(
+                    "inline-flex shrink-0 rounded-full border-[3px] p-0",
+                    beltBorderStyles[partner.belt],
+                  )}
+                >
+                  <Avatar initials={partner.initials} size="xs" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-zinc-950">
+                    {partner.firstName} {partner.lastName}
+                  </span>
+                </span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </Command>
+      <ButtonPrimary
+        className="w-full"
+        onClick={openCustomPartner}
+        type="button"
+      >
         <Plus className="size-4" />
         Add custom training partner
-      </ButtonSecondary>
+      </ButtonPrimary>
     </ModalFrame>
   );
+}
+
+function commandFilter(value: string, search: string, keywords?: string[]) {
+  const normalizedSearch = normalize(search);
+  const searchableValues = [value, ...(keywords ?? [])];
+
+  if (!normalizedSearch) return 1;
+
+  return searchableValues.some((searchableValue) =>
+    normalize(searchableValue).includes(normalizedSearch),
+  )
+    ? 1
+    : 0;
+}
+
+function formatAgeClass(age: Partner["age"]) {
+  return age === "young-adult" ? "young adult" : age;
+}
+
+function normalize(value: string) {
+  return value.trim().toLowerCase();
 }

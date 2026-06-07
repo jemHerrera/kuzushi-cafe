@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, UserPlus, UserRound } from "lucide-react";
+import { Check, UserPlus, UserRound } from "lucide-react";
 import { useId, useMemo, useState, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
 import { Avatar } from "./Avatar";
@@ -151,9 +151,6 @@ export function TrainingPartnerSelectMenu({
             {selectedLabel}
           </span>
           {selectedPartner ? <PartnerAvatar partner={selectedPartner} /> : null}
-          {variant === "default" ? (
-            <ChevronDown className="size-4 shrink-0 text-zinc-500" />
-          ) : null}
         </button>
       }
     >

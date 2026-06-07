@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { useId, useMemo, useState, type KeyboardEvent } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -134,9 +134,6 @@ export function TechniqueTagSelectMenu({
           <span className="min-w-0 flex-1 truncate font-medium">
             {selectedTechnique?.name ?? placeholder}
           </span>
-          {variant === "default" ? (
-            <ChevronDown className="size-4 shrink-0 text-zinc-500" />
-          ) : null}
         </button>
       }
     >

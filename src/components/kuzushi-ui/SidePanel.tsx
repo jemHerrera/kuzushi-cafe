@@ -22,13 +22,13 @@ export function SidePanel() {
     useState(false);
   const [isTrainingPartnersOpen, setIsTrainingPartnersOpen] = useState(false);
   const [trainingPartnersDialogTitle, setTrainingPartnersDialogTitle] =
-    useState("Training partners");
+    useState("My training partners");
 
   function setTrainingPartnersOpen(isOpen: boolean) {
     setIsTrainingPartnersOpen(isOpen);
 
     if (!isOpen) {
-      setTrainingPartnersDialogTitle("Training partners");
+      setTrainingPartnersDialogTitle("My training partners");
     }
   }
 

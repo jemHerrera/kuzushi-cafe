@@ -15,10 +15,17 @@ export function MyProfile({
       title="My profile"
       onClose={onClose}
       withinDialog={withinDialog}
+      className="p-3 sm:p-5"
     >
-      <Avatar initials="JH" size="lg" />
-      <ProfileFields useAgeClass />
-      <ButtonPrimary>Save profile</ButtonPrimary>
+      <div className="grid gap-5 sm:grid-cols-[5rem_minmax(0,1fr)] sm:items-start">
+        <Avatar initials="JH" size="lg" />
+        <div className="grid gap-4">
+          <ProfileFields />
+          <div className="flex justify-end">
+            <ButtonPrimary>Save profile</ButtonPrimary>
+          </div>
+        </div>
+      </div>
     </ModalFrame>
   );
 }

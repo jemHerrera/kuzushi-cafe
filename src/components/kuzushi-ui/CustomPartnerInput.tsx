@@ -1,7 +1,24 @@
-import { ArrowLeft, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  Award,
+  CalendarClock,
+  Plus,
+  Scale,
+  UserRound,
+} from "lucide-react";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ModalFrame } from "./ModalFrame";
-import { Field, SelectInput, TextInput } from "./shared";
+import { PropertyField } from "./PropertyField";
+import {
+  ageClasses,
+  belts,
+  formatAgeClassOption,
+  formatBelt,
+  formatWeightClassOption,
+  SelectInput,
+  TextInput,
+  weightClasses,
+} from "./shared";
 
 export function CustomPartnerInput({
   onBack,
@@ -17,6 +34,7 @@ export function CustomPartnerInput({
       title="Add custom partner"
       onClose={onClose}
       withinDialog={withinDialog}
+      className="p-3 sm:p-5"
     >
       <button
         className="inline-flex w-fit items-center gap-2 rounded-md text-sm font-semibold text-zinc-700 transition hover:text-zinc-950 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -26,34 +44,57 @@ export function CustomPartnerInput({
         <ArrowLeft className="size-4" />
         Back
       </button>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="First name">
-          <TextInput value="Alex" />
-        </Field>
-        <Field label="Last name">
-          <TextInput value="Morgan" />
-        </Field>
-        <Field label="Weight">
-          <SelectInput>
-            <option>170 lb</option>
+      <div className="grid">
+        <PropertyField icon={UserRound} label="First name">
+          <TextInput
+            aria-label="First name"
+            placeholder="Add first name"
+            value="Alex"
+            variant="property"
+          />
+        </PropertyField>
+        <PropertyField icon={UserRound} label="Last name">
+          <TextInput
+            aria-label="Last name"
+            placeholder="Add last name"
+            value="Morgan"
+            variant="property"
+          />
+        </PropertyField>
+        <PropertyField icon={Scale} label="Weight">
+          <SelectInput aria-label="Weight" variant="property">
+            {weightClasses.map((weight) => (
+              <option key={weight} value={weight}>
+                {formatWeightClassOption(weight)}
+              </option>
+            ))}
           </SelectInput>
-        </Field>
-        <Field label="Age">
-          <SelectInput>
-            <option>31</option>
+        </PropertyField>
+        <PropertyField icon={CalendarClock} label="Age">
+          <SelectInput aria-label="Age" variant="property">
+            {ageClasses.map((age) => (
+              <option key={age} value={age}>
+                {formatAgeClassOption(age)}
+              </option>
+            ))}
           </SelectInput>
-        </Field>
-        <Field label="Belt">
-          <SelectInput>
-            <option>Blue</option>
-            <option>Purple</option>
+        </PropertyField>
+        <PropertyField icon={Award} label="Belt">
+          <SelectInput aria-label="Belt" variant="property">
+            {belts.map((belt) => (
+              <option key={belt} value={belt}>
+                {formatBelt(belt)}
+              </option>
+            ))}
           </SelectInput>
-        </Field>
+        </PropertyField>
       </div>
-      <ButtonPrimary>
-        <Plus className="size-4" />
-        Add partner
-      </ButtonPrimary>
+      <div className="flex justify-end">
+        <ButtonPrimary>
+          <Plus className="size-4" />
+          Add partner
+        </ButtonPrimary>
+      </div>
     </ModalFrame>
   );
 }
