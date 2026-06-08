@@ -3,6 +3,7 @@ import {
   AuthProvider,
   Belt,
   Intensity,
+  JournalType,
   NotificationCategory,
   Category,
   AccountPrivacySettings,
@@ -243,8 +244,7 @@ export type JournalEntryDetail = {
   name: string;
   category: Category;
   setup: string;
-  isAttempt: boolean;
-  isSuccessful?: boolean;
+  journalType?: JournalType;
   notes?: string;
   intensity?: Intensity;
   isNoGi?: boolean;
@@ -276,12 +276,12 @@ export type TechniqueTagDetail = {
 export type JournalEntryFilters = {
   search?: string;
   category?: Category[];
-  isSuccessful?: boolean;
+  journalTypes?: JournalType[];
   isNoGi?: boolean;
 };
 
 export type JournalEntrySort = {
-  field: "trainedAt" | "category" | "name" | "isSuccessful" | "trainingPartner";
+  field: "trainedAt" | "category" | "name" | "journalType" | "trainingPartner";
   direction: "asc" | "desc";
 };
 
@@ -291,8 +291,7 @@ export interface IJournalEntryManager {
     name: string;
     category: Category;
     setup: string;
-    isAttempt: boolean;
-    isSuccessful?: boolean;
+    journalType?: JournalType;
     notes?: string;
     intensity?: Intensity;
     isNoGi?: boolean;
@@ -310,8 +309,7 @@ export interface IJournalEntryManager {
       name?: string;
       category?: Category;
       setup?: string;
-      isAttempt?: boolean;
-      isSuccessful?: boolean;
+      journalType?: JournalType;
       notes?: string;
       intensity?: Intensity;
       isNoGi?: boolean;
@@ -325,7 +323,7 @@ export interface IJournalEntryManager {
     };
   }) => Promise<JournalEntryDetail>;
   // Manager invariants:
-  // - If category is "tap", isSuccessful is always cleared.
+  // - If category is "tap", journalType is always cleared.
   // - trainedDate defaults to createdDate when omitted.
   // - Partner inputs are mutually exclusive: training partner, custom partner, or no partner.
   // - Account-backed training partner assignments must reference an accepted TrainingPartner row owned by the entry owner.
@@ -405,7 +403,7 @@ export type AggregateStatsDetail = {
   timeline: AggregateTimeline;
   startAt: number;
   endAt: number;
-  successfulOnly: boolean;
+  journalTypes: JournalType[];
   attempts: number;
   successes: number;
   series: {
@@ -427,21 +425,21 @@ export interface IAggregateManager {
     timeline: AggregateTimeline;
     startDate?: Date;
     endDate?: Date;
-    successfulOnly?: boolean;
+    journalTypes?: JournalType[];
   }) => Promise<AggregateStatsDetail>;
   getCategoryBreakdown: (params: {
     accountId: string;
     timeline: AggregateTimeline;
     startDate?: Date;
     endDate?: Date;
-    successfulOnly?: boolean;
+    journalTypes?: JournalType[];
   }) => Promise<{
     object: "category_breakdown";
     accountId: string;
     timeline: AggregateTimeline;
     startAt: number;
     endAt: number;
-    successfulOnly: boolean;
+    journalTypes: JournalType[];
     items: {
       category: Category;
       attempts: number;

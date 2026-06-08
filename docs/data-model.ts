@@ -23,6 +23,7 @@ export type AgeClass =
   | "90s";
 
 export type Intensity = "playful" | "casual" | "intense";
+export type JournalType = "attempt" | "success";
 
 export type Category =
   | "submission"
@@ -115,8 +116,7 @@ export interface JournalEntry {
   name: string; // What was intention? Could be anything from submission, off-balance, takedown, etc. Rear Naked Choke, Dummy Sweep, Kuzushi, Imanari Roll, Guard Pass. Use tags in the front-end for selection
   category: Category; // User-picked category
   setup: string; // What is the setup to execute the journal entry? Could be from a position, guard, another submission, a saved tag, or free text
-  isAttempt: boolean; // Whether this entry represents an intentional technique attempt
-  isSuccessful?: boolean; // Undefined for taps and other entries where success does not apply
+  journalType?: JournalType; // Undefined for taps and other entries where type does not apply
   notes?: string; // longer text
   intensity?: Intensity;
   isNoGi?: boolean;

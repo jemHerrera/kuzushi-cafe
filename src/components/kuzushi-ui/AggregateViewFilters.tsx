@@ -10,8 +10,9 @@ export function AggregateViewFilters() {
         <option>Custom range</option>
       </SelectInput>
       <SelectInput>
-        <option>All attempts</option>
-        <option>Successful only</option>
+        <option>All types</option>
+        <option>Attempt only</option>
+        <option>Success only</option>
       </SelectInput>
     </div>
   );

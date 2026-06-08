@@ -1,6 +1,6 @@
 import { ButtonPrimary } from "./ButtonPrimary";
 
-export function DonationBanner() {
+export function DonationBanner({ onDonate }: { onDonate?: () => void }) {
   return (
     <aside className="rounded-lg border border-amber-200 bg-amber-50 p-4">
       <p className="text-sm font-semibold text-zinc-950">
@@ -11,7 +11,9 @@ export function DonationBanner() {
         supporting hosting and maintenance.
       </p>
       <div className="mt-3">
-        <ButtonPrimary>Donate</ButtonPrimary>
+        <ButtonPrimary onClick={onDonate} type="button">
+          Donate
+        </ButtonPrimary>
       </div>
     </aside>
   );

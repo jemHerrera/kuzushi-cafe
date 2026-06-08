@@ -45,7 +45,7 @@ Examples: create journal entries, manage training partners, assign training part
 
 Journal-entry managers should enforce these invariants:
 
-- If category is `tap`, clear `isSuccessful`.
+- If category is `tap`, clear `journalType`.
 - If `trainedDate` is omitted, default it to `createdDate`.
 - Accept exactly one training partner mode: no partner, account-backed training partner, or custom partner.
 - Keep individual journal-entry privacy out of the model; use account and category privacy settings for scoped views.

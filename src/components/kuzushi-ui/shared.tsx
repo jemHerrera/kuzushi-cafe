@@ -10,6 +10,7 @@ export type Category =
   | "back take"
   | "guard pass"
   | "tap";
+export type JournalType = "attempt" | "success";
 
 export type Belt =
   | "unknown"
@@ -52,7 +53,7 @@ export type JournalEntry = {
   category: Category;
   technique: string;
   setup?: string;
-  successful?: boolean;
+  journalType?: JournalType;
   partner?: Partner;
   trainedDate: string;
 };
@@ -157,7 +158,7 @@ export const sampleEntries: JournalEntry[] = [
     category: "submission",
     technique: "Armbar from closed guard",
     setup: "Collar grip break",
-    successful: true,
+    journalType: "success",
     partner: samplePartners[0],
     trainedDate: "2026-06-02",
   },
@@ -165,7 +166,7 @@ export const sampleEntries: JournalEntry[] = [
     id: "2",
     category: "guard pass",
     technique: "Knee cut pass",
-    successful: false,
+    journalType: "attempt",
     partner: samplePartners[1],
     trainedDate: "2026-06-01",
   },

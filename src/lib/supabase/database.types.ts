@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -116,9 +136,8 @@ export type Database = {
           created_date: string
           id: string
           intensity: Database["public"]["Enums"]["intensity"] | null
-          is_attempt: boolean
           is_no_gi: boolean | null
-          is_successful: boolean | null
+          journal_type: Database["public"]["Enums"]["journal_type"] | null
           name: string
           notes: string | null
           setup: string
@@ -132,9 +151,8 @@ export type Database = {
           created_date?: string
           id?: string
           intensity?: Database["public"]["Enums"]["intensity"] | null
-          is_attempt?: boolean
           is_no_gi?: boolean | null
-          is_successful?: boolean | null
+          journal_type?: Database["public"]["Enums"]["journal_type"] | null
           name: string
           notes?: string | null
           setup: string
@@ -148,9 +166,8 @@ export type Database = {
           created_date?: string
           id?: string
           intensity?: Database["public"]["Enums"]["intensity"] | null
-          is_attempt?: boolean
           is_no_gi?: boolean | null
-          is_successful?: boolean | null
+          journal_type?: Database["public"]["Enums"]["journal_type"] | null
           name?: string
           notes?: string | null
           setup?: string
@@ -406,6 +423,7 @@ export type Database = {
         | "guard-retention"
         | "other"
       intensity: "playful" | "casual" | "intense"
+      journal_type: "attempt" | "success"
       notification_category: "journal-entry-partner" | "chat"
       privacy_type: "public" | "training-partners" | "private"
       weight_class: "unknown" | "feather" | "light" | "middle" | "heavy"
@@ -534,6 +552,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       age_class: [
@@ -567,6 +588,7 @@ export const Constants = {
         "other",
       ],
       intensity: ["playful", "casual", "intense"],
+      journal_type: ["attempt", "success"],
       notification_category: ["journal-entry-partner", "chat"],
       privacy_type: ["public", "training-partners", "private"],
       weight_class: ["unknown", "feather", "light", "middle", "heavy"],

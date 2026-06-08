@@ -150,7 +150,7 @@ const sections = [
                     category: "sweep",
                     technique: "Flower sweep",
                     setup: "Cross sleeve grip",
-                    successful: true,
+                    journalType: "success",
                     trainedDate: "2026-06-03",
                   }}
                 />

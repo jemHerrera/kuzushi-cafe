@@ -19,7 +19,7 @@ type DateSelectorProps = {
   placeholder?: string;
   ariaLabel?: string;
   onValueChange?: (date: Date | undefined) => void;
-  variant?: "default" | "property";
+  variant?: "default" | "property" | "table";
 };
 
 export function DateSelector({
@@ -62,12 +62,16 @@ export function DateSelector({
             !selectedDate && "text-muted-foreground",
             variant === "property" &&
               "h-10 border-transparent bg-transparent px-2 shadow-none hover:bg-zinc-100 focus-visible:ring-2",
+            variant === "table" &&
+              "h-8 border-transparent bg-transparent px-1 shadow-none hover:bg-zinc-50 focus-visible:ring-0",
           )}
         >
           {variant === "default" ? (
             <CalendarIcon data-icon="inline-start" />
           ) : null}
-          {selectedDate ? format(selectedDate, "PPP") : placeholder}
+          {selectedDate
+            ? format(selectedDate, variant === "table" ? "MMMM dd, yyyy" : "PPP")
+            : placeholder}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

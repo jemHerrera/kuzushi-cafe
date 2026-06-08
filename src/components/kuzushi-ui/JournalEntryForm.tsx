@@ -7,13 +7,23 @@ import {
   NotebookPen,
   Plus,
   Route,
-  Save,
   Shapes,
   Tag,
   Trash2,
   UserRound,
 } from "lucide-react";
 import { useId, useMemo, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -156,21 +166,38 @@ export function JournalEntryForm({
       ) : null}
       <div className="flex flex-wrap justify-between gap-3">
         {mode === "update" ? (
-          <ButtonSecondary>
-            <Trash2 className="size-4" />
-            Delete entry
-          </ButtonSecondary>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <ButtonSecondary className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800">
+                <Trash2 className="size-4" />
+                Delete entry
+              </ButtonSecondary>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this journal entry?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This journal entry will be permanently removed. This action
+                  cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction className="bg-red-600 text-white hover:bg-red-700">
+                  Delete entry
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         ) : (
           <span />
         )}
-        <ButtonPrimary>
-          {mode === "create" ? (
+        {mode === "create" && (
+          <ButtonPrimary>
             <Plus className="size-4" />
-          ) : (
-            <Save className="size-4" />
-          )}
-          {mode === "create" ? "Add entry" : "Update entry"}
-        </ButtonPrimary>
+            Add entry
+          </ButtonPrimary>
+        )}
       </div>
     </ModalFrame>
   );

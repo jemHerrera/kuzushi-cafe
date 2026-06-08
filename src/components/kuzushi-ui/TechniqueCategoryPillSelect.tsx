@@ -14,7 +14,7 @@ import { categories, categoryStyles, cx, type Category } from "./shared";
 type TechniqueCategoryPillSelectProps = {
   value?: Category;
   onValueChange?: (category: Category) => void;
-  variant?: "default" | "property";
+  variant?: "default" | "property" | "table";
 };
 
 export function TechniqueCategoryPillSelect({
@@ -42,6 +42,7 @@ export function TechniqueCategoryPillSelect({
           "h-auto w-fit rounded-full border px-2.5 py-1 text-xs font-semibold capitalize shadow-none",
           categoryStyles[selectedCategory],
           variant === "property" && "",
+          variant === "table" && "px-2 py-0.5",
         )}
       >
         <SelectValue>{selectedCategory}</SelectValue>

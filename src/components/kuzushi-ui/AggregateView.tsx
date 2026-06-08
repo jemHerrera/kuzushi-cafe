@@ -12,7 +12,7 @@ export function AggregateView({ title = "Submissions" }: { title?: string }) {
       <StatsChart />
       <div className="grid gap-3">
         <StatsRow label="Attempts" count={25} percentage={78} />
-        <StatsRow label="Successful" count={18} percentage={72} />
+        <StatsRow label="Success" count={18} percentage={72} />
       </div>
     </section>
   );

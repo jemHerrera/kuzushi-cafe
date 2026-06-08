@@ -18,7 +18,7 @@ type TrainingPartnerSelectMenuProps = {
   onSelectPartner?: (partner: Partner) => void;
   onSelectUnknownPartner?: () => void;
   onAddCustomPartner?: () => void;
-  variant?: "default" | "property";
+  variant?: "default" | "property" | "table";
 };
 
 export function TrainingPartnerSelectMenu({
@@ -144,13 +144,23 @@ export function TrainingPartnerSelectMenu({
             "flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
             variant === "property" &&
               "min-h-10 border-transparent bg-transparent px-2 py-1 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2",
+            variant === "table" &&
+              "min-h-8 justify-start border-transparent bg-transparent px-1 py-0 shadow-none hover:bg-zinc-50 focus-visible:border-transparent focus-visible:ring-0",
           )}
           onClick={openMenu}
         >
+          {selectedPartner && variant === "table" ? (
+            <PartnerAvatar
+              partner={selectedPartner}
+              compact
+            />
+          ) : null}
           <span className="min-w-0 flex-1 truncate font-medium">
             {selectedLabel}
           </span>
-          {selectedPartner ? <PartnerAvatar partner={selectedPartner} /> : null}
+          {selectedPartner && variant !== "table" ? (
+            <PartnerAvatar partner={selectedPartner} />
+          ) : null}
         </button>
       }
     >
@@ -232,11 +242,18 @@ export function TrainingPartnerSelectMenu({
   );
 }
 
-function PartnerAvatar({ partner }: { partner: Partner }) {
+function PartnerAvatar({
+  partner,
+  compact = false,
+}: {
+  partner: Partner;
+  compact?: boolean;
+}) {
   return (
     <span
       className={cx(
-        "inline-flex shrink-0 rounded-full border-[3px] p-0",
+        "inline-flex shrink-0 rounded-full p-0",
+        compact ? "border-2" : "border-[3px]",
         beltBorderStyles[partner.belt],
       )}
     >

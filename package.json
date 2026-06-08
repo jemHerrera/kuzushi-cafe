@@ -20,7 +20,7 @@
     "supabase:reset": "npm run supabase -- db reset",
     "supabase:push": "npm run supabase -- db push",
     "supabase:link": "npm run supabase -- link",
-    "supabase:types": "npm run supabase -- gen types typescript --local > src/lib/supabase/database.types.ts",
+    "supabase:types": "npm run --silent supabase -- gen types typescript --local > src/lib/supabase/database.types.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

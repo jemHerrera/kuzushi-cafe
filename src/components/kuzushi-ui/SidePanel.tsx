@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/dialog";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { DonationBanner } from "./DonationBanner";
+import { DonationModal } from "./DonationModal";
 import { JournalEntryCreate } from "./JournalEntryCreate";
 import { MyProfile } from "./MyProfile";
+import { PrivacySettings } from "./PrivacySettings";
 import { PublicProfileSearch } from "./PublicProfileSearch";
 import { SavedTechniqueTagList } from "./SavedTechniqueTagList";
 import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
@@ -23,6 +25,8 @@ export function SidePanel() {
     useState(false);
   const [isTrainingPartnersOpen, setIsTrainingPartnersOpen] = useState(false);
   const [isSavedTechniquesOpen, setIsSavedTechniquesOpen] = useState(false);
+  const [isPrivacySettingsOpen, setIsPrivacySettingsOpen] = useState(false);
+  const [isDonationOpen, setIsDonationOpen] = useState(false);
   const [trainingPartnersDialogTitle, setTrainingPartnersDialogTitle] =
     useState("My training partners");
 
@@ -43,7 +47,10 @@ export function SidePanel() {
       label: "Saved Techniques",
       onClick: () => setIsSavedTechniquesOpen(true),
     },
-    { label: "Privacy Settings" },
+    {
+      label: "Privacy Settings",
+      onClick: () => setIsPrivacySettingsOpen(true),
+    },
     { label: "Contact Us" },
   ];
 
@@ -81,7 +88,7 @@ export function SidePanel() {
         ))}
       </nav>
       <div className="mt-auto grid gap-3">
-        <DonationBanner />
+        <DonationBanner onDonate={() => setIsDonationOpen(true)} />
       </div>
       <Dialog open={isMyProfileOpen} onOpenChange={setIsMyProfileOpen}>
         <DialogContent
@@ -145,6 +152,37 @@ export function SidePanel() {
           </DialogDescription>
           <SavedTechniqueTagList
             onClose={() => setIsSavedTechniquesOpen(false)}
+            withinDialog
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={isPrivacySettingsOpen}
+        onOpenChange={setIsPrivacySettingsOpen}
+      >
+        <DialogContent
+          className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
+          showCloseButton={false}
+        >
+          <DialogDescription className="sr-only">
+            Choose who can view your profile and journal activity.
+          </DialogDescription>
+          <PrivacySettings
+            onClose={() => setIsPrivacySettingsOpen(false)}
+            withinDialog
+          />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isDonationOpen} onOpenChange={setIsDonationOpen}>
+        <DialogContent
+          className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
+          showCloseButton={false}
+        >
+          <DialogDescription className="sr-only">
+            Choose a donation amount to support Kuzushi Cafe.
+          </DialogDescription>
+          <DonationModal
+            onClose={() => setIsDonationOpen(false)}
             withinDialog
           />
         </DialogContent>

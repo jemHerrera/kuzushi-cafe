@@ -225,9 +225,9 @@ Accepted account-backed training partners are stored as two `TrainingPartner` ro
 - Input query:
   - `search?: string`
   - `category?: Category[]`
-  - `isSuccessful?: boolean`
+  - `journalTypes?: JournalType[]`
   - `isNoGi?: boolean`
-  - `sortField?: "trainedAt" | "category" | "name" | "isSuccessful" | "trainingPartner"`
+  - `sortField?: "trainedAt" | "category" | "name" | "journalType" | "trainingPartner"`
   - `sortDirection?: "asc" | "desc"`
   - `limit: number`
   - `offset: number`
@@ -242,8 +242,7 @@ Accepted account-backed training partners are stored as two `TrainingPartner` ro
   - `name: string`
   - `category: Category`
   - `setup: string`
-  - `isAttempt: boolean`
-  - `isSuccessful?: boolean`
+  - `journalType?: JournalType`
   - `notes?: string`
   - `intensity?: Intensity`
   - `isNoGi?: boolean`
@@ -309,14 +308,14 @@ Accepted account-backed training partners are stored as two `TrainingPartner` ro
   - `timeline: "week" | "month" | "year" | "custom"`
   - `startDate?: string` ISO date
   - `endDate?: string` ISO date
-  - `successfulOnly?: boolean`
+  - `journalTypes?: JournalType[]`
 - Output:
   - `category?: Category`
   - `attempts: number`
   - `successes: number`
   - `series: { label: string; attempts: number; successes: number }[]`
   - `stats: { label: string; count: number; percentage: number }[]`
-- Manager methods: `IAggregateManager.getAggregateStats({ accountId: session.account.id, category, timeline, startDate, endDate, successfulOnly })`.
+- Manager methods: `IAggregateManager.getAggregateStats({ accountId: session.account.id, category, timeline, startDate, endDate, journalTypes })`.
 
 ### `GET /api/accounts/:id/aggregates`
 
@@ -328,7 +327,7 @@ Accepted account-backed training partners are stored as two `TrainingPartner` ro
 - Manager methods:
   - `IAccountManager.getPrivacySettings`
   - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated
-  - `IAggregateManager.getAggregateStats({ accountId: id, category, timeline, startDate, endDate, successfulOnly })` after the endpoint determines the viewer can see aggregates.
+  - `IAggregateManager.getAggregateStats({ accountId: id, category, timeline, startDate, endDate, journalTypes })` after the endpoint determines the viewer can see aggregates.
 
 ## Technique Tags
 

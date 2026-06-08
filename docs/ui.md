@@ -61,7 +61,7 @@
   - Intensity single-select field
   - Gi/No-Gi toggle
   - `TrainingPartnerInput`
-  - Optional outcome radio field with mutually exclusive "Attempt" and "Successful" choices, hidden when category is `tap`.
+  - Optional outcome radio field with mutually exclusive "Attempt" and "Successful" choices, mapped to `journalType` values `attempt` and `success`, and hidden when category is `tap`.
   - Trained date, defaulting to `createdDate` when left blank.
   - Category and technique are required. All other fields are optional.
   - Add button.
@@ -73,7 +73,7 @@
   - Intensity single-select field
   - Gi/No-Gi toggle
   - `TrainingPartnerInput`
-  - Optional outcome radio field with mutually exclusive "Attempt" and "Successful" choices, hidden when category is `tap`.
+  - Optional outcome radio field with mutually exclusive "Attempt" and "Successful" choices, mapped to `journalType` values `attempt` and `success`, and hidden when category is `tap`.
   - Trained date: `DateSelector`
   - Category and technique are required. All other fields are optional.
   - Delete button with confirmation.
@@ -121,24 +121,22 @@
 - `JournalEntryFilters`
   - Search.
   - Category multi-select filter.
-  - Success filter.
-  - Gi/No-Gi filter.
+  - Type multi-select filter with Attempt and Success options.
   - Add new journal entry button.
 - `JournalEntryHeading`
-  - Sortable headings:
-    - Category
-    - Technique
-    - Successful
-    - Training partner
-    - Trained date
+  - Category.
+  - Technique.
+  - Type.
+  - Training partner.
+  - Trained date.
+  - Unlabeled actions column with an accessible label.
 - `JournalEntryRow`
-  - Category
-  - Technique
-  - Successful
-  - Training partner avatar
-  - Trained date
-  - Edit action
-  - Delete action with confirmation
+  - Inline-editable category, technique, type, training partner, and trained date.
+  - Setup remains display-only below technique with a `from` prefix.
+  - Extra-small training partner avatar and name only.
+  - Trained date displayed as full month, day, and year.
+  - Ellipsis menu with Edit and Delete actions.
+  - Edit opens `JournalEntryUpdate`; delete requires confirmation.
 - `JournalEntryPagination`
 - `JournalEntryTable` - Responsive table that remains usable on mobile.
   - `JournalEntryFilters`
@@ -147,7 +145,7 @@
   - `JournalEntryPagination`
 - `AggregateViewFilters`
   - Timeline: this week, this month, this year, or custom date range.
-  - Success: all attempts or successful only.
+  - Type: all types, Attempt only, or Success only.
 - `AggregateView`
   - Title.
   - `AggregateViewFilters`
@@ -182,8 +180,8 @@
   - `TrainingPartnerSearch`: first name, last name, and belt.
   - `PublicProfileSearch`: visible public profile fields only.
   - `SavedTechniqueSearch`: tag label and category.
-- If category is `tap`, hide success UI. `isSuccessful` should not be collected for tap entries.
-- `JournalEntryCreate` and `JournalEntryUpdate` use one optional outcome radio field. "Attempt" and "Successful" are mutually exclusive.
+- If category is `tap`, hide type UI. `journalType` should be `null` for tap entries.
+- `JournalEntryCreate` and `JournalEntryUpdate` use one optional outcome radio field. "Attempt" and "Successful" are mutually exclusive and map to `attempt` and `success`.
 - Intensity is optional and does not affect aggregate views for now.
 - Use horizontal scrolling for `JournalEntryTable` on mobile.
 - Empty states:
@@ -193,7 +191,7 @@
   - No notifications: show a quiet empty state with no primary action.
   - No aggregate data: explain that charts appear after journal entries are created; primary action is "Add journal entry".
 - Loading states should use skeleton rows for tables and lists, skeleton summary blocks for aggregate views, and disabled submit buttons during form submission.
-- Journal-entry rows include edit and delete actions. Delete requires confirmation.
+- Journal-entry rows auto-save edits locally and include Edit and Delete actions in an ellipsis menu. Delete requires confirmation.
 - `JournalEntryUpdate` includes a delete button with confirmation.
 - Authentication UI should cover Google SSO, magic-link email entry, OTP or magic-link confirmation, expired-link handling, auth errors, loading states, and post-auth onboarding.
 - Authenticated users with incomplete required profile fields should be redirected to `CompleteProfile`.
