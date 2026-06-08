@@ -119,7 +119,7 @@ export function SignInForm({
           <Button
             type="button"
             variant="ghost"
-            className="justify-start px-0"
+            className="justify-start pl-8 underline"
             disabled={Boolean(pendingProvider)}
             onClick={() => void requestSignIn("magic-link", sentEmail)}
           >

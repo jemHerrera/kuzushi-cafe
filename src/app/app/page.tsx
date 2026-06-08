@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { SignOutButton } from "@/components/kuzushi-ui";
+import { BrandWordmark, SignOutButton } from "@/components/kuzushi-ui";
 import { AuthManager } from "@/lib/auth/manager";
 import {
   COMPLETE_PROFILE_PATH,
@@ -25,9 +25,7 @@ export default async function AppPage() {
     <main className="min-h-screen bg-stone-50 px-6 py-10 text-zinc-950">
       <section className="mx-auto grid w-full max-w-3xl gap-6">
         <header className="flex items-center justify-between border-b border-zinc-200 pb-5">
-          <span className="text-sm font-semibold uppercase tracking-wide text-zinc-700">
-            Kuzushi Cafe
-          </span>
+          <BrandWordmark href="/" />
           <SignOutButton />
         </header>
         <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">

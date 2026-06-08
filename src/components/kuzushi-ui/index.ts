@@ -3,6 +3,7 @@ export { AggregateView } from "./AggregateView";
 export { AggregateViewFilters } from "./AggregateViewFilters";
 export { AlertBanner } from "./AlertBanner";
 export { Avatar } from "./Avatar";
+export { BrandWordmark } from "./BrandWordmark";
 export { ButtonPrimary } from "./ButtonPrimary";
 export { ButtonSecondary } from "./ButtonSecondary";
 export { CompleteProfile } from "./CompleteProfile";

@@ -4,6 +4,7 @@ import {
   AggregateViewFilters,
   AlertBanner,
   Avatar,
+  BrandWordmark,
   ButtonPrimary,
   ButtonSecondary,
   CompleteProfile,
@@ -207,9 +208,7 @@ export default function ComponentsPage() {
       <div className="mx-auto grid max-w-7xl gap-8">
         <header className="flex flex-wrap items-end justify-between gap-4 border-b border-zinc-200 pb-6">
           <div>
-            <p className="text-sm font-bold uppercase text-zinc-600">
-              Kuzushi Cafe
-            </p>
+            <BrandWordmark href="/" />
             <h1 className="mt-2 text-4xl font-black">Component library</h1>
           </div>
           <Link className="text-sm font-semibold text-zinc-700" href="/">
