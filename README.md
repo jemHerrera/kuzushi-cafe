@@ -106,8 +106,8 @@ protocol-relative destinations are discarded.
 - [x] Build aggregate-stat managers for timelines, category filters, success filters, series data, and stats rows.
 - [x] Build notification managers for journal-entry partner assignment notifications, list pagination, mark-read, and mark-all-read.
 - [x] Build donation checkout managers with Stripe Checkout session creation and success, canceled, and retryable-failure status handling.
-- [ ] Implement the API endpoints in `docs/api-endpoints.md` with validation, normalization, authorization, pagination, and URL-backed journal filters.
-- [ ] Create shared validation schemas and API response types that match `docs/managers.ts`.
+- [x] Implement the API endpoints in `docs/api-endpoints.md` with validation, normalization, authorization, pagination, and URL-backed journal filters.
+- [x] Create shared validation schemas and API response types that match `docs/managers.ts`.
 - [ ] Build the app shell with side panel, header, notifications entry point, profile navigation, saved techniques, settings, and donation banner.
 - [x] Build authentication UI for Google SSO, magic-link email entry, confirmation states, expired links, errors, loading, and post-auth onboarding.
 - [ ] Build account UI for `MyProfile`, `CompleteProfile`, `PrivacySettings`, and `PublicProfile`.

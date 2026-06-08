@@ -1,18 +1,13 @@
 import { AuthManager } from "@/lib/auth/manager";
-import { apiError, authErrorResponse } from "@/lib/auth/errors";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { authenticatedApiContext } from "@/lib/api/context";
+import { apiErrorResponse } from "@/lib/api/errors";
 
 export async function POST() {
   try {
-    const manager = new AuthManager(await createSupabaseServerClient());
-    const session = await manager.getCurrentSession();
-
-    if (!session) {
-      return apiError("authentication_required", "You must be signed in.", 401);
-    }
-
+    const { supabase } = await authenticatedApiContext();
+    const manager = new AuthManager(supabase);
     return Response.json(await manager.signOut());
   } catch (error) {
-    return authErrorResponse(error);
+    return apiErrorResponse(error);
   }
 }

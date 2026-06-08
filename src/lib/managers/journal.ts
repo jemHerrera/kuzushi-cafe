@@ -19,7 +19,7 @@ import type {
 import type { Database } from "@/lib/supabase/database.types";
 
 type PartnerInput = {
-  trainingPartnerId?: string;
+  trainingPartnerId?: string | null;
   partnerFirstName?: string;
   partnerLastName?: string;
   partnerWeight?: WeightClass;
@@ -39,7 +39,16 @@ type JournalValues = PartnerInput & {
 };
 
 type JournalUpdate = PartnerInput &
-  Partial<Omit<JournalValues, keyof PartnerInput>>;
+  Partial<
+    Omit<
+      JournalValues,
+      keyof PartnerInput | "journalType" | "intensity" | "isNoGi"
+    >
+  > & {
+    journalType?: JournalType | null;
+    intensity?: Intensity | null;
+    isNoGi?: boolean | null;
+  };
 
 type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];
 
@@ -109,10 +118,11 @@ export class JournalEntryManager {
   }
 
   async updateJournalEntry(params: {
+    accountId: string;
     id: string;
     options: JournalUpdate;
   }): Promise<JournalEntryDetail> {
-    const existing = await this.getJournalRow(params.id);
+    const existing = await this.getJournalRow(params.id, params.accountId);
     const options = params.options;
     const category = options.category ?? existing.category;
 
@@ -120,7 +130,7 @@ export class JournalEntryManager {
     if (options.setup !== undefined) validateText(options.setup, "Setup");
     validatePartnerMode(options);
 
-    let trainingPartnerId: string | undefined;
+    let trainingPartnerId: string | null | undefined;
     if (options.trainingPartnerId) {
       await this.assertAcceptedPartner(
         existing.account_id,
@@ -132,6 +142,8 @@ export class JournalEntryManager {
         existing.account_id,
         options,
       );
+    } else if (options.trainingPartnerId === null) {
+      trainingPartnerId = null;
     }
 
     if (options.trainedDate) {
@@ -184,8 +196,10 @@ export class JournalEntryManager {
     return this.withPartner(data);
   }
 
-  async getJournalEntry(params: { id: string }) {
-    return this.withPartner(await this.getJournalRow(params.id));
+  async getJournalEntry(params: { id: string; accountId: string }) {
+    return this.withPartner(
+      await this.getJournalRow(params.id, params.accountId),
+    );
   }
 
   async getJournalEntries(params: {
@@ -267,12 +281,25 @@ export class JournalEntryManager {
     });
   }
 
-  async deleteJournalEntries(params: { id: string[] }) {
+  async deleteJournalEntries(params: { id: string[]; accountId: string }) {
     if (!params.id.length) return { deleted: true as const };
+    const { data: owned } = await this.supabase
+      .from("journal_entries")
+      .select("id")
+      .in("id", params.id)
+      .eq("account_id", params.accountId);
+    if (owned?.length !== new Set(params.id).size) {
+      throw new ManagerError(
+        "journal_entry_not_found",
+        "Journal entry not found.",
+        404,
+      );
+    }
     const { error } = await this.supabase
       .from("journal_entries")
       .delete()
-      .in("id", params.id);
+      .in("id", params.id)
+      .eq("account_id", params.accountId);
     if (error) {
       throw new ManagerError("journal_entry_delete_failed", error.message, 500);
     }
@@ -421,6 +448,7 @@ export class JournalEntryManager {
   }
 
   async updateTag(params: {
+    accountId: string;
     id: string;
     options: { category?: Category; label?: string; isPublic: boolean };
   }) {
@@ -445,26 +473,33 @@ export class JournalEntryManager {
       })
       .eq("key", params.id)
       .eq("is_public", false)
+      .eq("generated_by_account_id", params.accountId)
       .select("*")
       .single();
 
     if (error || !data) {
-      throw new ManagerError(
-        "tag_update_failed",
-        error?.message ?? "Could not update tag.",
-        500,
-      );
+      throw new ManagerError("tag_not_found", "Technique tag not found.", 404);
     }
     return toTechniqueTag(data);
   }
 
-  async deleteTags(params: { id: string[] }) {
+  async deleteTags(params: { id: string[]; accountId: string }) {
     if (!params.id.length) return { deleted: true as const };
+    const { data: owned } = await this.supabase
+      .from("technique_tags")
+      .select("key")
+      .in("key", params.id)
+      .eq("is_public", false)
+      .eq("generated_by_account_id", params.accountId);
+    if (owned?.length !== new Set(params.id).size) {
+      throw new ManagerError("tag_not_found", "Technique tag not found.", 404);
+    }
     const { error } = await this.supabase
       .from("technique_tags")
       .delete()
       .in("key", params.id)
-      .eq("is_public", false);
+      .eq("is_public", false)
+      .eq("generated_by_account_id", params.accountId);
     if (error) {
       throw new ManagerError("tag_delete_failed", error.message, 500);
     }
@@ -497,12 +532,13 @@ export class JournalEntryManager {
     return toTechniqueTag(master);
   }
 
-  private async getJournalRow(id: string): Promise<JournalRow> {
-    const { data, error } = await this.supabase
-      .from("journal_entries")
-      .select("*")
-      .eq("id", id)
-      .single();
+  private async getJournalRow(
+    id: string,
+    accountId?: string,
+  ): Promise<JournalRow> {
+    let query = this.supabase.from("journal_entries").select("*").eq("id", id);
+    if (accountId) query = query.eq("account_id", accountId);
+    const { data, error } = await query.single();
     if (error || !data) {
       throw new ManagerError(
         "journal_entry_not_found",

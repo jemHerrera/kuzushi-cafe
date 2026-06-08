@@ -77,7 +77,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - UI: `PublicProfile` page component.
 - Auth middleware: optional.
 - Input path: `id`.
-- Output: public profile detail with privacy-scoped profile fields, including `bio`, aggregate visibility flags, journal visibility flags, and `TrainingPartnerRelationshipStatus` for authenticated viewers.
+- Output: `PublicProfileDetail`, containing privacy-scoped public profile fields and `TrainingPartnerRelationshipStatus` for authenticated viewers. Aggregate and journal data are loaded from their dedicated endpoints.
 - Manager methods:
   - `IAccountManager.getAccount`
   - `IAccountManager.getPrivacySettings`
@@ -277,7 +277,7 @@ not part of the contract.
 - UI: `JournalEntryUpdate`.
 - Auth middleware: yes.
 - Input path: `id`.
-- Input body: partial journal-entry options accepted by `IJournalEntryManager.updateJournalEntry`.
+- Input body: partial journal-entry options accepted by `IJournalEntryManager.updateJournalEntry`. Send `trainingPartnerId: null` to clear the current partner.
 - Output: `JournalEntryDetail`.
 - Manager methods:
   - `IJournalEntryManager.updateJournalEntry`
@@ -299,7 +299,7 @@ not part of the contract.
 - Auth middleware: optional.
 - Input path: `id`.
 - Input query: same filters, sort, `limit`, and `offset` as `GET /api/journal-entries`.
-- Output: `{ items: JournalEntryDetail[]; limit: number; offset: number; visibility: PrivacyType }`.
+- Output: `{ items: JournalEntryDetail[]; limit: number; offset: number; visibility: PrivacyType }`. `visibility` is the generic `journalEntries` setting; category-specific RLS still scopes returned items.
 - Manager methods:
   - `IAccountManager.getPrivacySettings`
   - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated

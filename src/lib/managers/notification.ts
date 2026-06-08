@@ -51,18 +51,19 @@ export class NotificationManager {
     };
   }
 
-  async markNotificationAsRead(params: { id: string }) {
+  async markNotificationAsRead(params: { id: string; accountId: string }) {
     const { data, error } = await this.supabase
       .from("notifications")
       .update({ is_read: true })
       .eq("id", params.id)
+      .eq("account_id", params.accountId)
       .select("*")
       .single();
     if (error || !data) {
       throw new ManagerError(
-        "notification_update_failed",
-        error?.message ?? "Could not mark notification as read.",
-        500,
+        "notification_not_found",
+        "Notification not found.",
+        404,
       );
     }
     return toNotification(data);

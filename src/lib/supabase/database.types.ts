@@ -488,6 +488,25 @@ export type Database = {
         Args: { account_id: string; training_partner_id: string }
         Returns: undefined
       }
+      get_public_privacy: {
+        Args: { target_account_id: string; viewer_account_id?: string }
+        Returns: {
+          journal_entries: Database["public"]["Enums"]["privacy_type"]
+          profile: Database["public"]["Enums"]["privacy_type"]
+        }[]
+      }
+      get_public_profile: {
+        Args: { target_account_id: string; viewer_account_id?: string }
+        Returns: {
+          belt: Database["public"]["Enums"]["belt"]
+          bio: string
+          first_name: string
+          id: string
+          last_name: string
+          profile_photo: string
+          relationship_status: string
+        }[]
+      }
       list_training_partner_requests: {
         Args: {
           account_id: string

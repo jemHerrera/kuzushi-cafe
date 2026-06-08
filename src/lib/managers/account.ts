@@ -13,6 +13,7 @@ import type {
   Belt,
   PrivacyType,
   PublicAccountSummary,
+  PublicPrivacyDetail,
   TrainingPartnerDetail,
   TrainingPartnerRelationshipStatus,
   WeightClass,
@@ -204,6 +205,44 @@ export class AccountManager {
     };
   }
 
+  async getPublicProfile(params: {
+    accountId: string;
+    viewerAccountId?: string;
+  }): Promise<PublicAccountSummary> {
+    const { data, error } = await this.supabase.rpc("get_public_profile", {
+      target_account_id: params.accountId,
+      viewer_account_id: params.viewerAccountId,
+    });
+    const row = data?.[0];
+    if (error || !row) {
+      throw new ManagerError(
+        "public_profile_not_found",
+        "Profile not found.",
+        404,
+      );
+    }
+    return toPublicAccountSummary(row);
+  }
+
+  async getPublicPrivacy(params: {
+    accountId: string;
+    viewerAccountId?: string;
+  }): Promise<PublicPrivacyDetail> {
+    const { data, error } = await this.supabase.rpc("get_public_privacy", {
+      target_account_id: params.accountId,
+      viewer_account_id: params.viewerAccountId,
+    });
+    const row = data?.[0];
+    if (error || !row) {
+      throw new ManagerError(
+        "public_profile_not_found",
+        "Profile not found.",
+        404,
+      );
+    }
+    return { profile: row.profile, journalEntries: row.journal_entries };
+  }
+
   async sendTrainingPartnerRequest(params: {
     fromAccountId: string;
     toAccountId: string;
@@ -275,6 +314,19 @@ export class AccountManager {
     accountId: string;
     trainingPartnerId: string;
   }) {
+    const { data: ownedPartner } = await this.supabase
+      .from("training_partners")
+      .select("id")
+      .eq("id", params.trainingPartnerId)
+      .eq("owner_account_id", params.accountId)
+      .maybeSingle();
+    if (!ownedPartner) {
+      throw new ManagerError(
+        "training_partner_not_found",
+        "Training partner not found.",
+        404,
+      );
+    }
     const { error } = await this.supabase.rpc("detach_training_partner", {
       account_id: params.accountId,
       training_partner_id: params.trainingPartnerId,

@@ -1,5 +1,5 @@
 import { AuthManager } from "@/lib/auth/manager";
-import { authErrorResponse } from "@/lib/auth/errors";
+import { apiErrorResponse } from "@/lib/api/errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET() {
@@ -7,6 +7,6 @@ export async function GET() {
     const manager = new AuthManager(await createSupabaseServerClient());
     return Response.json(await manager.getCurrentSession());
   } catch (error) {
-    return authErrorResponse(error);
+    return apiErrorResponse(error);
   }
 }

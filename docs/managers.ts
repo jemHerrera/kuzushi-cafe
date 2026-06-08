@@ -69,6 +69,13 @@ export type PublicAccountSummary = {
   relationshipStatus?: TrainingPartnerRelationshipStatus;
 };
 
+export type PublicProfileDetail = PublicAccountSummary;
+
+export type PublicPrivacyDetail = {
+  profile: PrivacyType;
+  journalEntries: PrivacyType;
+};
+
 export type TrainingPartnerRelationshipStatus =
   | "none"
   | "pending-inbound"
@@ -152,6 +159,14 @@ export interface IAccountManager {
     limit: number;
     offset: number;
   }>;
+  getPublicProfile: (params: {
+    accountId: string;
+    viewerAccountId?: string;
+  }) => Promise<PublicProfileDetail>;
+  getPublicPrivacy: (params: {
+    accountId: string;
+    viewerAccountId?: string;
+  }) => Promise<PublicPrivacyDetail>;
   sendTrainingPartnerRequest: (params: {
     fromAccountId: string;
     toAccountId: string;
@@ -307,6 +322,7 @@ export interface IJournalEntryManager {
     trainedDate?: Date;
   }) => Promise<JournalEntryDetail>; // In endpoint level, may create tag as well
   updateJournalEntry: (params: {
+    accountId: string;
     id: string;
     options: {
       name?: string;
@@ -316,7 +332,7 @@ export interface IJournalEntryManager {
       notes?: string;
       intensity?: Intensity;
       isNoGi?: boolean;
-      trainingPartnerId?: string;
+      trainingPartnerId?: string | null;
       partnerFirstName?: string;
       partnerLastName?: string;
       partnerWeight?: WeightClass;
@@ -332,7 +348,10 @@ export interface IJournalEntryManager {
   // - Account-backed training partner assignments must reference an accepted TrainingPartner row owned by the entry owner.
   // - Removing an account-backed training partner clears partner on both reciprocal TrainingPartner rows instead of deleting them.
   // - Removed rows snapshot the former partner's firstName, lastName, age, weight, and belt for historical journal display.
-  getJournalEntry: (params: { id: string }) => Promise<JournalEntryDetail>;
+  getJournalEntry: (params: {
+    id: string;
+    accountId: string;
+  }) => Promise<JournalEntryDetail>;
   getJournalEntries: (params: {
     accountId: string;
     filter: JournalEntryFilters;
@@ -350,6 +369,7 @@ export interface IJournalEntryManager {
   }) => Promise<{ items: JournalEntryDetail[]; limit: number; offset: number }>;
   deleteJournalEntries: (params: {
     id: string[];
+    accountId: string;
   }) => Promise<{ deleted: true }>;
   assignTrainingPartnerToJournalEntry: (params: {
     accountId: string;
@@ -383,6 +403,7 @@ export interface IJournalEntryManager {
     offset: number;
   }) => Promise<{ items: TechniqueTagDetail[]; limit: number; offset: number }>;
   updateTag: (params: {
+    accountId: string;
     id: string;
     options: {
       category?: Category;
@@ -390,7 +411,10 @@ export interface IJournalEntryManager {
       isPublic: boolean;
     };
   }) => Promise<TechniqueTagDetail>;
-  deleteTags: (params: { id: string[] }) => Promise<{ deleted: true }>;
+  deleteTags: (params: {
+    id: string[];
+    accountId: string;
+  }) => Promise<{ deleted: true }>;
   mergeTags: (params: {
     masterId: string;
     ids: string[];
@@ -475,6 +499,7 @@ export interface INotificationManager {
   }) => Promise<{ items: NotificationDetail[]; limit: number; offset: number }>;
   markNotificationAsRead: (params: {
     id: string;
+    accountId: string;
   }) => Promise<NotificationDetail>;
   markAllNotificationsAsRead: (params: {
     accountId: string;
@@ -496,6 +521,29 @@ export type DonationCheckoutSessionDetail = {
   status: DonationCheckoutStatus;
   createdAt: number;
   updatedAt: number;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  limit: number;
+  offset: number;
+};
+
+export type PublicJournalEntriesResponse =
+  PaginatedResponse<JournalEntryDetail> & {
+    visibility: PrivacyType;
+  };
+
+export type PublicAggregateResponse = AggregateStatsDetail & {
+  visibility: PrivacyType;
+};
+
+export type ApiErrorDetail = {
+  error: {
+    code: string;
+    message: string;
+    issues?: Array<{ path: string; message: string }>;
+  };
 };
 
 export interface IDonationManager {

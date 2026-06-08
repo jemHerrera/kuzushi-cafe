@@ -1,0 +1,249 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+import type { Database } from "@/lib/supabase/database.types";
+
+const serverClient = vi.hoisted(() => ({
+  current: null as SupabaseClient<Database> | null,
+}));
+
+vi.mock("@/lib/supabase/server", () => ({
+  createSupabaseServerClient: async () => {
+    if (!serverClient.current) throw new Error("Missing test client.");
+    return serverClient.current;
+  },
+}));
+
+import * as accountProfileRoute from "@/app/api/accounts/[id]/route";
+import * as publicJournalRoute from "@/app/api/accounts/[id]/journal-entries/route";
+import * as journalDetailRoute from "@/app/api/journal-entries/[id]/route";
+import * as journalRoute from "@/app/api/journal-entries/route";
+import * as tagDetailRoute from "@/app/api/technique-tags/[id]/route";
+import * as tagRoute from "@/app/api/technique-tags/route";
+import * as blockRoute from "@/app/api/training-partners/[id]/block/route";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const hasLocalSupabase = Boolean(
+  supabaseUrl?.includes("127.0.0.1") && anonKey && serviceKey,
+);
+
+describe.skipIf(!hasLocalSupabase)("API route integration", () => {
+  const admin = createClient<Database>(
+    supabaseUrl || "http://127.0.0.1:54321",
+    serviceKey || "missing-service-key",
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+    },
+  );
+  const password = "route-integration-password";
+  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const users = [
+    {
+      email: `route-a-${suffix}@example.com`,
+      id: "",
+      accountId: "",
+      client: null as SupabaseClient<Database> | null,
+    },
+    {
+      email: `route-b-${suffix}@example.com`,
+      id: "",
+      accountId: "",
+      client: null as SupabaseClient<Database> | null,
+    },
+  ];
+
+  beforeAll(async () => {
+    for (const [index, testUser] of users.entries()) {
+      const { data, error } = await admin.auth.admin.createUser({
+        email: testUser.email,
+        password,
+        email_confirm: true,
+      });
+      if (error || !data.user)
+        throw error ?? new Error("User creation failed.");
+      testUser.id = data.user.id;
+      const { data: account, error: accountError } = await admin
+        .from("accounts")
+        .insert({
+          auth_user_id: testUser.id,
+          auth_provider: "magic-link",
+          email: testUser.email,
+          first_name: `Route${index}`,
+          last_name: "Tester",
+        })
+        .select("id")
+        .single();
+      if (accountError || !account)
+        throw accountError ?? new Error("Account creation failed.");
+      testUser.accountId = account.id;
+      const client = createClient<Database>(supabaseUrl, anonKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { error: signInError } = await client.auth.signInWithPassword({
+        email: testUser.email,
+        password,
+      });
+      if (signInError) throw signInError;
+      testUser.client = client;
+    }
+  }, 30_000);
+
+  afterAll(async () => {
+    for (const user of users) {
+      if (user.id) await admin.auth.admin.deleteUser(user.id);
+    }
+  });
+
+  it("rejects protected routes without a session", async () => {
+    serverClient.current = createClient<Database>(supabaseUrl, anonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const response = await journalRoute.GET(
+      new Request("http://localhost/api/journal-entries"),
+    );
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: {
+        code: "authentication_required",
+        message: "You must be signed in.",
+      },
+    });
+  });
+
+  it("validates, normalizes, filters, and paginates journal requests", async () => {
+    serverClient.current = users[0].client;
+    const malformed = await journalRoute.POST(
+      new Request("http://localhost/api/journal-entries", {
+        method: "POST",
+        body: "{",
+      }),
+    );
+    expect(malformed.status).toBe(400);
+
+    const created = await journalRoute.POST(
+      jsonRequest("/api/journal-entries", "POST", {
+        name: "  Armbar  ",
+        setup: "  Closed guard  ",
+        category: "submission",
+        journalType: "success",
+        isNoGi: true,
+        trainedDate: "2026-06-01",
+      }),
+    );
+    expect(created.status).toBe(201);
+    const entry = await created.json();
+    expect(entry.name).toBe("Armbar");
+    expect(entry.setup).toBe("Closed guard");
+
+    const listed = await journalRoute.GET(
+      new Request(
+        "http://localhost/api/journal-entries?category=submission,submission&journalTypes=success&isNoGi=true&limit=1&offset=0",
+      ),
+    );
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toMatchObject({
+      items: [{ id: entry.id }],
+      limit: 1,
+      offset: 0,
+    });
+
+    const invalid = await journalRoute.GET(
+      new Request("http://localhost/api/journal-entries?limit=101"),
+    );
+    expect(invalid.status).toBe(422);
+  });
+
+  it("hides foreign journal entries and private tags as not found", async () => {
+    serverClient.current = users[0].client;
+    const journal = await journalRoute.POST(
+      jsonRequest("/api/journal-entries", "POST", {
+        name: "Triangle",
+        setup: "Guard",
+        category: "submission",
+      }),
+    );
+    const journalId = (await journal.json()).id;
+    const tag = await tagRoute.POST(
+      jsonRequest("/api/technique-tags", "POST", {
+        label: `Private ${suffix}`,
+        category: "submission",
+      }),
+    );
+    const tagId = (await tag.json()).id;
+
+    serverClient.current = users[1].client;
+    const foreignJournal = await journalDetailRoute.GET(
+      new Request(`http://localhost/api/journal-entries/${journalId}`),
+      { params: Promise.resolve({ id: journalId }) },
+    );
+    expect(foreignJournal.status).toBe(404);
+
+    const foreignTag = await tagDetailRoute.PATCH(
+      jsonRequest(`/api/technique-tags/${tagId}`, "PATCH", {
+        label: "Stolen",
+      }),
+      { params: Promise.resolve({ id: tagId }) },
+    );
+    expect(foreignTag.status).toBe(404);
+  });
+
+  it("applies public journal privacy and blocked-profile scoping", async () => {
+    await admin
+      .from("account_privacy_settings")
+      .update({
+        profile: "public",
+        journal_entries: "public",
+        submissions: "public",
+      })
+      .eq("account_id", users[1].accountId);
+
+    serverClient.current = users[1].client;
+    await journalRoute.POST(
+      jsonRequest("/api/journal-entries", "POST", {
+        name: "Public entry",
+        setup: "Open guard",
+        category: "submission",
+      }),
+    );
+
+    serverClient.current = createClient<Database>(supabaseUrl, anonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const publicList = await publicJournalRoute.GET(
+      new Request(
+        `http://localhost/api/accounts/${users[1].accountId}/journal-entries`,
+      ),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(publicList.status).toBe(200);
+    expect(await publicList.json()).toMatchObject({
+      visibility: "public",
+      items: [{ name: "Public entry" }],
+    });
+
+    serverClient.current = users[0].client;
+    const blocked = await blockRoute.POST(
+      new Request(
+        `http://localhost/api/training-partners/${users[1].accountId}/block`,
+        { method: "POST" },
+      ),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(blocked.status).toBe(200);
+    const profile = await accountProfileRoute.GET(
+      new Request(`http://localhost/api/accounts/${users[1].accountId}`),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(profile.status).toBe(404);
+  });
+});
+
+function jsonRequest(path: string, method: string, body: unknown) {
+  return new Request(`http://localhost${path}`, {
+    method,
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+}

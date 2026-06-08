@@ -26,6 +26,31 @@ export type AccountDetail = {
   updatedAt: number;
 };
 
+export type AuthSessionDetail = {
+  object: "auth_session";
+  account: AccountDetail;
+  isNewAccount: boolean;
+  isProfileComplete: boolean;
+};
+
+export type SignInParams =
+  | { provider: "google"; redirectTo: string }
+  | { provider: "magic-link"; email: string; redirectTo: string };
+
+export type SignInResult =
+  | {
+      object: "sign_in_result";
+      provider: "google";
+      status: "redirect_required";
+      redirectUrl: string;
+    }
+  | {
+      object: "sign_in_result";
+      provider: "magic-link";
+      status: "magic_link_sent";
+      email: string;
+    };
+
 export type AccountPrivacySettings = {
   accountId: string;
   profile: PrivacyType;
@@ -57,6 +82,13 @@ export type PublicAccountSummary = {
   profilePhoto?: string;
   belt?: Belt;
   relationshipStatus?: TrainingPartnerRelationshipStatus;
+};
+
+export type PublicProfileDetail = PublicAccountSummary;
+
+export type PublicPrivacyDetail = {
+  profile: PrivacyType;
+  journalEntries: PrivacyType;
 };
 
 export type TrainingPartnerDetail =
@@ -182,4 +214,27 @@ export type DonationCheckoutSessionDetail = {
   status: DonationCheckoutStatus;
   createdAt: number;
   updatedAt: number;
+};
+
+export type PaginatedResponse<T> = {
+  items: T[];
+  limit: number;
+  offset: number;
+};
+
+export type PublicJournalEntriesResponse =
+  PaginatedResponse<JournalEntryDetail> & {
+    visibility: PrivacyType;
+  };
+
+export type PublicAggregateResponse = AggregateStatsDetail & {
+  visibility: PrivacyType;
+};
+
+export type ApiErrorDetail = {
+  error: {
+    code: string;
+    message: string;
+    issues?: Array<{ path: string; message: string }>;
+  };
 };
