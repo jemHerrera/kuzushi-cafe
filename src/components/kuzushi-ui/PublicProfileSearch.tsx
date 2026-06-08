@@ -80,7 +80,7 @@ export function PublicProfileSearch({
                     <Avatar initials={profile.initials} size="xs" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-zinc-950">
+                    <span className="block truncate text-sm text-zinc-950">
                       {profile.firstName} {profile.lastName}
                     </span>
                   </span>
