@@ -34,6 +34,39 @@ export type Database = {
   };
   public: {
     Tables: {
+      account_blocks: {
+        Row: {
+          blocked_account_id: string;
+          blocker_account_id: string;
+          created_date: string;
+        };
+        Insert: {
+          blocked_account_id: string;
+          blocker_account_id: string;
+          created_date?: string;
+        };
+        Update: {
+          blocked_account_id?: string;
+          blocker_account_id?: string;
+          created_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "account_blocks_blocked_account_id_fkey";
+            columns: ["blocked_account_id"];
+            isOneToOne: false;
+            referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_blocks_blocker_account_id_fkey";
+            columns: ["blocker_account_id"];
+            isOneToOne: false;
+            referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       account_privacy_settings: {
         Row: {
           account_id: string;
@@ -131,6 +164,47 @@ export type Database = {
           weight?: Database["public"]["Enums"]["weight_class"];
         };
         Relationships: [];
+      };
+      donation_checkout_sessions: {
+        Row: {
+          account_id: string;
+          amount: number;
+          checkout_url: string;
+          created_date: string;
+          currency: string;
+          id: string;
+          status: string;
+          updated_date: string;
+        };
+        Insert: {
+          account_id: string;
+          amount: number;
+          checkout_url: string;
+          created_date?: string;
+          currency?: string;
+          id: string;
+          status?: string;
+          updated_date?: string;
+        };
+        Update: {
+          account_id?: string;
+          amount?: number;
+          checkout_url?: string;
+          created_date?: string;
+          currency?: string;
+          id?: string;
+          status?: string;
+          updated_date?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "donation_checkout_sessions_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       journal_entries: {
         Row: {
@@ -317,6 +391,7 @@ export type Database = {
         Row: {
           created_date: string;
           first_name: string | null;
+          former_partner_account_id: string | null;
           id: string;
           last_name: string | null;
           owner_account_id: string;
@@ -329,6 +404,7 @@ export type Database = {
         Insert: {
           created_date?: string;
           first_name?: string | null;
+          former_partner_account_id?: string | null;
           id?: string;
           last_name?: string | null;
           owner_account_id: string;
@@ -341,6 +417,7 @@ export type Database = {
         Update: {
           created_date?: string;
           first_name?: string | null;
+          former_partner_account_id?: string | null;
           id?: string;
           last_name?: string | null;
           owner_account_id?: string;
@@ -351,6 +428,13 @@ export type Database = {
           updated_date?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "training_partners_former_partner_account_id_fkey";
+            columns: ["former_partner_account_id"];
+            isOneToOne: false;
+            referencedRelation: "accounts";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "training_partners_owner_account_id_fkey";
             columns: ["owner_account_id"];
@@ -372,9 +456,21 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      accept_training_partner_request: {
+        Args: { accepting_account_id: string; requester_id: string };
+        Returns: undefined;
+      };
+      account_age_class: {
+        Args: { birthday: string };
+        Returns: Database["public"]["Enums"]["age_class"];
+      };
       are_training_partners: {
         Args: { first_account_id: string; second_account_id: string };
         Returns: boolean;
+      };
+      block_account: {
+        Args: { account_id: string; blocked_account_id: string };
+        Returns: undefined;
       };
       can_view_account_profile: {
         Args: { target_account_id: string };
@@ -388,6 +484,96 @@ export type Database = {
         Returns: boolean;
       };
       current_account_id: { Args: never; Returns: string };
+      detach_training_partner: {
+        Args: { account_id: string; training_partner_id: string };
+        Returns: undefined;
+      };
+      list_training_partner_requests: {
+        Args: {
+          account_id: string;
+          request_direction: string;
+          result_limit: number;
+          result_offset: number;
+        };
+        Returns: {
+          belt: Database["public"]["Enums"]["belt"];
+          bio: string;
+          birthday: string;
+          created_date: string;
+          email: string;
+          first_name: string;
+          id: string;
+          last_name: string;
+          profile_photo: string;
+          updated_date: string;
+          weight: Database["public"]["Enums"]["weight_class"];
+        }[];
+      };
+      list_training_partners: {
+        Args: {
+          account_id: string;
+          result_limit: number;
+          result_offset: number;
+          search_text: string;
+        };
+        Returns: {
+          created_date: string;
+          first_name: string;
+          id: string;
+          is_account_backed: boolean;
+          last_name: string;
+          partner_account_id: string;
+          partner_age: Database["public"]["Enums"]["age_class"];
+          partner_belt: Database["public"]["Enums"]["belt"];
+          partner_weight: Database["public"]["Enums"]["weight_class"];
+          profile_photo: string;
+          updated_date: string;
+        }[];
+      };
+      search_public_profiles: {
+        Args: {
+          result_limit: number;
+          result_offset: number;
+          search_text: string;
+          viewer_account_id?: string;
+        };
+        Returns: {
+          belt: Database["public"]["Enums"]["belt"];
+          bio: string;
+          first_name: string;
+          id: string;
+          last_name: string;
+          profile_photo: string;
+          relationship_status: string;
+        }[];
+      };
+      send_journal_entry_assignment_notification: {
+        Args: { assigning_account_id: string; journal_entry_id: string };
+        Returns: {
+          account_id: string;
+          category: Database["public"]["Enums"]["notification_category"];
+          created_date: string;
+          heading: string;
+          id: string;
+          is_read: boolean;
+          text: string;
+          updated_date: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "notifications";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      training_partner_relationship_status: {
+        Args: { other_account_id: string; viewer_account_id: string };
+        Returns: string;
+      };
+      unblock_account: {
+        Args: { account_id: string; blocked_account_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       age_class:

@@ -1,0 +1,677 @@
+import "server-only";
+
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { ManagerError } from "@/lib/managers/errors";
+import { toJournalEntry, toTechniqueTag } from "@/lib/managers/mappers";
+import type {
+  AgeClass,
+  Belt,
+  Category,
+  Intensity,
+  JournalEntryDetail,
+  JournalEntryFilters,
+  JournalEntrySort,
+  JournalType,
+  TechniqueTagDetail,
+  WeightClass,
+} from "@/lib/managers/types";
+import type { Database } from "@/lib/supabase/database.types";
+
+type PartnerInput = {
+  trainingPartnerId?: string;
+  partnerFirstName?: string;
+  partnerLastName?: string;
+  partnerWeight?: WeightClass;
+  partnerAge?: AgeClass;
+  partnerBelt?: Belt;
+};
+
+type JournalValues = PartnerInput & {
+  name: string;
+  category: Category;
+  setup: string;
+  journalType?: JournalType;
+  notes?: string;
+  intensity?: Intensity;
+  isNoGi?: boolean;
+  trainedDate?: Date;
+};
+
+type JournalUpdate = PartnerInput &
+  Partial<Omit<JournalValues, keyof PartnerInput>>;
+
+type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];
+
+export class JournalEntryManager {
+  constructor(private readonly supabase: SupabaseClient<Database>) {}
+
+  async createJournalEntry(
+    params: JournalValues & { accountId: string },
+  ): Promise<JournalEntryDetail> {
+    validateText(params.name, "Technique");
+    validateText(params.setup, "Setup");
+    validatePartnerMode(params);
+
+    let createdCustomPartnerId: string | undefined;
+    let trainingPartnerId = params.trainingPartnerId;
+
+    if (trainingPartnerId) {
+      await this.assertAcceptedPartner(params.accountId, trainingPartnerId);
+    }
+
+    if (hasCustomPartner(params)) {
+      createdCustomPartnerId = await this.createCustomPartner(
+        params.accountId,
+        params,
+      );
+      trainingPartnerId = createdCustomPartnerId;
+    }
+
+    const now = new Date();
+    const trainedDate = params.trainedDate ?? now;
+    validateDate(trainedDate, "Trained date");
+
+    const { data, error } = await this.supabase
+      .from("journal_entries")
+      .insert({
+        account_id: params.accountId,
+        name: params.name.trim(),
+        category: params.category,
+        setup: params.setup.trim(),
+        journal_type:
+          params.category === "tap" ? null : (params.journalType ?? null),
+        notes: cleanText(params.notes),
+        intensity: params.intensity ?? null,
+        is_no_gi: params.isNoGi ?? null,
+        training_partner_id: trainingPartnerId ?? null,
+        trained_date: trainedDate.toISOString(),
+        created_date: now.toISOString(),
+      })
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      if (createdCustomPartnerId) {
+        await this.supabase
+          .from("training_partners")
+          .delete()
+          .eq("id", createdCustomPartnerId);
+      }
+      throw new ManagerError(
+        "journal_entry_creation_failed",
+        error?.message ?? "Could not create journal entry.",
+        500,
+      );
+    }
+
+    return this.withPartner(data);
+  }
+
+  async updateJournalEntry(params: {
+    id: string;
+    options: JournalUpdate;
+  }): Promise<JournalEntryDetail> {
+    const existing = await this.getJournalRow(params.id);
+    const options = params.options;
+    const category = options.category ?? existing.category;
+
+    if (options.name !== undefined) validateText(options.name, "Technique");
+    if (options.setup !== undefined) validateText(options.setup, "Setup");
+    validatePartnerMode(options);
+
+    let trainingPartnerId: string | undefined;
+    if (options.trainingPartnerId) {
+      await this.assertAcceptedPartner(
+        existing.account_id,
+        options.trainingPartnerId,
+      );
+      trainingPartnerId = options.trainingPartnerId;
+    } else if (hasCustomPartner(options)) {
+      trainingPartnerId = await this.createCustomPartner(
+        existing.account_id,
+        options,
+      );
+    }
+
+    if (options.trainedDate) {
+      validateDate(options.trainedDate, "Trained date");
+    }
+
+    const { data, error } = await this.supabase
+      .from("journal_entries")
+      .update({
+        ...(options.name !== undefined && { name: options.name.trim() }),
+        ...(options.category !== undefined && { category: options.category }),
+        ...(options.setup !== undefined && { setup: options.setup.trim() }),
+        ...(category === "tap"
+          ? { journal_type: null }
+          : options.journalType !== undefined
+            ? { journal_type: options.journalType }
+            : {}),
+        ...(options.notes !== undefined && {
+          notes: cleanText(options.notes),
+        }),
+        ...(options.intensity !== undefined && {
+          intensity: options.intensity,
+        }),
+        ...(options.isNoGi !== undefined && { is_no_gi: options.isNoGi }),
+        ...(trainingPartnerId !== undefined && {
+          training_partner_id: trainingPartnerId,
+        }),
+        ...(options.trainedDate !== undefined && {
+          trained_date: options.trainedDate.toISOString(),
+        }),
+      })
+      .eq("id", params.id)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      if (trainingPartnerId && !options.trainingPartnerId) {
+        await this.supabase
+          .from("training_partners")
+          .delete()
+          .eq("id", trainingPartnerId);
+      }
+      throw new ManagerError(
+        "journal_entry_update_failed",
+        error?.message ?? "Could not update journal entry.",
+        500,
+      );
+    }
+
+    return this.withPartner(data);
+  }
+
+  async getJournalEntry(params: { id: string }) {
+    return this.withPartner(await this.getJournalRow(params.id));
+  }
+
+  async getJournalEntries(params: {
+    accountId: string;
+    filter: JournalEntryFilters;
+    sort?: JournalEntrySort;
+    limit: number;
+    offset: number;
+  }) {
+    let query = this.supabase
+      .from("journal_entries")
+      .select("*")
+      .eq("account_id", params.accountId);
+
+    if (params.filter.search?.trim()) {
+      const search = escapeLike(params.filter.search.trim());
+      query = query.or(`name.ilike.%${search}%,setup.ilike.%${search}%`);
+    }
+    if (params.filter.category?.length) {
+      query = query.in("category", params.filter.category);
+    }
+    if (params.filter.journalTypes?.length) {
+      query = query.in("journal_type", params.filter.journalTypes);
+    }
+    if (params.filter.isNoGi !== undefined) {
+      query = query.eq("is_no_gi", params.filter.isNoGi);
+    }
+
+    const sort = params.sort ?? { field: "trainedAt", direction: "desc" };
+    if (sort.field !== "trainingPartner") {
+      query = query.order(sortColumn(sort.field), {
+        ascending: sort.direction === "asc",
+        nullsFirst: false,
+      });
+    }
+
+    const needsClientSort = sort.field === "trainingPartner";
+    if (!needsClientSort) {
+      query = query.range(
+        params.offset,
+        params.offset + Math.max(0, params.limit) - 1,
+      );
+    } else {
+      query = query.limit(1000);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      throw new ManagerError("journal_entries_failed", error.message, 500);
+    }
+
+    let items = await Promise.all(
+      (data ?? []).map((row) => this.withPartner(row)),
+    );
+    if (needsClientSort) {
+      const direction = sort.direction === "asc" ? 1 : -1;
+      items = items
+        .sort(
+          (left, right) =>
+            partnerName(left).localeCompare(partnerName(right)) * direction,
+        )
+        .slice(params.offset, params.offset + params.limit);
+    }
+
+    return { items, limit: params.limit, offset: params.offset };
+  }
+
+  searchJournalEntries(params: {
+    accountId: string;
+    search: string;
+    filter?: Omit<JournalEntryFilters, "search">;
+    sort?: JournalEntrySort;
+    limit: number;
+    offset: number;
+  }) {
+    return this.getJournalEntries({
+      ...params,
+      filter: { ...params.filter, search: params.search },
+    });
+  }
+
+  async deleteJournalEntries(params: { id: string[] }) {
+    if (!params.id.length) return { deleted: true as const };
+    const { error } = await this.supabase
+      .from("journal_entries")
+      .delete()
+      .in("id", params.id);
+    if (error) {
+      throw new ManagerError("journal_entry_delete_failed", error.message, 500);
+    }
+    return { deleted: true as const };
+  }
+
+  async assignTrainingPartnerToJournalEntry(params: {
+    accountId: string;
+    trainingPartnerId: string;
+    journalEntryId: string;
+  }) {
+    const { data: partner, error: partnerError } = await this.supabase
+      .from("training_partners")
+      .select("id")
+      .eq("id", params.trainingPartnerId)
+      .eq("owner_account_id", params.accountId)
+      .not("partner_account_id", "is", null)
+      .single();
+
+    if (partnerError || !partner) {
+      throw new ManagerError(
+        "accepted_partner_required",
+        "The journal entry must reference an accepted training partner.",
+        422,
+      );
+    }
+
+    const { data, error } = await this.supabase
+      .from("journal_entries")
+      .update({ training_partner_id: params.trainingPartnerId })
+      .eq("id", params.journalEntryId)
+      .eq("account_id", params.accountId)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      throw new ManagerError(
+        "partner_assignment_failed",
+        error?.message ?? "Could not assign training partner.",
+        500,
+      );
+    }
+    return this.withPartner(data);
+  }
+
+  async createTag(params: {
+    category: Category;
+    generatedBy: string;
+    label: string;
+    isPublic?: boolean;
+  }): Promise<TechniqueTagDetail> {
+    validateText(params.label, "Tag label");
+    if (params.isPublic) {
+      throw new ManagerError(
+        "public_tag_forbidden",
+        "User-created tags must be private.",
+        403,
+      );
+    }
+
+    const { data, error } = await this.supabase
+      .from("technique_tags")
+      .insert({
+        key: createTagKey(params.label),
+        label: params.label.trim(),
+        category: params.category,
+        generated_by_account_id: params.generatedBy,
+        is_public: false,
+      })
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      throw new ManagerError(
+        "tag_creation_failed",
+        error?.message ?? "Could not create tag.",
+        409,
+      );
+    }
+    return toTechniqueTag(data);
+  }
+
+  async getTags(params: {
+    filter: { search?: string; category?: Category; accountId?: string };
+    sort?: {
+      field: "label" | "category" | "createdAt";
+      direction: "asc" | "desc";
+    };
+    limit: number;
+    offset: number;
+  }) {
+    let query = this.supabase.from("technique_tags").select("*");
+    if (params.filter.accountId) {
+      query = query.or(
+        `is_public.eq.true,generated_by_account_id.eq.${params.filter.accountId}`,
+      );
+    } else {
+      query = query.eq("is_public", true);
+    }
+    if (params.filter.category) {
+      query = query.eq("category", params.filter.category);
+    }
+
+    const { data, error } = await query.limit(1000);
+    if (error) {
+      throw new ManagerError("tags_failed", error.message, 500);
+    }
+
+    const search = params.filter.search?.trim();
+    const sort = params.sort ?? { field: "label", direction: "asc" };
+    const direction = sort.direction === "asc" ? 1 : -1;
+    const rows = (data ?? [])
+      .map((row) => ({
+        row,
+        score: search ? fuzzyScore(row.label, search) : 0,
+      }))
+      .filter((item) => !search || item.score < Number.POSITIVE_INFINITY)
+      .sort((left, right) => {
+        if (search && left.score !== right.score) {
+          return left.score - right.score;
+        }
+        return compareTags(left.row, right.row, sort.field) * direction;
+      })
+      .slice(params.offset, params.offset + params.limit)
+      .map(({ row }) => toTechniqueTag(row));
+
+    return { items: rows, limit: params.limit, offset: params.offset };
+  }
+
+  searchSavedTechniqueTags(params: {
+    accountId: string;
+    search: string;
+    category?: Category;
+    limit: number;
+    offset: number;
+  }) {
+    return this.getTags({
+      filter: {
+        accountId: params.accountId,
+        search: params.search,
+        category: params.category,
+      },
+      limit: params.limit,
+      offset: params.offset,
+    });
+  }
+
+  async updateTag(params: {
+    id: string;
+    options: { category?: Category; label?: string; isPublic: boolean };
+  }) {
+    if (params.options.isPublic) {
+      throw new ManagerError(
+        "public_tag_forbidden",
+        "Normal users cannot publish tags.",
+        403,
+      );
+    }
+    if (params.options.label !== undefined) {
+      validateText(params.options.label, "Tag label");
+    }
+
+    const { data, error } = await this.supabase
+      .from("technique_tags")
+      .update({
+        ...(params.options.category && { category: params.options.category }),
+        ...(params.options.label !== undefined && {
+          label: params.options.label.trim(),
+        }),
+      })
+      .eq("key", params.id)
+      .eq("is_public", false)
+      .select("*")
+      .single();
+
+    if (error || !data) {
+      throw new ManagerError(
+        "tag_update_failed",
+        error?.message ?? "Could not update tag.",
+        500,
+      );
+    }
+    return toTechniqueTag(data);
+  }
+
+  async deleteTags(params: { id: string[] }) {
+    if (!params.id.length) return { deleted: true as const };
+    const { error } = await this.supabase
+      .from("technique_tags")
+      .delete()
+      .in("key", params.id)
+      .eq("is_public", false);
+    if (error) {
+      throw new ManagerError("tag_delete_failed", error.message, 500);
+    }
+    return { deleted: true as const };
+  }
+
+  async mergeTags(params: { masterId: string; ids: string[] }) {
+    const { data: master, error } = await this.supabase
+      .from("technique_tags")
+      .select("*")
+      .eq("key", params.masterId)
+      .single();
+    if (error || !master) {
+      throw new ManagerError("tag_not_found", "Master tag not found.", 404);
+    }
+
+    const mergeIds = [...new Set(params.ids)].filter(
+      (id) => id !== params.masterId,
+    );
+    if (mergeIds.length) {
+      const { error: deleteError } = await this.supabase
+        .from("technique_tags")
+        .delete()
+        .in("key", mergeIds)
+        .eq("is_public", false);
+      if (deleteError) {
+        throw new ManagerError("tag_merge_failed", deleteError.message, 500);
+      }
+    }
+    return toTechniqueTag(master);
+  }
+
+  private async getJournalRow(id: string): Promise<JournalRow> {
+    const { data, error } = await this.supabase
+      .from("journal_entries")
+      .select("*")
+      .eq("id", id)
+      .single();
+    if (error || !data) {
+      throw new ManagerError(
+        "journal_entry_not_found",
+        "Journal entry not found.",
+        404,
+      );
+    }
+    return data;
+  }
+
+  private async withPartner(row: JournalRow) {
+    if (!row.training_partner_id) return toJournalEntry(row);
+    const { data } = await this.supabase
+      .from("training_partners")
+      .select("*")
+      .eq("id", row.training_partner_id)
+      .maybeSingle();
+    return toJournalEntry(row, data);
+  }
+
+  private async createCustomPartner(
+    accountId: string,
+    input: PartnerInput,
+  ): Promise<string> {
+    const { data, error } = await this.supabase
+      .from("training_partners")
+      .insert({
+        owner_account_id: accountId,
+        first_name: cleanText(input.partnerFirstName),
+        last_name: cleanText(input.partnerLastName),
+        partner_weight: input.partnerWeight ?? null,
+        partner_age: input.partnerAge ?? null,
+        partner_belt: input.partnerBelt ?? null,
+      })
+      .select("id")
+      .single();
+    if (error || !data) {
+      throw new ManagerError(
+        "custom_partner_creation_failed",
+        error?.message ?? "Could not create custom partner.",
+        500,
+      );
+    }
+    return data.id;
+  }
+
+  private async assertAcceptedPartner(accountId: string, partnerId: string) {
+    const { data, error } = await this.supabase
+      .from("training_partners")
+      .select("id")
+      .eq("id", partnerId)
+      .eq("owner_account_id", accountId)
+      .not("partner_account_id", "is", null)
+      .single();
+    if (error || !data) {
+      throw new ManagerError(
+        "accepted_partner_required",
+        "Account-backed assignments require an accepted training partner.",
+        422,
+      );
+    }
+  }
+}
+
+function validatePartnerMode(input: PartnerInput) {
+  if (input.trainingPartnerId && hasCustomPartner(input)) {
+    throw new ManagerError(
+      "partner_mode_conflict",
+      "Choose either an accepted training partner or custom partner details.",
+      422,
+    );
+  }
+}
+
+function hasCustomPartner(input: PartnerInput) {
+  return Boolean(
+    input.partnerFirstName?.trim() ||
+    input.partnerLastName?.trim() ||
+    input.partnerWeight ||
+    input.partnerAge ||
+    input.partnerBelt,
+  );
+}
+
+function validateText(value: string, label: string) {
+  if (!value.trim()) {
+    throw new ManagerError("invalid_text", `${label} is required.`, 422);
+  }
+}
+
+function validateDate(value: Date, label: string) {
+  if (Number.isNaN(value.getTime())) {
+    throw new ManagerError("invalid_date", `${label} is invalid.`, 422);
+  }
+}
+
+function cleanText(value?: string) {
+  return value?.trim() || null;
+}
+
+function escapeLike(value: string) {
+  return value.replaceAll("%", "\\%").replaceAll("_", "\\_");
+}
+
+function sortColumn(field: JournalEntrySort["field"]) {
+  const columns = {
+    trainedAt: "trained_date",
+    category: "category",
+    name: "name",
+    journalType: "journal_type",
+  } as const;
+  return columns[field as keyof typeof columns];
+}
+
+function partnerName(entry: JournalEntryDetail) {
+  return `${entry.trainingPartner?.firstName ?? ""} ${
+    entry.trainingPartner?.lastName ?? ""
+  }`.trim();
+}
+
+function createTagKey(label: string) {
+  const slug = label
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `${slug || "tag"}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function fuzzyScore(label: string, search: string) {
+  const left = label.toLowerCase();
+  const right = search.toLowerCase();
+  if (left.includes(right)) return left.indexOf(right);
+  const distance = levenshtein(left, right);
+  return distance <= Math.max(2, Math.floor(right.length / 3))
+    ? distance + 100
+    : Number.POSITIVE_INFINITY;
+}
+
+function levenshtein(left: string, right: string) {
+  const previous = Array.from(
+    { length: right.length + 1 },
+    (_, index) => index,
+  );
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    let diagonal = previous[0];
+    previous[0] = leftIndex;
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const above = previous[rightIndex];
+      previous[rightIndex] = Math.min(
+        previous[rightIndex] + 1,
+        previous[rightIndex - 1] + 1,
+        diagonal + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1),
+      );
+      diagonal = above;
+    }
+  }
+  return previous[right.length];
+}
+
+function compareTags(
+  left: Database["public"]["Tables"]["technique_tags"]["Row"],
+  right: Database["public"]["Tables"]["technique_tags"]["Row"],
+  field: "label" | "category" | "createdAt",
+) {
+  if (field === "createdAt") {
+    return left.created_date.localeCompare(right.created_date);
+  }
+  return left[field].localeCompare(right[field]);
+}

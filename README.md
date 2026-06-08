@@ -65,6 +65,7 @@ For Vercel, configure these environment variables:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`
 - `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET`
+- `STRIPE_SECRET_KEY`
 
 ## Authentication Configuration
 
@@ -95,16 +96,16 @@ protocol-relative destinations are discarded.
 - [x] Configure Supabase, environment variables, local development scripts, and deployment settings for Vercel.
 - [x] Translate `docs/data-model.ts` into database migrations with tables, foreign keys, constraints, indexes, privacy defaults, and RLS policies.
 - [x] Seed public technique tags from `docs/seeder.ts`.
-- [ ] Implement all components and create a components page library
+- [x] Implement all components and create a components page library
 - [x] Implement authentication with Google SSO, magic-link email, session refresh middleware, sign-out, auth-only redirects, and protected-route handling.
 - [x] Implement account creation after provider identity verification, profile completion checks, and the complete-profile redirect flow.
-- [ ] Build account and privacy managers from `docs/managers.ts`, including public-profile visibility and relationship status helpers.
-- [ ] Build training-partner request, accepted training-partner list, reciprocal detach-and-snapshot remove-training-partner, block, and unblock manager flows.
-- [ ] Build journal-entry managers with the documented invariants for tap success clearing, trained-date defaults, and mutually exclusive partner modes.
-- [ ] Build technique-tag managers for public tags, user-created private tags, fuzzy search, create, update, delete, and merge.
-- [ ] Build aggregate-stat managers for timelines, category filters, success filters, series data, and stats rows.
-- [ ] Build notification managers for journal-entry partner assignment notifications, list pagination, mark-read, and mark-all-read.
-- [ ] Build donation checkout managers with Stripe Checkout session creation and success, canceled, and retryable-failure status handling.
+- [x] Build account and privacy managers from `docs/managers.ts`, including public-profile visibility and relationship status helpers.
+- [x] Build training-partner request, accepted training-partner list, reciprocal detach-and-snapshot remove-training-partner, block, and unblock manager flows.
+- [x] Build journal-entry managers with the documented invariants for tap success clearing, trained-date defaults, and mutually exclusive partner modes.
+- [x] Build technique-tag managers for public tags, user-created private tags, fuzzy search, create, update, delete, and merge.
+- [x] Build aggregate-stat managers for timelines, category filters, success filters, series data, and stats rows.
+- [x] Build notification managers for journal-entry partner assignment notifications, list pagination, mark-read, and mark-all-read.
+- [x] Build donation checkout managers with Stripe Checkout session creation and success, canceled, and retryable-failure status handling.
 - [ ] Implement the API endpoints in `docs/api-endpoints.md` with validation, normalization, authorization, pagination, and URL-backed journal filters.
 - [ ] Create shared validation schemas and API response types that match `docs/managers.ts`.
 - [ ] Build the app shell with side panel, header, notifications entry point, profile navigation, saved techniques, settings, and donation banner.

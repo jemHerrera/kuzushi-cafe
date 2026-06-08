@@ -8,6 +8,7 @@ type PublicEnv = {
 
 type ServerEnv = PublicEnv & {
   supabaseServiceRoleKey?: string;
+  stripeSecretKey?: string;
 };
 
 function requiredEnv(source: EnvSource, key: string): string {
@@ -42,5 +43,6 @@ export function getServerEnv(source: EnvSource = process.env): ServerEnv {
   return {
     ...getPublicEnv(source),
     supabaseServiceRoleKey: source.SUPABASE_SERVICE_ROLE_KEY?.trim(),
+    stripeSecretKey: source.STRIPE_SECRET_KEY?.trim(),
   };
 }
