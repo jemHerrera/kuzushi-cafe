@@ -30,9 +30,10 @@ export function PrivacySettings({
 }) {
   const [settings, setSettings] = useState<Record<PrivacyRow, Visibility>>(
     () =>
-      Object.fromEntries(
-        privacyRows.map((row) => [row, "Partners"]),
-      ) as Record<PrivacyRow, Visibility>,
+      Object.fromEntries(privacyRows.map((row) => [row, "Partners"])) as Record<
+        PrivacyRow,
+        Visibility
+      >,
   );
 
   function updateSetting(row: PrivacyRow, visibility: Visibility) {
@@ -57,9 +58,7 @@ export function PrivacySettings({
               aria-label={`${row} visibility`}
               className="grid grid-cols-3 gap-1 rounded-md bg-zinc-100 p-1"
               value={settings[row]}
-              onValueChange={(value) =>
-                updateSetting(row, value as Visibility)
-              }
+              onValueChange={(value) => updateSetting(row, value as Visibility)}
             >
               {visibilityOptions.map((option) => (
                 <Label

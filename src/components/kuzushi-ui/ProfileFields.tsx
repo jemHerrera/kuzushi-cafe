@@ -1,4 +1,6 @@
-import { Award, Cake, Scale, UserRound } from "lucide-react";
+import { Award, Cake, NotebookPen, Scale, UserRound } from "lucide-react";
+import { useId } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import { DateSelector } from "./DateSelector";
 import { PropertyField } from "./PropertyField";
 import {
@@ -11,6 +13,8 @@ import {
 } from "./shared";
 
 export function ProfileFields() {
+  const bioId = useId();
+
   return (
     <div className="grid">
       <PropertyField icon={UserRound} label="First name">
@@ -52,6 +56,13 @@ export function ProfileFields() {
           ariaLabel="Birthday"
           placeholder="Add birthday"
           variant="property"
+        />
+      </PropertyField>
+      <PropertyField icon={NotebookPen} label="Bio" htmlFor={bioId}>
+        <Textarea
+          id={bioId}
+          className="min-h-10 resize-none border-transparent bg-transparent px-2 py-2 text-sm shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:bg-zinc-100 focus-visible:ring-0"
+          placeholder="Add bio"
         />
       </PropertyField>
     </div>

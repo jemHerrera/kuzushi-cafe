@@ -135,6 +135,7 @@ export function SidePanel() {
           <TrainingPartnersListModal
             onClose={() => setTrainingPartnersOpen(false)}
             onTitleChange={setTrainingPartnersDialogTitle}
+            onSelectPartner={() => setTrainingPartnersOpen(false)}
             withinDialog
           />
         </DialogContent>

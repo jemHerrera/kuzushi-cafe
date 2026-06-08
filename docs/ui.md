@@ -82,6 +82,7 @@
   - Profile photo.
   - First name.
   - Last name.
+  - Bio text area matching the Journal Entry notes field.
   - Belt enum select.
   - Weight-class enum select.
   - Age-class enum select.
@@ -101,14 +102,12 @@
   - Back takes three-way toggle: public, training-partners, private.
   - Guard passes three-way toggle: public, training-partners, private.
   - Taps three-way toggle: public, training-partners, private.
-- `PublicProfile` (Modal)
-  - Profile photo.
-  - Name.
+- `PublicProfile` (Page component)
+  - Compact profile photo and name only.
+  - Bio below the name when present.
   - Add training partner, training partner request pending, already training partners, and remove training partner states.
-  - Belt.
-  - Weight.
   - Aggregate views, scoped by privacy settings.
-  - Journal entries, scoped by privacy settings.
+  - Read-only journal entries, scoped by privacy settings.
 - `NotificationList` (Side Panel)
   - Title.
   - Mark all as read.
@@ -144,16 +143,18 @@
   - `JournalEntryRow`
   - `JournalEntryPagination`
 - `AggregateViewFilters`
-  - Timeline: this week, this month, this year, or custom date range.
-  - Type: all types, Attempt only, or Success only.
+  - One category pill select.
+  - Timeline: this week, this month, this year, or all time.
+  - Type: Attempts Only, Success Only, or All.
+  - Tap forces and disables All because tap entries have no journal type.
 - `AggregateView`
-  - Title.
-  - `AggregateViewFilters`
-  - Bar chart, with attempt and success values depending on the selected filter.
-  - `StatsRow` list.
+  - Stacked Attempt and Success bar chart by technique when Type is All.
+  - Single-series bars for Attempts Only, Success Only, and taps.
+  - Technique list with count, share percentage, and progress bar.
 - `AggregateOverview`
-  - Category pill filters, such as submissions and taps.
-  - `AggregateView` based on the selected category.
+  - Owns category, timeline, and type filter state.
+  - Aggregates supplied journal entries by technique.
+  - Sorts techniques by total occurrences.
 
 ## Pages
 
@@ -181,7 +182,7 @@
   - `PublicProfileSearch`: visible public profile fields only.
   - `SavedTechniqueSearch`: tag label and category.
 - If category is `tap`, hide type UI. `journalType` should be `null` for tap entries.
-- `JournalEntryCreate` and `JournalEntryUpdate` use one optional outcome radio field. "Attempt" and "Successful" are mutually exclusive and map to `attempt` and `success`.
+- `JournalEntryCreate` and `JournalEntryUpdate` use one optional outcome radio field. "Attempt" and "Successful" are presentation labels only and map to persisted `journalType` values `attempt` and `success`.
 - Intensity is optional and does not affect aggregate views for now.
 - Use horizontal scrolling for `JournalEntryTable` on mobile.
 - Empty states:

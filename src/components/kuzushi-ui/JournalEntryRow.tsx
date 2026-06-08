@@ -26,14 +26,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DateSelector } from "./DateSelector";
+import { Avatar } from "./Avatar";
 import { JournalEntryUpdate } from "./JournalEntryUpdate";
 import { JournalTypePillSelect } from "./JournalTypePillSelect";
+import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
 import { TechniqueTagSelectMenu } from "./TechniqueTagSelectMenu";
 import { TrainingPartnerSelectMenu } from "./TrainingPartnerSelectMenu";
 import {
   samplePartners,
   sampleTechniques,
+  beltBorderStyles,
+  cx,
   type JournalEntry,
   type Technique,
 } from "./shared";
@@ -42,12 +46,14 @@ type JournalEntryRowProps = {
   entry: JournalEntry;
   onChange?: (entry: JournalEntry) => void;
   onDelete?: () => void;
+  readOnly?: boolean;
 };
 
 export function JournalEntryRow({
   entry,
   onChange,
   onDelete,
+  readOnly = false,
 }: JournalEntryRowProps) {
   const [internalEntry, setInternalEntry] = useState(entry);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -75,6 +81,7 @@ export function JournalEntryRow({
   }
 
   if (isDeleted) return null;
+  if (readOnly) return <ReadOnlyJournalEntryRow entry={currentEntry} />;
 
   return (
     <>
@@ -191,8 +198,8 @@ export function JournalEntryRow({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this journal entry?</AlertDialogTitle>
             <AlertDialogDescription>
-              This journal entry will be permanently removed. This action
-              cannot be undone.
+              This journal entry will be permanently removed. This action cannot
+              be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -207,5 +214,54 @@ export function JournalEntryRow({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  );
+}
+
+function ReadOnlyJournalEntryRow({ entry }: { entry: JournalEntry }) {
+  return (
+    <tr className="border-t border-zinc-200 bg-white">
+      <td className="overflow-hidden whitespace-nowrap px-3 py-3">
+        <TechniqueCategoryPill category={entry.category} />
+      </td>
+      <td className="overflow-hidden px-3 py-3">
+        <p className="truncate text-sm font-medium text-zinc-950">
+          {entry.technique}
+        </p>
+        {entry.setup ? (
+          <p className="truncate text-xs text-zinc-500">from {entry.setup}</p>
+        ) : null}
+      </td>
+      <td className="overflow-hidden whitespace-nowrap px-3 py-3">
+        {entry.journalType ? (
+          <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold capitalize text-zinc-700">
+            {entry.journalType}
+          </span>
+        ) : (
+          <span className="text-xs text-zinc-500">Not collected</span>
+        )}
+      </td>
+      <td className="overflow-hidden whitespace-nowrap px-3 py-3">
+        {entry.partner ? (
+          <span className="flex min-w-0 items-center gap-2">
+            <span
+              className={cx(
+                "inline-flex shrink-0 rounded-full border-2",
+                beltBorderStyles[entry.partner.belt],
+              )}
+            >
+              <Avatar initials={entry.partner.initials} size="xs" />
+            </span>
+            <span className="truncate text-sm font-medium text-zinc-900">
+              {entry.partner.firstName} {entry.partner.lastName}
+            </span>
+          </span>
+        ) : (
+          <span className="text-sm text-zinc-500">No partner</span>
+        )}
+      </td>
+      <td className="overflow-hidden whitespace-nowrap px-3 py-3 text-sm text-zinc-700">
+        {format(parseISO(entry.trainedDate), "MMMM dd, yyyy")}
+      </td>
+    </tr>
   );
 }

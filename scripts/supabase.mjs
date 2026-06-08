@@ -42,7 +42,9 @@ const args = process.argv.slice(2);
 if (
   args[0] === "link" &&
   process.env.SUPABASE_PROJECT_REF &&
-  !args.some((arg) => arg === "--project-ref" || arg.startsWith("--project-ref="))
+  !args.some(
+    (arg) => arg === "--project-ref" || arg.startsWith("--project-ref="),
+  )
 ) {
   args.push("--project-ref", process.env.SUPABASE_PROJECT_REF);
 }

@@ -1,7 +1,13 @@
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
-export function IconButton({ label, icon }: { label: string; icon: ReactNode }) {
+export function IconButton({
+  label,
+  icon,
+}: {
+  label: string;
+  icon: ReactNode;
+}) {
   return (
     <Button
       aria-label={label}

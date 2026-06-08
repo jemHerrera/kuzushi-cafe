@@ -4,29 +4,33 @@ import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { JournalEntryTable } from "./JournalEntryTable";
-import { ModalFrame } from "./ModalFrame";
-import { getPartnerProfileMeta, samplePartners, type Partner } from "./shared";
+import {
+  sampleEntries,
+  samplePartners,
+  type JournalEntry,
+  type Partner,
+} from "./shared";
 
 export function PublicProfile({
   partner = samplePartners[0],
-  onClose,
-  withinDialog = false,
+  entries = sampleEntries,
 }: {
   partner?: Partner;
-  onClose?: () => void;
-  withinDialog?: boolean;
+  entries?: JournalEntry[];
 }) {
   return (
-    <ModalFrame onClose={onClose} withinDialog={withinDialog}>
-      <div className="flex flex-wrap items-center gap-4">
-        <Avatar initials={partner.initials} size="lg" />
-        <div>
-          <h3 className="text-xl font-bold text-zinc-950">
+    <section className="grid w-full gap-6">
+      <header className="flex flex-wrap items-center gap-3 border-b border-zinc-200 pb-5">
+        <Avatar initials={partner.initials} size="md" />
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-bold text-zinc-950">
             {partner.firstName} {partner.lastName}
-          </h3>
-          <p className="text-sm capitalize text-zinc-600">
-            {getPartnerProfileMeta(partner)}
-          </p>
+          </h2>
+          {partner.bio ? (
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-600">
+              {partner.bio}
+            </p>
+          ) : null}
         </div>
         <div className="ml-auto flex flex-wrap gap-2">
           <ButtonPrimary>
@@ -38,9 +42,9 @@ export function PublicProfile({
             Remove
           </ButtonSecondary>
         </div>
-      </div>
-      <AggregateOverview />
-      <JournalEntryTable />
-    </ModalFrame>
+      </header>
+      <AggregateOverview entries={entries} />
+      <JournalEntryTable entries={entries} readOnly />
+    </section>
   );
 }

@@ -150,14 +150,9 @@ export function TrainingPartnerSelectMenu({
           onClick={openMenu}
         >
           {selectedPartner && variant === "table" ? (
-            <PartnerAvatar
-              partner={selectedPartner}
-              compact
-            />
+            <PartnerAvatar partner={selectedPartner} compact />
           ) : null}
-          <span className="min-w-0 flex-1 truncate font-medium">
-            {selectedLabel}
-          </span>
+          <span className="min-w-0 flex-1 truncate">{selectedLabel}</span>
           {selectedPartner && variant !== "table" ? (
             <PartnerAvatar partner={selectedPartner} />
           ) : null}

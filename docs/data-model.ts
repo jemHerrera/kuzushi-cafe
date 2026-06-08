@@ -23,7 +23,7 @@ export type AgeClass =
   | "90s";
 
 export type Intensity = "playful" | "casual" | "intense";
-export type JournalType = "attempt" | "success";
+export type JournalType = "attempt" | "success"; // Persisted enum; UI may present "Successful" for success
 
 export type Category =
   | "submission"
@@ -52,6 +52,7 @@ export interface Account {
   // profile
   firstName?: string;
   lastName?: string;
+  bio?: string;
   email: string;
   profilePhoto?: string;
 

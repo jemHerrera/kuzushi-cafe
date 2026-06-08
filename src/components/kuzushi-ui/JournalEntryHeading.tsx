@@ -1,4 +1,8 @@
-export function JournalEntryHeading() {
+export function JournalEntryHeading({
+  readOnly = false,
+}: {
+  readOnly?: boolean;
+} = {}) {
   return (
     <thead className="bg-zinc-100 text-left text-xs uppercase text-zinc-600">
       <tr>
@@ -13,9 +17,11 @@ export function JournalEntryHeading() {
             {heading}
           </th>
         ))}
-        <th className="w-12 px-2 py-3">
-          <span className="sr-only">Entry actions</span>
-        </th>
+        {!readOnly ? (
+          <th className="w-12 px-2 py-3">
+            <span className="sr-only">Entry actions</span>
+          </th>
+        ) : null}
       </tr>
     </thead>
   );

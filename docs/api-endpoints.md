@@ -53,6 +53,7 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - Input:
   - `firstName?: string`
   - `lastName?: string`
+  - `bio?: string`
   - `profilePhoto?: string`
   - `belt?: Belt`
   - `weight?: WeightClass`
@@ -73,10 +74,10 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 
 ### `GET /api/accounts/:id`
 
-- UI: `PublicProfile` modal.
+- UI: `PublicProfile` page component.
 - Auth middleware: optional.
 - Input path: `id`.
-- Output: public profile detail with privacy-scoped profile fields, aggregate visibility flags, journal visibility flags, and `TrainingPartnerRelationshipStatus` for authenticated viewers.
+- Output: public profile detail with privacy-scoped profile fields, including `bio`, aggregate visibility flags, journal visibility flags, and `TrainingPartnerRelationshipStatus` for authenticated viewers.
 - Manager methods:
   - `IAccountManager.getAccount`
   - `IAccountManager.getPrivacySettings`
@@ -217,6 +218,11 @@ Accepted account-backed training partners are stored as two `TrainingPartner` ro
 - Manager methods: `IAccountManager.unblockAccount({ accountId: session.account.id, blockedAccountId: id })`.
 
 ## Journal Entries
+
+Journal entry type is persisted as nullable `JournalType = "attempt" | "success"`.
+Tap entries use `null`. UI copy may display "Successful", but API filters,
+sorts, inputs, and outputs use `success`; the former attempt/success booleans are
+not part of the contract.
 
 ### `GET /api/journal-entries`
 

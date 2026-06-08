@@ -11,11 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { JournalEntrySearch } from "./JournalEntrySearch";
-import {
-  categories,
-  type Category,
-  type JournalType,
-} from "./shared";
+import { categories, type Category, type JournalType } from "./shared";
 
 type JournalEntryFiltersProps = {
   query?: string;
@@ -25,6 +21,7 @@ type JournalEntryFiltersProps = {
   onCategoriesChange?: (categories: Category[]) => void;
   onTypesChange?: (types: JournalType[]) => void;
   onAddEntry?: () => void;
+  showAddEntry?: boolean;
 };
 
 const typeOptions: Array<{
@@ -43,6 +40,7 @@ export function JournalEntryFilters({
   onCategoriesChange,
   onTypesChange,
   onAddEntry,
+  showAddEntry = true,
 }: JournalEntryFiltersProps = {}) {
   const [internalQuery, setInternalQuery] = useState("");
   const [internalCategories, setInternalCategories] = useState<Category[]>([]);
@@ -71,7 +69,13 @@ export function JournalEntryFilters({
   }
 
   return (
-    <div className="grid gap-2 rounded-lg border border-zinc-200 bg-white p-2 lg:grid-cols-[minmax(16rem,1fr)_auto_auto_auto]">
+    <div
+      className={`grid gap-2 rounded-lg border border-zinc-200 bg-white p-2 ${
+        showAddEntry
+          ? "lg:grid-cols-[minmax(16rem,1fr)_auto_auto_auto]"
+          : "lg:grid-cols-[minmax(16rem,1fr)_auto_auto]"
+      }`}
+    >
       <JournalEntrySearch value={currentQuery} onValueChange={changeQuery} />
       <CheckboxFilterPill
         label="Category"
@@ -88,10 +92,12 @@ export function JournalEntryFilters({
         selected={currentTypes}
         onSelectedChange={changeTypes}
       />
-      <ButtonPrimary onClick={onAddEntry} type="button">
-        <Plus className="size-4" />
-        Add entry
-      </ButtonPrimary>
+      {showAddEntry ? (
+        <ButtonPrimary onClick={onAddEntry} type="button">
+          <Plus className="size-4" />
+          Add entry
+        </ButtonPrimary>
+      ) : null}
     </div>
   );
 }

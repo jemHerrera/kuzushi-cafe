@@ -20,8 +20,10 @@ import {
 
 export function JournalEntryTable({
   entries = sampleEntries,
+  readOnly = false,
 }: {
   entries?: JournalEntry[];
+  readOnly?: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [tableEntries, setTableEntries] = useState(entries);
@@ -49,23 +51,29 @@ export function JournalEntryTable({
         onCategoriesChange={setSelectedCategories}
         onTypesChange={setSelectedTypes}
         onAddEntry={() => setIsCreateOpen(true)}
+        showAddEntry={!readOnly}
       />
       <div className="overflow-x-auto rounded-lg border border-zinc-200">
-        <table className="w-full min-w-[1048px] table-fixed border-collapse">
+        <table
+          className={`w-full table-fixed border-collapse ${
+            readOnly ? "min-w-[1000px]" : "min-w-[1048px]"
+          }`}
+        >
           <colgroup>
             <col className="w-[140px]" />
             <col className="w-[340px]" />
             <col className="w-[120px]" />
             <col className="w-[220px]" />
             <col className="w-[180px]" />
-            <col className="w-12" />
+            {!readOnly ? <col className="w-12" /> : null}
           </colgroup>
-          <JournalEntryHeading />
+          <JournalEntryHeading readOnly={readOnly} />
           <tbody>
             {filteredEntries.map((entry) => (
               <JournalEntryRow
                 key={entry.id}
                 entry={entry}
+                readOnly={readOnly}
                 onChange={(nextEntry) =>
                   setTableEntries((current) =>
                     current.map((item) =>
@@ -84,7 +92,7 @@ export function JournalEntryTable({
               <tr>
                 <td
                   className="px-3 py-10 text-center text-sm text-zinc-500"
-                  colSpan={6}
+                  colSpan={readOnly ? 5 : 6}
                 >
                   No journal entries found.
                 </td>
@@ -94,20 +102,22 @@ export function JournalEntryTable({
         </table>
         <JournalEntryPagination />
       </div>
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent
-          className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
-          showCloseButton={false}
-        >
-          <DialogDescription className="sr-only">
-            Add a journal entry with technique, partner, and training details.
-          </DialogDescription>
-          <JournalEntryCreate
-            onClose={() => setIsCreateOpen(false)}
-            withinDialog
-          />
-        </DialogContent>
-      </Dialog>
+      {!readOnly ? (
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogContent
+            className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
+            showCloseButton={false}
+          >
+            <DialogDescription className="sr-only">
+              Add a journal entry with technique, partner, and training details.
+            </DialogDescription>
+            <JournalEntryCreate
+              onClose={() => setIsCreateOpen(false)}
+              withinDialog
+            />
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </section>
   );
 }

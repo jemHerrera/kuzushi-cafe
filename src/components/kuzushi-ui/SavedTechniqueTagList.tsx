@@ -12,11 +12,7 @@ import {
 import { ModalFrame } from "./ModalFrame";
 import { SavedTechniqueTagItem } from "./SavedTechniqueTagItem";
 import { SavedTechniqueUpsert } from "./SavedTechniqueUpsert";
-import {
-  sampleTechniques,
-  type Category,
-  type Technique,
-} from "./shared";
+import { sampleTechniques, type Category, type Technique } from "./shared";
 
 type TechniqueListItem = Technique & { id: string };
 
@@ -58,10 +54,7 @@ export function SavedTechniqueTagList({
   }) {
     const id = `saved-technique-${nextId.current}`;
     nextId.current += 1;
-    setTechniques((current) => [
-      ...current,
-      { id, name: label, category },
-    ]);
+    setTechniques((current) => [...current, { id, name: label, category }]);
   }
 
   return (

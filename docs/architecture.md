@@ -49,6 +49,8 @@ Journal-entry managers should enforce these invariants:
 - If `trainedDate` is omitted, default it to `createdDate`.
 - Accept exactly one training partner mode: no partner, account-backed training partner, or custom partner.
 - Keep individual journal-entry privacy out of the model; use account and category privacy settings for scoped views.
+- Treat account `bio` as part of the privacy-scoped public profile fields.
+- Persist journal outcome through nullable `journalType` (`attempt` or `success`), never separate attempt/success booleans.
 
 ### Database
 

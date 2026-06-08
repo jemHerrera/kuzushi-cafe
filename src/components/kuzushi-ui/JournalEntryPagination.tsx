@@ -26,10 +26,7 @@ export function JournalEntryPagination({
   const currentPage = Math.min(Math.max(page ?? internalPage, 1), pageCount);
   const visiblePages = getVisiblePages(currentPage, pageCount);
 
-  function changePage(
-    event: MouseEvent<HTMLAnchorElement>,
-    nextPage: number,
-  ) {
+  function changePage(event: MouseEvent<HTMLAnchorElement>, nextPage: number) {
     event.preventDefault();
     if (nextPage < 1 || nextPage > pageCount || nextPage === currentPage) {
       return;

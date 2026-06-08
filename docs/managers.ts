@@ -16,6 +16,7 @@ export type AccountDetail = {
   object: "account";
   firstName?: string;
   lastName?: string;
+  bio?: string;
   email: string;
   profilePhoto?: string;
   belt: Belt;
@@ -62,6 +63,7 @@ export type PublicAccountSummary = {
   object: "public_account_summary";
   firstName?: string;
   lastName?: string;
+  bio?: string;
   profilePhoto?: string;
   belt?: Belt;
   relationshipStatus?: TrainingPartnerRelationshipStatus;
@@ -118,6 +120,7 @@ export interface IAccountManager {
   updateAccount: (params: {
     firstName?: string;
     lastName?: string;
+    bio?: string;
     profilePhoto?: string;
     belt?: Belt;
     weight?: WeightClass;

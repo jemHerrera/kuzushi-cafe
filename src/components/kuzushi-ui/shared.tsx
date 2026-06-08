@@ -37,6 +37,7 @@ export type AgeClass =
 export type Partner = {
   firstName: string;
   lastName: string;
+  bio?: string;
   belt: Belt;
   weight: WeightClass;
   age: AgeClass;
@@ -129,6 +130,7 @@ export const samplePartners: Partner[] = [
   {
     firstName: "Maya",
     lastName: "Chen",
+    bio: "Purple belt focused on guard retention, sweeps, and technical rounds.",
     belt: "purple",
     weight: "middle",
     age: "30s",
@@ -175,6 +177,49 @@ export const sampleEntries: JournalEntry[] = [
     category: "tap",
     technique: "Bow and arrow choke",
     trainedDate: "2026-05-30",
+  },
+  {
+    id: "4",
+    category: "submission",
+    technique: "Armbar from closed guard",
+    journalType: "attempt",
+    partner: samplePartners[1],
+    trainedDate: "2026-06-04",
+  },
+  {
+    id: "5",
+    category: "submission",
+    technique: "Triangle choke",
+    journalType: "success",
+    partner: samplePartners[2],
+    trainedDate: "2026-06-05",
+  },
+  {
+    id: "6",
+    category: "submission",
+    technique: "Triangle choke",
+    journalType: "attempt",
+    trainedDate: "2026-06-06",
+  },
+  {
+    id: "7",
+    category: "submission",
+    technique: "Rear naked choke",
+    journalType: "attempt",
+    trainedDate: "2026-05-12",
+  },
+  {
+    id: "8",
+    category: "tap",
+    technique: "Bow and arrow choke",
+    partner: samplePartners[2],
+    trainedDate: "2026-06-03",
+  },
+  {
+    id: "9",
+    category: "tap",
+    technique: "Triangle choke",
+    trainedDate: "2026-06-05",
   },
 ];
 

@@ -70,7 +70,10 @@ export function DateSelector({
             <CalendarIcon data-icon="inline-start" />
           ) : null}
           {selectedDate
-            ? format(selectedDate, variant === "table" ? "MMMM dd, yyyy" : "PPP")
+            ? format(
+                selectedDate,
+                variant === "table" ? "MMMM dd, yyyy" : "PPP",
+              )
             : placeholder}
         </Button>
       </PopoverTrigger>

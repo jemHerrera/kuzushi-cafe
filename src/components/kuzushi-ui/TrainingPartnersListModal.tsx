@@ -14,46 +14,33 @@ import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { CustomPartnerInput } from "./CustomPartnerInput";
 import { ModalFrame } from "./ModalFrame";
-import { PublicProfile } from "./PublicProfile";
 import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
 
 export function TrainingPartnersListModal({
   onClose,
   onTitleChange,
+  onSelectPartner,
   withinDialog = false,
 }: {
   onClose?: () => void;
   onTitleChange?: (title: string) => void;
+  onSelectPartner?: (partner: Partner) => void;
   withinDialog?: boolean;
 }) {
   const [view, setView] = useState<"list" | "custom">("list");
-  const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
 
   function openList() {
-    setSelectedPartner(null);
     setView("list");
     onTitleChange?.("My training partners");
   }
 
   function openCustomPartner() {
-    setSelectedPartner(null);
     setView("custom");
     onTitleChange?.("Add custom partner");
   }
 
   function openPublicProfile(partner: Partner) {
-    setSelectedPartner(partner);
-    onTitleChange?.("Public profile");
-  }
-
-  if (selectedPartner) {
-    return (
-      <PublicProfile
-        partner={selectedPartner}
-        onClose={onClose}
-        withinDialog={withinDialog}
-      />
-    );
+    onSelectPartner?.(partner);
   }
 
   if (view === "custom") {
@@ -107,7 +94,7 @@ export function TrainingPartnersListModal({
                   <Avatar initials={partner.initials} size="xs" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold text-zinc-950">
+                  <span className="block truncate text-sm text-zinc-950">
                     {partner.firstName} {partner.lastName}
                   </span>
                 </span>

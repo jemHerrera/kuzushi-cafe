@@ -15,7 +15,9 @@ export function NotificationItem({
 }) {
   return (
     <a
-      aria-label={unread ? `${heading}. Unread. ${body}` : `${heading}. ${body}`}
+      aria-label={
+        unread ? `${heading}. Unread. ${body}` : `${heading}. ${body}`
+      }
       className="block rounded-md border border-zinc-200 bg-white p-3 transition-colors hover:border-zinc-300 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
       href={href}
       onClick={onClick}

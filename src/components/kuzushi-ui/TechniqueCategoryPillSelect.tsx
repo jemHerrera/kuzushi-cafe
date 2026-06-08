@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import {
   Select,
@@ -46,6 +47,7 @@ export function TechniqueCategoryPillSelect({
         )}
       >
         <SelectValue>{selectedCategory}</SelectValue>
+        <ChevronDown className="size-3.5 shrink-0 text-current" />
       </SelectTrigger>
       <SelectContent
         className="min-w-44 bg-white/75 p-1 shadow-lg backdrop-blur-md"

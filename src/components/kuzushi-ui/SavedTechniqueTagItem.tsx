@@ -82,7 +82,7 @@ export function SavedTechniqueTagItem({
     >
       <Input
         aria-label={`Technique label: ${currentName}`}
-        className="h-8 min-w-0 border-transparent bg-transparent px-2 text-sm font-semibold text-zinc-950 shadow-none focus-visible:border-transparent focus-visible:bg-zinc-50 focus-visible:ring-0"
+        className="h-8 min-w-0 border-transparent bg-transparent px-2 text-sm text-zinc-950 shadow-none focus-visible:border-transparent focus-visible:bg-zinc-50 focus-visible:ring-0"
         value={draftName}
         onBlur={commitName}
         onChange={(event) => setDraftName(event.target.value)}

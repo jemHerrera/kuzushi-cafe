@@ -20,8 +20,9 @@ export function JournalTypePillSelect({
   value?: JournalType;
   onValueChange?: (value: JournalType) => void;
 }) {
-  const [internalValue, setInternalValue] =
-    useState<JournalType>(value ?? "attempt");
+  const [internalValue, setInternalValue] = useState<JournalType>(
+    value ?? "attempt",
+  );
   const selectedValue = value ?? internalValue;
 
   function changeValue(nextValue: JournalType) {
