@@ -19,6 +19,7 @@ type DateSelectorProps = {
   placeholder?: string;
   ariaLabel?: string;
   onValueChange?: (date: Date | undefined) => void;
+  disabled?: boolean;
   variant?: "default" | "property" | "table";
 };
 
@@ -29,6 +30,7 @@ export function DateSelector({
   placeholder = "Pick a date",
   ariaLabel,
   onValueChange,
+  disabled = false,
   variant = "default",
 }: DateSelectorProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +58,7 @@ export function DateSelector({
               : undefined
           }
           type="button"
+          disabled={disabled}
           variant="outline"
           className={cx(
             "h-11 w-full justify-start rounded-md px-3 text-left text-sm font-normal",

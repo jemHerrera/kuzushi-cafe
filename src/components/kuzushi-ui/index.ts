@@ -36,6 +36,8 @@ export { SavedTechniqueTagList } from "./SavedTechniqueTagList";
 export { SavedTechniqueUpsert } from "./SavedTechniqueUpsert";
 export { Search } from "./Search";
 export { SearchSelectPopover } from "./SearchSelectPopover";
+export { SignInForm } from "./SignInForm";
+export { SignOutButton } from "./SignOutButton";
 export { SidePanel } from "./SidePanel";
 export { StatsChart } from "./StatsChart";
 export { StatsRow } from "./StatsRow";

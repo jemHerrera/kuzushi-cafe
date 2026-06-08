@@ -8,12 +8,20 @@ export default function Home() {
           <span className="text-sm font-semibold uppercase tracking-wide text-zinc-700">
             Kuzushi Cafe
           </span>
-          <Link
-            className="rounded-full border border-zinc-300 px-3 py-1 text-sm font-semibold text-zinc-700 transition hover:bg-white"
-            href="/components"
-          >
-            Component library
-          </Link>
+          <nav className="flex items-center gap-2">
+            <Link
+              className="rounded-full border border-zinc-300 px-3 py-1 text-sm font-semibold text-zinc-700 transition hover:bg-white"
+              href="/components"
+            >
+              Component library
+            </Link>
+            <Link
+              className="rounded-full bg-zinc-950 px-3 py-1 text-sm font-semibold text-white transition hover:bg-zinc-800"
+              href="/auth/sign-in"
+            >
+              Sign in
+            </Link>
+          </nav>
         </header>
 
         <div className="grid flex-1 items-center gap-10 py-12 lg:grid-cols-[1.1fr_0.9fr]">

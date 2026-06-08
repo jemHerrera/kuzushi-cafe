@@ -66,6 +66,29 @@ For Vercel, configure these environment variables:
 - `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID`
 - `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET`
 
+## Authentication Configuration
+
+The app uses Supabase SSR cookies, Google OAuth, and passwordless email links.
+Local magic-link email is rendered from
+`supabase/templates/magic-link.html` and can be opened in Inbucket at
+`http://127.0.0.1:54324`.
+
+For the hosted Supabase project:
+
+- Set the site URL to `https://kuzushi.cafe`.
+- Add `https://kuzushi.cafe/auth/callback` to the allowed redirect URLs.
+- Configure Google using the client ID and secret for the hosted project.
+- Replace the hosted Magic Link email template link with:
+
+```html
+<a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email">
+  Sign in to Kuzushi Cafe
+</a>
+```
+
+The callback accepts only app-generated relative `next` paths. External and
+protocol-relative destinations are discarded.
+
 ## Todos
 
 - [x] Scaffold the Next.js TypeScript app with Tailwind CSS or shadcn/ui, linting, formatting, and baseline test tooling.
@@ -73,8 +96,8 @@ For Vercel, configure these environment variables:
 - [x] Translate `docs/data-model.ts` into database migrations with tables, foreign keys, constraints, indexes, privacy defaults, and RLS policies.
 - [x] Seed public technique tags from `docs/seeder.ts`.
 - [ ] Implement all components and create a components page library
-- [ ] Implement authentication with Google SSO, magic-link email, session refresh middleware, sign-out, auth-only redirects, and protected-route handling.
-- [ ] Implement account creation after provider identity verification, profile completion checks, and the complete-profile redirect flow.
+- [x] Implement authentication with Google SSO, magic-link email, session refresh middleware, sign-out, auth-only redirects, and protected-route handling.
+- [x] Implement account creation after provider identity verification, profile completion checks, and the complete-profile redirect flow.
 - [ ] Build account and privacy managers from `docs/managers.ts`, including public-profile visibility and relationship status helpers.
 - [ ] Build training-partner request, accepted training-partner list, reciprocal detach-and-snapshot remove-training-partner, block, and unblock manager flows.
 - [ ] Build journal-entry managers with the documented invariants for tap success clearing, trained-date defaults, and mutually exclusive partner modes.
@@ -85,7 +108,7 @@ For Vercel, configure these environment variables:
 - [ ] Implement the API endpoints in `docs/api-endpoints.md` with validation, normalization, authorization, pagination, and URL-backed journal filters.
 - [ ] Create shared validation schemas and API response types that match `docs/managers.ts`.
 - [ ] Build the app shell with side panel, header, notifications entry point, profile navigation, saved techniques, settings, and donation banner.
-- [ ] Build authentication UI for Google SSO, magic-link email entry, confirmation states, expired links, errors, loading, and post-auth onboarding.
+- [x] Build authentication UI for Google SSO, magic-link email entry, confirmation states, expired links, errors, loading, and post-auth onboarding.
 - [ ] Build account UI for `MyProfile`, `CompleteProfile`, `PrivacySettings`, and `PublicProfile`.
 - [ ] Build training-partner UI for profile search, potential training partners, inbound and outbound requests, relationship states, add, remove, block, and remove confirmation.
 - [ ] Build journal-entry create and update modals with category, technique/setup tag inputs, attempt/success fields, intensity, gi/no-gi, partner selection, trained date, delete confirmation, and submit states.

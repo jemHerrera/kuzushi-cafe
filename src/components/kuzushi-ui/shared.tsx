@@ -299,6 +299,7 @@ const nativeSelectControlClass =
 
 export function TextInput({
   value,
+  onChange,
   variant = "default",
   className,
   ...props
@@ -314,7 +315,7 @@ export function TextInput({
           "h-10 border-transparent bg-transparent px-2 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:bg-zinc-100 focus-visible:ring-2",
         className,
       )}
-      defaultValue={value}
+      {...(onChange ? { value, onChange } : { defaultValue: value })}
       {...props}
     />
   );

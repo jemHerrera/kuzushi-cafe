@@ -56,6 +56,10 @@ max_frequency = "1m0s"
 otp_length = 6
 otp_expiry = 3600
 
+[auth.email.template.magic_link]
+subject = "Sign in to Kuzushi Cafe"
+content_path = "./supabase/templates/magic-link.html"
+
 [auth.external.google]
 enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
