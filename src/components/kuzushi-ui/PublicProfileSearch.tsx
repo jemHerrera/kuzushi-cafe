@@ -1,7 +1,7 @@
 "use client";
 
 import { SearchIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Command,
   CommandEmpty,
@@ -17,15 +17,70 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import type {
+  ApiErrorDetail,
+  PaginatedResponse,
+  PublicAccountSummary,
+} from "@/lib/managers/types";
+import { AlertBanner } from "./AlertBanner";
 import { Avatar } from "./Avatar";
-import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
+import { beltBorderStyles, cx } from "./shared";
 
 export function PublicProfileSearch({
-  profiles = samplePartners,
+  onSelectProfile,
 }: {
-  profiles?: Partner[];
+  onSelectProfile?: (profile: PublicAccountSummary) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [profiles, setProfiles] = useState<PublicAccountSummary[]>([]);
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setIsLoading(true);
+      setError(undefined);
+      try {
+        const params = new URLSearchParams({ limit: "20", offset: "0" });
+        if (query.trim()) params.set("search", query.trim());
+        const response = await fetch(`/api/accounts/search?${params}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          const detail = (await response.json()) as ApiErrorDetail;
+          throw new Error(detail.error.message);
+        }
+
+        const result =
+          (await response.json()) as PaginatedResponse<PublicAccountSummary>;
+        setProfiles(result.items);
+      } catch (loadError) {
+        if (controller.signal.aborted) return;
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "We could not search public profiles.",
+        );
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
+    }, 200);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [isOpen, query]);
+
+  function selectProfile(profile: PublicAccountSummary) {
+    onSelectProfile?.(profile);
+    setIsOpen(false);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -47,41 +102,54 @@ export function PublicProfileSearch({
             Find training partners.
           </DialogDescription>
         </DialogHeader>
-        <Command
-          filter={(value, search, keywords) =>
-            commandFilter(value, search, keywords)
-          }
-        >
-          <CommandInput placeholder="Search training partners" />
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Search training partners"
+            value={query}
+            onValueChange={setQuery}
+          />
           <CommandList className="max-h-96">
-            <CommandEmpty>No profiles found.</CommandEmpty>
-            <CommandGroup heading="Public profiles">
+            {error ? (
+              <div className="p-3">
+                <AlertBanner message={error} />
+              </div>
+            ) : null}
+            <CommandEmpty>
+              {isLoading ? "Searching profiles..." : "No profiles found."}
+            </CommandEmpty>
+            <CommandGroup heading="">
               {profiles.map((profile) => (
                 <CommandItem
-                  key={`${profile.firstName}-${profile.lastName}`}
+                  key={profile.id}
                   keywords={[
-                    profile.firstName,
-                    profile.lastName,
+                    profile.firstName ?? "",
+                    profile.lastName ?? "",
                     `${profile.firstName} ${profile.lastName}`,
-                    profile.belt,
-                    profile.weight,
-                    formatAgeClass(profile.age),
+                    profile.belt ?? "",
+                    profile.relationshipStatus ?? "",
                   ]}
-                  value={`${profile.firstName}-${profile.lastName}`}
+                  value={profile.id}
                   className="min-h-10 gap-3 rounded-md px-3 py-2 cursor-pointer"
-                  onSelect={() => setIsOpen(false)}
+                  onSelect={() => selectProfile(profile)}
                 >
                   <span
                     className={cx(
                       "inline-flex shrink-0 rounded-full border-[3px] p-0",
-                      beltBorderStyles[profile.belt],
+                      beltBorderStyles[profile.belt ?? "unknown"],
                     )}
                   >
-                    <Avatar initials={profile.initials} size="xs" />
+                    <Avatar
+                      initials={initialsForProfile(profile)}
+                      src={profile.profilePhoto}
+                      size="xs"
+                    />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm text-zinc-950">
-                      {profile.firstName} {profile.lastName}
+                      {displayName(profile)}
+                    </span>
+                    <span className="block truncate text-xs text-zinc-500">
+                      {relationshipLabel(profile.relationshipStatus)}
                     </span>
                   </span>
                 </CommandItem>
@@ -94,23 +162,31 @@ export function PublicProfileSearch({
   );
 }
 
-function commandFilter(value: string, search: string, keywords?: string[]) {
-  const normalizedSearch = normalize(search);
-  const searchableValues = [value, ...(keywords ?? [])];
-
-  if (!normalizedSearch) return 1;
-
-  return searchableValues.some((searchableValue) =>
-    normalize(searchableValue).includes(normalizedSearch),
-  )
-    ? 1
-    : 0;
+function displayName(profile: PublicAccountSummary) {
+  return (
+    [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
+    "Unnamed grappler"
+  );
 }
 
-function formatAgeClass(age: Partner["age"]) {
-  return age === "young-adult" ? "young adult" : age;
+function initialsForProfile(profile: PublicAccountSummary) {
+  return (
+    [profile.firstName, profile.lastName]
+      .filter(Boolean)
+      .map((part) => part!.charAt(0).toUpperCase())
+      .join("") || "KC"
+  );
 }
 
-function normalize(value: string) {
-  return value.trim().toLowerCase();
+function relationshipLabel(status: PublicAccountSummary["relationshipStatus"]) {
+  const labels: Record<NonNullable<typeof status>, string> = {
+    none: "Not connected",
+    "pending-inbound": "Request received",
+    "pending-outbound": "Request sent",
+    accepted: "Training partner",
+    blocked: "Blocked",
+    removed: "Removed",
+  };
+
+  return status ? labels[status] : "";
 }

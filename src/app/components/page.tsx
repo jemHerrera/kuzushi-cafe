@@ -51,7 +51,7 @@ import {
 } from "@/components/kuzushi-ui";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import type { AccountDetail } from "@/lib/managers/types";
+import type { AccountDetail, PublicAccountSummary } from "@/lib/managers/types";
 
 const sampleAccount: AccountDetail = {
   id: "component-library-account",
@@ -63,6 +63,16 @@ const sampleAccount: AccountDetail = {
   weight: "middle",
   createdAt: 0,
   updatedAt: 0,
+};
+
+const samplePublicProfile: PublicAccountSummary = {
+  id: "component-library-public-profile",
+  object: "public_account_summary",
+  firstName: "Maya",
+  lastName: "Chen",
+  bio: "Purple belt focused on guard retention, sweeps, and technical rounds.",
+  belt: "purple",
+  relationshipStatus: "none",
 };
 
 const sections = [
@@ -190,7 +200,15 @@ const sections = [
       { name: "MyProfile", element: <MyProfile /> },
       { name: "CompleteProfile", element: <CompleteProfile /> },
       { name: "PrivacySettings", element: <PrivacySettings /> },
-      { name: "PublicProfile", element: <PublicProfile /> },
+      {
+        name: "PublicProfile",
+        element: (
+          <PublicProfile
+            accountId={samplePublicProfile.id}
+            initialProfile={samplePublicProfile}
+          />
+        ),
+      },
     ],
   },
   {

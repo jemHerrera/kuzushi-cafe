@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import type { AccountDetail } from "@/lib/managers/types";
+import type { PublicAccountSummary } from "@/lib/managers/types";
 import { cn } from "@/lib/utils";
 import { BrandWordmark } from "./BrandWordmark";
 import { ButtonPrimary } from "./ButtonPrimary";
@@ -30,10 +31,12 @@ export function SidePanel({
   account,
   className,
   onAction,
+  onSelectProfile,
 }: {
   account: AccountDetail;
   className?: string;
   onAction: (action: SidePanelAction) => void;
+  onSelectProfile?: (profile: PublicAccountSummary) => void;
 }) {
   const navItems = [
     {
@@ -77,7 +80,7 @@ export function SidePanel({
         />
       </button>
       <div className="mt-4">
-        <PublicProfileSearch />
+        <PublicProfileSearch onSelectProfile={onSelectProfile} />
       </div>
       <div className="mt-4">
         <ButtonPrimary

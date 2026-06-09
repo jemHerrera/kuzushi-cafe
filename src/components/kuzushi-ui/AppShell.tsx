@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import type { AccountDetail } from "@/lib/managers/types";
+import type { PublicAccountSummary } from "@/lib/managers/types";
 import { DonationModal } from "./DonationModal";
 import { EmptyState } from "./EmptyState";
 import { Header } from "./Header";
@@ -21,11 +22,15 @@ import { JournalEntryCreate } from "./JournalEntryCreate";
 import { MyProfile } from "./MyProfile";
 import { NotificationList } from "./NotificationList";
 import { PrivacySettings } from "./PrivacySettings";
+import { PublicProfile } from "./PublicProfile";
 import { SavedTechniqueTagList } from "./SavedTechniqueTagList";
 import { SidePanel, type SidePanelAction } from "./SidePanel";
 import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
 
-type ShellModal = Exclude<SidePanelAction, "profile"> | "profile";
+type ShellModal =
+  | Exclude<SidePanelAction, "profile">
+  | "profile"
+  | "public-profile";
 
 const modalDescriptions: Record<ShellModal, string> = {
   profile: "View and update your profile details.",
@@ -35,12 +40,16 @@ const modalDescriptions: Record<ShellModal, string> = {
   "saved-techniques": "Search, add, edit, and delete your saved techniques.",
   settings: "Choose who can view your profile and journal activity.",
   donation: "Choose a donation amount to support Kuzushi Cafe.",
+  "public-profile": "View a public profile and manage relationship state.",
 };
 
 export function AppShell({ account }: { account: AccountDetail }) {
+  const [currentAccount, setCurrentAccount] = useState(account);
   const [activeModal, setActiveModal] = useState<ShellModal | null>(null);
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [selectedProfile, setSelectedProfile] =
+    useState<PublicAccountSummary | null>(null);
 
   function openModal(action: SidePanelAction) {
     setIsNavigationOpen(false);
@@ -51,13 +60,20 @@ export function AppShell({ account }: { account: AccountDetail }) {
     setActiveModal(null);
   }
 
+  function openPublicProfile(profile: PublicAccountSummary) {
+    setIsNavigationOpen(false);
+    setSelectedProfile(profile);
+    setActiveModal("public-profile");
+  }
+
   return (
     <main className="min-h-screen bg-stone-50 text-zinc-950">
       <div className="grid min-h-screen lg:grid-cols-[20rem_minmax(0,1fr)]">
         <SidePanel
-          account={account}
+          account={currentAccount}
           className="fixed inset-y-0 left-0 hidden lg:flex"
           onAction={openModal}
+          onSelectProfile={openPublicProfile}
         />
         <div className="min-w-0 lg:col-start-2">
           <div className="sticky top-0 z-30">
@@ -69,7 +85,7 @@ export function AppShell({ account }: { account: AccountDetail }) {
           <section className="mx-auto grid w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
             <div>
               <p className="text-sm font-semibold text-zinc-500">
-                Welcome back, {account.firstName}
+                Welcome back, {currentAccount.firstName}
               </p>
               <h2 className="mt-1 text-3xl font-black tracking-tight">
                 Training journal
@@ -91,9 +107,10 @@ export function AppShell({ account }: { account: AccountDetail }) {
             actions.
           </SheetDescription>
           <SidePanel
-            account={account}
+            account={currentAccount}
             className="max-w-none border-r-0"
             onAction={openModal}
+            onSelectProfile={openPublicProfile}
           />
         </SheetContent>
       </Sheet>
@@ -124,17 +141,18 @@ export function AppShell({ account }: { account: AccountDetail }) {
           {activeModal === "profile" ? (
             <MyProfile
               initialProfile={{
-                firstName: account.firstName ?? "",
-                lastName: account.lastName ?? "",
-                belt: account.belt,
-                weight: account.weight,
-                birthday: account.birthday
-                  ? new Date(account.birthday)
+                firstName: currentAccount.firstName ?? "",
+                lastName: currentAccount.lastName ?? "",
+                belt: currentAccount.belt,
+                weight: currentAccount.weight,
+                birthday: currentAccount.birthday
+                  ? new Date(currentAccount.birthday)
                   : undefined,
-                bio: account.bio ?? "",
+                bio: currentAccount.bio ?? "",
               }}
+              onSaved={setCurrentAccount}
               onClose={closeModal}
-              profilePhoto={account.profilePhoto}
+              profilePhoto={currentAccount.profilePhoto}
               withinDialog
             />
           ) : null}
@@ -144,7 +162,7 @@ export function AppShell({ account }: { account: AccountDetail }) {
           {activeModal === "training-partners" ? (
             <TrainingPartnersListModal
               onClose={closeModal}
-              onSelectPartner={closeModal}
+              onSelectPartner={openPublicProfile}
               withinDialog
             />
           ) : null}
@@ -156,6 +174,16 @@ export function AppShell({ account }: { account: AccountDetail }) {
           ) : null}
           {activeModal === "donation" ? (
             <DonationModal onClose={closeModal} withinDialog />
+          ) : null}
+          {activeModal === "public-profile" && selectedProfile ? (
+            <PublicProfile
+              key={selectedProfile.id}
+              accountId={selectedProfile.id}
+              initialProfile={selectedProfile}
+              onClose={closeModal}
+              onRelationshipChange={() => undefined}
+              withinDialog
+            />
           ) : null}
         </DialogContent>
       </Dialog>
