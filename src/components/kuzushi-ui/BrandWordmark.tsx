@@ -4,11 +4,9 @@ import Link from "next/link";
 export function BrandWordmark({
   href,
   label = "KUZUSHI CAFE",
-  compact = false,
 }: {
   href?: string;
   label?: string;
-  compact?: boolean;
 }) {
   const className = [
     "inline-flex items-center gap-2 font-black italic tracking-tight text-zinc-950 text-sm",

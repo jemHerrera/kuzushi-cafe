@@ -1,0 +1,164 @@
+"use client";
+
+import { useState } from "react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import type { AccountDetail } from "@/lib/managers/types";
+import { DonationModal } from "./DonationModal";
+import { EmptyState } from "./EmptyState";
+import { Header } from "./Header";
+import { JournalEntryCreate } from "./JournalEntryCreate";
+import { MyProfile } from "./MyProfile";
+import { NotificationList } from "./NotificationList";
+import { PrivacySettings } from "./PrivacySettings";
+import { SavedTechniqueTagList } from "./SavedTechniqueTagList";
+import { SidePanel, type SidePanelAction } from "./SidePanel";
+import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
+
+type ShellModal = Exclude<SidePanelAction, "profile"> | "profile";
+
+const modalDescriptions: Record<ShellModal, string> = {
+  profile: "View and update your profile details.",
+  "new-entry":
+    "Add a journal entry with technique, partner, and training details.",
+  "training-partners": "Search, review, and manage your training partners.",
+  "saved-techniques": "Search, add, edit, and delete your saved techniques.",
+  settings: "Choose who can view your profile and journal activity.",
+  donation: "Choose a donation amount to support Kuzushi Cafe.",
+};
+
+export function AppShell({ account }: { account: AccountDetail }) {
+  const [activeModal, setActiveModal] = useState<ShellModal | null>(null);
+  const [isNavigationOpen, setIsNavigationOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+
+  function openModal(action: SidePanelAction) {
+    setIsNavigationOpen(false);
+    setActiveModal(action);
+  }
+
+  function closeModal() {
+    setActiveModal(null);
+  }
+
+  return (
+    <main className="min-h-screen bg-stone-50 text-zinc-950">
+      <div className="grid min-h-screen lg:grid-cols-[20rem_minmax(0,1fr)]">
+        <SidePanel
+          account={account}
+          className="fixed inset-y-0 left-0 hidden lg:flex"
+          onAction={openModal}
+        />
+        <div className="min-w-0 lg:col-start-2">
+          <div className="sticky top-0 z-30">
+            <Header
+              onMenuOpen={() => setIsNavigationOpen(true)}
+              onNotificationsOpen={() => setIsNotificationsOpen(true)}
+            />
+          </div>
+          <section className="mx-auto grid w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
+            <div>
+              <p className="text-sm font-semibold text-zinc-500">
+                Welcome back, {account.firstName}
+              </p>
+              <h2 className="mt-1 text-3xl font-black tracking-tight">
+                Training journal
+              </h2>
+            </div>
+            <EmptyState onAction={() => openModal("new-entry")} />
+          </section>
+        </div>
+      </div>
+
+      <Sheet open={isNavigationOpen} onOpenChange={setIsNavigationOpen}>
+        <SheetContent
+          className="w-[min(22rem,calc(100vw-2rem))] p-0"
+          side="left"
+        >
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <SheetDescription className="sr-only">
+            Open profile, journal, saved techniques, settings, and donation
+            actions.
+          </SheetDescription>
+          <SidePanel
+            account={account}
+            className="max-w-none border-r-0"
+            onAction={openModal}
+          />
+        </SheetContent>
+      </Sheet>
+
+      <Sheet open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+        <SheetContent className="w-full p-0 sm:max-w-md" side="right">
+          <SheetTitle className="sr-only">Notifications</SheetTitle>
+          <SheetDescription className="sr-only">
+            Review recent Kuzushi Cafe notifications.
+          </SheetDescription>
+          <NotificationList className="h-full max-w-none border-l-0 pt-14" />
+        </SheetContent>
+      </Sheet>
+
+      <Dialog
+        open={activeModal !== null}
+        onOpenChange={(open) => {
+          if (!open) closeModal();
+        }}
+      >
+        <DialogContent
+          className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
+          showCloseButton={false}
+        >
+          <DialogDescription className="sr-only">
+            {activeModal ? modalDescriptions[activeModal] : ""}
+          </DialogDescription>
+          {activeModal === "profile" ? (
+            <MyProfile
+              initialProfile={{
+                firstName: account.firstName ?? "",
+                lastName: account.lastName ?? "",
+                belt: account.belt,
+                weight: account.weight,
+                birthday: account.birthday
+                  ? new Date(account.birthday)
+                  : undefined,
+                bio: account.bio ?? "",
+              }}
+              onClose={closeModal}
+              profilePhoto={account.profilePhoto}
+              withinDialog
+            />
+          ) : null}
+          {activeModal === "new-entry" ? (
+            <JournalEntryCreate onClose={closeModal} withinDialog />
+          ) : null}
+          {activeModal === "training-partners" ? (
+            <TrainingPartnersListModal
+              onClose={closeModal}
+              onSelectPartner={closeModal}
+              withinDialog
+            />
+          ) : null}
+          {activeModal === "saved-techniques" ? (
+            <SavedTechniqueTagList onClose={closeModal} withinDialog />
+          ) : null}
+          {activeModal === "settings" ? (
+            <PrivacySettings onClose={closeModal} withinDialog />
+          ) : null}
+          {activeModal === "donation" ? (
+            <DonationModal onClose={closeModal} withinDialog />
+          ) : null}
+        </DialogContent>
+      </Dialog>
+    </main>
+  );
+}

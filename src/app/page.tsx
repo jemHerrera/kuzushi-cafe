@@ -5,7 +5,7 @@ export default function Home() {
     <main className="min-h-screen bg-stone-50 text-zinc-950">
       <section className="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-6 py-8 sm:px-10">
         <header className="flex items-center justify-between border-b border-zinc-200 pb-5">
-          <BrandWordmark label="KUZUSHI CAFE" compact />
+          <BrandWordmark label="KUZUSHI CAFE" />
         </header>
 
         <div className="grid flex-1 items-center gap-12 py-12 lg:grid-cols-2">

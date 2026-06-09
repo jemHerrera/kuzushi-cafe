@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AggregateOverview,
   AggregateView,
@@ -49,6 +51,19 @@ import {
 } from "@/components/kuzushi-ui";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import type { AccountDetail } from "@/lib/managers/types";
+
+const sampleAccount: AccountDetail = {
+  id: "component-library-account",
+  object: "account",
+  firstName: "Maya",
+  lastName: "Chen",
+  email: "maya@example.com",
+  belt: "purple",
+  weight: "middle",
+  createdAt: 0,
+  updatedAt: 0,
+};
 
 const sections = [
   {
@@ -109,7 +124,12 @@ const sections = [
     title: "Panels",
     items: [
       { name: "Header", element: <Header /> },
-      { name: "SidePanel", element: <SidePanel /> },
+      {
+        name: "SidePanel",
+        element: (
+          <SidePanel account={sampleAccount} onAction={() => undefined} />
+        ),
+      },
       { name: "NotificationList", element: <NotificationList /> },
       { name: "SavedTechniqueTagList", element: <SavedTechniqueTagList /> },
     ],

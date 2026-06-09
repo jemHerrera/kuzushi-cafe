@@ -2,6 +2,7 @@ export { AggregateOverview } from "./AggregateOverview";
 export { AggregateView } from "./AggregateView";
 export { AggregateViewFilters } from "./AggregateViewFilters";
 export { AlertBanner } from "./AlertBanner";
+export { AppShell } from "./AppShell";
 export { Avatar } from "./Avatar";
 export { BrandWordmark } from "./BrandWordmark";
 export { ButtonPrimary } from "./ButtonPrimary";
