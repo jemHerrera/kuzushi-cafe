@@ -11,15 +11,22 @@ import {
 } from "@/components/ui/popover";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { JournalEntrySearch } from "./JournalEntrySearch";
-import { categories, type Category, type JournalType } from "./shared";
+import {
+  categories,
+  formatCategoryLabel,
+  type Category,
+  type JournalType,
+} from "./shared";
 
 type JournalEntryFiltersProps = {
   query?: string;
   selectedCategories?: Category[];
   selectedTypes?: JournalType[];
+  isNoGi?: boolean;
   onQueryChange?: (query: string) => void;
   onCategoriesChange?: (categories: Category[]) => void;
   onTypesChange?: (types: JournalType[]) => void;
+  onIsNoGiChange?: (value: boolean | undefined) => void;
   onAddEntry?: () => void;
   showAddEntry?: boolean;
 };
@@ -36,18 +43,22 @@ export function JournalEntryFilters({
   query,
   selectedCategories,
   selectedTypes,
+  isNoGi,
   onQueryChange,
   onCategoriesChange,
   onTypesChange,
+  onIsNoGiChange,
   onAddEntry,
   showAddEntry = true,
 }: JournalEntryFiltersProps = {}) {
   const [internalQuery, setInternalQuery] = useState("");
   const [internalCategories, setInternalCategories] = useState<Category[]>([]);
   const [internalTypes, setInternalTypes] = useState<JournalType[]>([]);
+  const [internalIsNoGi, setInternalIsNoGi] = useState<boolean | undefined>();
   const currentQuery = query ?? internalQuery;
   const currentCategories = selectedCategories ?? internalCategories;
   const currentTypes = selectedTypes ?? internalTypes;
+  const currentIsNoGi = isNoGi ?? internalIsNoGi;
 
   function changeQuery(nextQuery: string) {
     if (query === undefined) setInternalQuery(nextQuery);
@@ -68,12 +79,17 @@ export function JournalEntryFilters({
     onTypesChange?.(nextTypes);
   }
 
+  function changeIsNoGi(nextValue: boolean | undefined) {
+    setInternalIsNoGi(nextValue);
+    onIsNoGiChange?.(nextValue);
+  }
+
   return (
     <div
       className={`grid gap-2 rounded-lg border border-zinc-200 bg-white p-2 ${
         showAddEntry
-          ? "lg:grid-cols-[minmax(16rem,1fr)_auto_auto_auto]"
-          : "lg:grid-cols-[minmax(16rem,1fr)_auto_auto]"
+          ? "lg:grid-cols-[minmax(16rem,1fr)_auto_auto_auto_auto]"
+          : "lg:grid-cols-[minmax(16rem,1fr)_auto_auto_auto]"
       }`}
     >
       <JournalEntrySearch value={currentQuery} onValueChange={changeQuery} />
@@ -81,7 +97,7 @@ export function JournalEntryFilters({
         label="Category"
         options={categories.map((category) => ({
           value: category,
-          label: formatCategory(category),
+          label: formatCategoryLabel(category),
         }))}
         selected={currentCategories}
         onSelectedChange={changeCategories}
@@ -92,6 +108,7 @@ export function JournalEntryFilters({
         selected={currentTypes}
         onSelectedChange={changeTypes}
       />
+      <GiFilterPill value={currentIsNoGi} onValueChange={changeIsNoGi} />
       {showAddEntry ? (
         <ButtonPrimary onClick={onAddEntry} type="button">
           <Plus className="size-4" />
@@ -181,9 +198,29 @@ function CheckboxFilterPill<T extends string>({
   );
 }
 
-function formatCategory(category: Category) {
-  return category
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+function GiFilterPill({
+  value,
+  onValueChange,
+}: {
+  value?: boolean;
+  onValueChange: (value: boolean | undefined) => void;
+}) {
+  const selected = value === undefined ? [] : [String(value)];
+
+  return (
+    <CheckboxFilterPill
+      label="Gi"
+      options={[
+        { value: "false", label: "Gi" },
+        { value: "true", label: "No-gi" },
+      ]}
+      selected={selected}
+      onSelectedChange={(nextSelected) => {
+        const nextValue = nextSelected.at(-1);
+        onValueChange(
+          nextValue === undefined ? undefined : nextValue === "true",
+        );
+      }}
+    />
+  );
 }

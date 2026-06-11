@@ -7,12 +7,13 @@ import {
   SearchSelectPopover,
   searchSelectOptionClassName,
 } from "./SearchSelectPopover";
-import { cx, sampleTechniques, type Technique } from "./shared";
+import { cx, sampleTechniques, type Category, type Technique } from "./shared";
 
 type TechniqueTagSelectMenuProps = {
   techniques?: Technique[];
   search?: string;
   value?: Technique | null;
+  category?: Category;
   placeholder?: string;
   ariaLabel?: string;
   variant?: "default" | "property" | "table";
@@ -24,6 +25,7 @@ export function TechniqueTagSelectMenu({
   techniques = sampleTechniques,
   search = "",
   value,
+  category,
   placeholder = "Select technique",
   ariaLabel,
   variant = "default",
@@ -64,7 +66,14 @@ export function TechniqueTagSelectMenu({
   function createSavedTag() {
     if (!trimmedQuery) return;
 
+    const technique = {
+      name: trimmedQuery,
+      category: category ?? techniques[0]?.category ?? "other",
+    };
+    setInternalSelectedTechnique(technique);
+    setQuery("");
     onCreateSavedTag?.(trimmedQuery);
+    onSelectTechnique?.(technique);
     setIsOpen(false);
   }
 

@@ -16,11 +16,18 @@ import type { Category } from "./shared";
 const categoryChartColors: Record<Category, { light: string; strong: string }> =
   {
     submission: { light: "#fda4af", strong: "#be123c" },
+    takedown: { light: "#fdba74", strong: "#c2410c" },
     sweep: { light: "#fcd34d", strong: "#b45309" },
+    "guard-pass": { light: "#6ee7b7", strong: "#047857" },
     reversal: { light: "#7dd3fc", strong: "#0369a1" },
-    "back take": { light: "#c4b5fd", strong: "#6d28d9" },
-    "guard pass": { light: "#6ee7b7", strong: "#047857" },
+    "back-take": { light: "#c4b5fd", strong: "#6d28d9" },
+    "leg-entry": { light: "#f0abfc", strong: "#a21caf" },
+    escape: { light: "#67e8f9", strong: "#0e7490" },
     tap: { light: "#d4d4d8", strong: "#3f3f46" },
+    "off-balance": { light: "#bef264", strong: "#4d7c0f" },
+    position: { light: "#a5b4fc", strong: "#4338ca" },
+    "guard-retention": { light: "#5eead4", strong: "#0f766e" },
+    other: { light: "#d6d3d1", strong: "#57534e" },
   };
 
 export function StatsChart({

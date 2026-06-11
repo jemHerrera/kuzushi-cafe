@@ -1,4 +1,9 @@
-import { categoryStyles, cx, type Category } from "./shared";
+import {
+  categoryStyles,
+  cx,
+  formatCategoryLabel,
+  type Category,
+} from "./shared";
 
 export function TechniqueCategoryPill({ category }: { category: Category }) {
   return (
@@ -8,7 +13,7 @@ export function TechniqueCategoryPill({ category }: { category: Category }) {
         categoryStyles[category],
       )}
     >
-      {category}
+      {formatCategoryLabel(category)}
     </span>
   );
 }

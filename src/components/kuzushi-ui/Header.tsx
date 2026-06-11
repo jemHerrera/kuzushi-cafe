@@ -32,7 +32,7 @@ export function Header({
             />
           ) : (
             <h1 className="hidden text-lg font-black text-zinc-950 sm:block">
-              Training journal
+              {/* Training journal */}
             </h1>
           )}
         </div>

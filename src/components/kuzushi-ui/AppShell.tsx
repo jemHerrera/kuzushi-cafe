@@ -16,8 +16,8 @@ import {
 import type { AccountDetail } from "@/lib/managers/types";
 import type { PublicAccountSummary } from "@/lib/managers/types";
 import { DonationModal } from "./DonationModal";
-import { EmptyState } from "./EmptyState";
 import { Header } from "./Header";
+import { JournalEntryTable } from "./JournalEntryTable";
 import { JournalEntryCreate } from "./JournalEntryCreate";
 import { MyProfile } from "./MyProfile";
 import { NotificationList } from "./NotificationList";
@@ -46,6 +46,7 @@ const modalDescriptions: Record<ShellModal, string> = {
 export function AppShell({ account }: { account: AccountDetail }) {
   const [currentAccount, setCurrentAccount] = useState(account);
   const [activeModal, setActiveModal] = useState<ShellModal | null>(null);
+  const [journalRefreshToken, setJournalRefreshToken] = useState(0);
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] =
@@ -84,14 +85,11 @@ export function AppShell({ account }: { account: AccountDetail }) {
           </div>
           <section className="mx-auto grid w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
             <div>
-              <p className="text-sm font-semibold text-zinc-500">
-                Welcome back, {currentAccount.firstName}
-              </p>
               <h2 className="mt-1 text-3xl font-black tracking-tight">
-                Training journal
+                Welcome back, {currentAccount.firstName}
               </h2>
             </div>
-            <EmptyState onAction={() => openModal("new-entry")} />
+            <JournalEntryTable refreshToken={journalRefreshToken} />
           </section>
         </div>
       </div>
@@ -157,7 +155,11 @@ export function AppShell({ account }: { account: AccountDetail }) {
             />
           ) : null}
           {activeModal === "new-entry" ? (
-            <JournalEntryCreate onClose={closeModal} withinDialog />
+            <JournalEntryCreate
+              onClose={closeModal}
+              onSaved={() => setJournalRefreshToken((token) => token + 1)}
+              withinDialog
+            />
           ) : null}
           {activeModal === "training-partners" ? (
             <TrainingPartnersListModal

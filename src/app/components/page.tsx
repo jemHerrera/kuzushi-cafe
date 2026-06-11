@@ -52,6 +52,7 @@ import {
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import type { AccountDetail, PublicAccountSummary } from "@/lib/managers/types";
+import { sampleEntries } from "@/components/kuzushi-ui/shared";
 
 const sampleAccount: AccountDetail = {
   id: "component-library-account",
@@ -159,7 +160,10 @@ const sections = [
     title: "Journal",
     items: [
       { name: "JournalEntryCreate", element: <JournalEntryCreate /> },
-      { name: "JournalEntryUpdate", element: <JournalEntryUpdate /> },
+      {
+        name: "JournalEntryUpdate",
+        element: <JournalEntryUpdate entry={sampleEntries[0]} />,
+      },
       { name: "JournalEntryFilters", element: <JournalEntryFilters /> },
       {
         name: "JournalEntryHeading",
@@ -191,7 +195,10 @@ const sections = [
         ),
       },
       { name: "JournalEntryPagination", element: <JournalEntryPagination /> },
-      { name: "JournalEntryTable", element: <JournalEntryTable /> },
+      {
+        name: "JournalEntryTable",
+        element: <JournalEntryTable entries={sampleEntries} />,
+      },
     ],
   },
   {

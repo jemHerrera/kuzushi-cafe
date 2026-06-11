@@ -1,11 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  parseJournalQuery,
+  serializeJournalQuery,
+  updateJournalQuery,
+  type JournalQuery,
+} from "@/lib/api/journal-query";
+import type {
+  ApiErrorDetail,
+  JournalEntryDetail,
+  PaginatedResponse,
+} from "@/lib/managers/types";
+import { AlertBanner } from "./AlertBanner";
 import { JournalEntryCreate } from "./JournalEntryCreate";
 import { JournalEntryFilters } from "./JournalEntryFilters";
 import { JournalEntryHeading } from "./JournalEntryHeading";
@@ -13,46 +26,139 @@ import { JournalEntryPagination } from "./JournalEntryPagination";
 import { JournalEntryRow } from "./JournalEntryRow";
 import {
   sampleEntries,
-  type Category,
   type JournalEntry,
-  type JournalType,
+  type Partner,
+  type TrainingPartnerDetail,
 } from "./shared";
 
 export function JournalEntryTable({
-  entries = sampleEntries,
+  entries,
   readOnly = false,
+  refreshToken = 0,
 }: {
   entries?: JournalEntry[];
   readOnly?: boolean;
+  refreshToken?: number;
 }) {
-  const [query, setQuery] = useState("");
-  const [tableEntries, setTableEntries] = useState(entries);
-  const [selectedCategories, setSelectedCategories] = useState<Category[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<JournalType[]>([]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [apiEntries, setApiEntries] = useState<JournalEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const filteredEntries = useMemo(
+  const [refreshKey, setRefreshKey] = useState(0);
+  const isStatic = entries !== undefined || readOnly;
+  const query = useMemo(
     () =>
-      tableEntries.filter(
-        (entry) =>
-          matchesQuery(entry, query) &&
-          matchesCategory(entry, selectedCategories) &&
-          matchesJournalType(entry, selectedTypes),
+      parseJournalQuery(
+        `http://kuzushi.local${pathname}?${searchParams.toString()}`,
       ),
-    [tableEntries, query, selectedCategories, selectedTypes],
+    [pathname, searchParams],
   );
+
+  useEffect(() => {
+    if (isStatic) return;
+
+    const controller = new AbortController();
+    const requestQuery: JournalQuery = {
+      ...query,
+      limit: query.limit + 1,
+    };
+    const params = serializeJournalQuery(requestQuery);
+
+    async function loadEntries() {
+      setIsLoading(true);
+      setError(undefined);
+      try {
+        const response = await fetch(`/api/journal-entries?${params}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          const detail = (await response.json()) as ApiErrorDetail;
+          throw new Error(detail.error.message);
+        }
+
+        const data =
+          (await response.json()) as PaginatedResponse<JournalEntryDetail>;
+        setApiEntries(data.items.map(toJournalEntry));
+      } catch (loadError) {
+        if (controller.signal.aborted) return;
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "We could not load journal entries.",
+        );
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
+    }
+
+    loadEntries();
+    return () => controller.abort();
+  }, [isStatic, query, refreshKey, refreshToken]);
+
+  const tableEntries = isStatic ? (entries ?? sampleEntries) : apiEntries;
+  const visibleEntries = isStatic
+    ? filterStaticEntries(tableEntries, query)
+    : tableEntries.slice(0, query.limit);
+  const hasNext = isStatic ? false : tableEntries.length > query.limit;
+  const page = Math.floor(query.offset / query.limit) + 1;
+
+  function replaceQuery(nextQuery: JournalQuery) {
+    const params = serializeJournalQuery(nextQuery);
+    router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
+      scroll: false,
+    });
+  }
+
+  function refreshEntries() {
+    setRefreshKey((key) => key + 1);
+  }
 
   return (
     <section className="grid gap-3">
       <JournalEntryFilters
-        query={query}
-        selectedCategories={selectedCategories}
-        selectedTypes={selectedTypes}
-        onQueryChange={setQuery}
-        onCategoriesChange={setSelectedCategories}
-        onTypesChange={setSelectedTypes}
+        query={query.filter.search ?? ""}
+        selectedCategories={query.filter.category ?? []}
+        selectedTypes={query.filter.journalTypes ?? []}
+        isNoGi={query.filter.isNoGi}
+        onQueryChange={(search) =>
+          replaceQuery(
+            updateJournalQuery(query, {
+              filter: { search: search.trim() || undefined },
+            }),
+          )
+        }
+        onCategoriesChange={(category) =>
+          replaceQuery(
+            updateJournalQuery(query, {
+              filter: { category: category.length ? category : undefined },
+            }),
+          )
+        }
+        onTypesChange={(journalTypes) =>
+          replaceQuery(
+            updateJournalQuery(query, {
+              filter: {
+                journalTypes: journalTypes.length ? journalTypes : undefined,
+              },
+            }),
+          )
+        }
+        onIsNoGiChange={(isNoGi) =>
+          replaceQuery(updateJournalQuery(query, { filter: { isNoGi } }))
+        }
         onAddEntry={() => setIsCreateOpen(true)}
         showAddEntry={!readOnly}
       />
+      {error ? (
+        <AlertBanner
+          className="border-red-200 bg-red-50 text-red-900"
+          message={error}
+        />
+      ) : null}
       <div className="overflow-x-auto rounded-lg border border-zinc-200">
         <table
           className={`w-full table-fixed border-collapse ${
@@ -60,35 +166,31 @@ export function JournalEntryTable({
           }`}
         >
           <colgroup>
-            <col className="w-[140px]" />
+            <col className="w-[160px]" />
             <col className="w-[340px]" />
             <col className="w-[120px]" />
             <col className="w-[220px]" />
-            <col className="w-[180px]" />
+            <col className="w-[200px]" />
             {!readOnly ? <col className="w-12" /> : null}
           </colgroup>
-          <JournalEntryHeading readOnly={readOnly} />
+          <JournalEntryHeading
+            readOnly={readOnly}
+            sort={query.sort}
+            onSortChange={(sort) =>
+              replaceQuery(updateJournalQuery(query, { sort }))
+            }
+          />
           <tbody>
-            {filteredEntries.map((entry) => (
+            {visibleEntries.map((entry) => (
               <JournalEntryRow
                 key={entry.id}
                 entry={entry}
                 readOnly={readOnly}
-                onChange={(nextEntry) =>
-                  setTableEntries((current) =>
-                    current.map((item) =>
-                      item.id === nextEntry.id ? nextEntry : item,
-                    ),
-                  )
-                }
-                onDelete={() =>
-                  setTableEntries((current) =>
-                    current.filter((item) => item.id !== entry.id),
-                  )
-                }
+                onSaved={refreshEntries}
+                onDeleted={refreshEntries}
               />
             ))}
-            {filteredEntries.length === 0 ? (
+            {!isLoading && visibleEntries.length === 0 ? (
               <tr>
                 <td
                   className="px-3 py-10 text-center text-sm text-zinc-500"
@@ -98,9 +200,29 @@ export function JournalEntryTable({
                 </td>
               </tr>
             ) : null}
+            {isLoading ? (
+              <tr>
+                <td
+                  className="px-3 py-10 text-center text-sm text-zinc-500"
+                  colSpan={readOnly ? 5 : 6}
+                >
+                  Loading journal entries...
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
-        <JournalEntryPagination />
+        <JournalEntryPagination
+          page={page}
+          hasNext={hasNext}
+          onPageChange={(nextPage) =>
+            replaceQuery(
+              updateJournalQuery(query, {
+                offset: (nextPage - 1) * query.limit,
+              }),
+            )
+          }
+        />
       </div>
       {!readOnly ? (
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -113,6 +235,7 @@ export function JournalEntryTable({
             </DialogDescription>
             <JournalEntryCreate
               onClose={() => setIsCreateOpen(false)}
+              onSaved={refreshEntries}
               withinDialog
             />
           </DialogContent>
@@ -122,13 +245,68 @@ export function JournalEntryTable({
   );
 }
 
-function matchesQuery(entry: JournalEntry, query: string) {
-  const normalizedQuery = normalize(query);
+function toJournalEntry(entry: JournalEntryDetail): JournalEntry {
+  return {
+    id: entry.id,
+    category: entry.category,
+    technique: entry.name,
+    setup: entry.setup,
+    journalType: entry.journalType,
+    notes: entry.notes,
+    intensity: entry.intensity,
+    isNoGi: entry.isNoGi,
+    partner: entry.trainingPartner
+      ? toPartner({
+          id: entry.trainingPartner.id,
+          object: entry.trainingPartner.accountId
+            ? "training_partner"
+            : "custom_training_partner",
+          accountId: entry.trainingPartner.accountId ?? "",
+          firstName: entry.trainingPartner.firstName,
+          lastName: entry.trainingPartner.lastName,
+          belt: entry.trainingPartner.belt ?? "unknown",
+          weight: entry.trainingPartner.weight ?? "unknown",
+          age: entry.trainingPartner.age,
+          createdAt: 0,
+          updatedAt: 0,
+        } as TrainingPartnerDetail)
+      : undefined,
+    trainedDate: new Date(entry.trainedAt).toISOString().slice(0, 10),
+  };
+}
 
-  if (!normalizedQuery) return true;
+function toPartner(partner: TrainingPartnerDetail): Partner {
+  return {
+    id: partner.id,
+    accountId:
+      partner.object === "training_partner" ? partner.accountId : undefined,
+    firstName: partner.firstName,
+    lastName: partner.lastName,
+    belt: partner.belt,
+    weight: partner.weight,
+    age: partner.object === "custom_training_partner" ? partner.age : undefined,
+  };
+}
+
+function filterStaticEntries(entries: JournalEntry[], query: JournalQuery) {
+  return entries
+    .filter(
+      (entry) =>
+        matchesSearch(entry, query.filter.search ?? "") &&
+        matchesCategory(entry, query.filter.category ?? []) &&
+        matchesJournalType(entry, query.filter.journalTypes ?? []) &&
+        matchesGi(entry, query.filter.isNoGi),
+    )
+    .sort((left, right) => compareEntries(left, right, query))
+    .slice(query.offset, query.offset + query.limit);
+}
+
+function matchesSearch(entry: JournalEntry, search: string) {
+  const normalizedSearch = normalize(search);
+  if (!normalizedSearch) return true;
 
   const partnerName = entry.partner
-    ? `${entry.partner.firstName} ${entry.partner.lastName}`
+    ? [entry.partner.firstName, entry.partner.lastName].filter(Boolean).join(" ")
     : "";
 
   return [
@@ -138,18 +316,42 @@ function matchesQuery(entry: JournalEntry, query: string) {
     entry.journalType ?? "",
     partnerName,
     entry.trainedDate,
-  ].some((value) => normalize(value).includes(normalizedQuery));
+  ].some((value) => normalize(value).includes(normalizedSearch));
 }
 
-function matchesCategory(entry: JournalEntry, categories: Category[]) {
+function matchesCategory(entry: JournalEntry, categories: JournalEntry["category"][]) {
   return categories.length === 0 || categories.includes(entry.category);
 }
 
-function matchesJournalType(entry: JournalEntry, types: JournalType[]) {
-  if (types.length === 0) return true;
-  if (entry.journalType === undefined) return false;
+function matchesJournalType(
+  entry: JournalEntry,
+  journalTypes: NonNullable<JournalQuery["filter"]["journalTypes"]>,
+) {
+  if (journalTypes.length === 0) return true;
+  if (!entry.journalType) return false;
+  return journalTypes.includes(entry.journalType);
+}
 
-  return types.includes(entry.journalType);
+function matchesGi(entry: JournalEntry, isNoGi?: boolean) {
+  return isNoGi === undefined || Boolean(entry.isNoGi) === isNoGi;
+}
+
+function compareEntries(left: JournalEntry, right: JournalEntry, query: JournalQuery) {
+  const direction = query.sort.direction === "asc" ? 1 : -1;
+  const field = query.sort.field;
+  const leftValue = sortValue(left, field);
+  const rightValue = sortValue(right, field);
+  return leftValue.localeCompare(rightValue) * direction;
+}
+
+function sortValue(entry: JournalEntry, field: JournalQuery["sort"]["field"]) {
+  if (field === "trainedAt") return entry.trainedDate;
+  if (field === "category") return entry.category;
+  if (field === "name") return entry.technique;
+  if (field === "journalType") return entry.journalType ?? "";
+  return entry.partner
+    ? [entry.partner.firstName, entry.partner.lastName].filter(Boolean).join(" ")
+    : "";
 }
 
 function normalize(value: string) {

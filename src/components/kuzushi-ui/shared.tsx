@@ -2,45 +2,39 @@ import type { ComponentProps, ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect } from "@/components/ui/native-select";
+import type {
+  AgeClass,
+  Belt,
+  Category,
+  Intensity,
+  JournalEntryDetail,
+  JournalType,
+  TechniqueTagDetail,
+  TrainingPartnerDetail,
+  WeightClass,
+} from "@/lib/managers/types";
 
-export type Category =
-  | "submission"
-  | "sweep"
-  | "reversal"
-  | "back take"
-  | "guard pass"
-  | "tap";
-export type JournalType = "attempt" | "success";
-
-export type Belt =
-  | "unknown"
-  | "white"
-  | "blue"
-  | "purple"
-  | "brown"
-  | "black"
-  | "coral";
-export type WeightClass = "unknown" | "feather" | "light" | "middle" | "heavy";
-export type AgeClass =
-  | "unknown"
-  | "kid"
-  | "teen"
-  | "young-adult"
-  | "30s"
-  | "40s"
-  | "50s"
-  | "60s"
-  | "70s"
-  | "80s"
-  | "90s";
+export type {
+  AgeClass,
+  Belt,
+  Category,
+  Intensity,
+  JournalEntryDetail,
+  JournalType,
+  TechniqueTagDetail,
+  TrainingPartnerDetail,
+  WeightClass,
+};
 
 export type Partner = {
-  firstName: string;
-  lastName: string;
+  id?: string;
+  accountId?: string;
+  firstName?: string;
+  lastName?: string;
   bio?: string;
-  belt: Belt;
-  weight: WeightClass;
-  age: AgeClass;
+  belt?: Belt;
+  weight?: WeightClass;
+  age?: AgeClass;
   initials?: string;
 };
 
@@ -55,17 +49,27 @@ export type JournalEntry = {
   technique: string;
   setup?: string;
   journalType?: JournalType;
+  notes?: string;
+  intensity?: Intensity;
+  isNoGi?: boolean;
   partner?: Partner;
   trainedDate: string;
 };
 
 export const categoryStyles: Record<Category, string> = {
   submission: "border-rose-200 bg-rose-50 !text-rose-800",
+  takedown: "border-orange-200 bg-orange-50 !text-orange-800",
   sweep: "border-amber-200 bg-amber-50 !text-amber-800",
+  "guard-pass": "border-emerald-200 bg-emerald-50 !text-emerald-800",
   reversal: "border-sky-200 bg-sky-50 !text-sky-800",
-  "back take": "border-violet-200 bg-violet-50 !text-violet-800",
-  "guard pass": "border-emerald-200 bg-emerald-50 !text-emerald-800",
+  "back-take": "border-violet-200 bg-violet-50 !text-violet-800",
+  "leg-entry": "border-fuchsia-200 bg-fuchsia-50 !text-fuchsia-800",
+  escape: "border-cyan-200 bg-cyan-50 !text-cyan-800",
   tap: "border-zinc-300 bg-zinc-100 !text-zinc-800",
+  "off-balance": "border-lime-200 bg-lime-50 !text-lime-800",
+  position: "border-indigo-200 bg-indigo-50 !text-indigo-800",
+  "guard-retention": "border-teal-200 bg-teal-50 !text-teal-800",
+  other: "border-stone-300 bg-stone-100 !text-stone-800",
 };
 
 export const beltStyles: Record<Belt, string> = {
@@ -89,6 +93,7 @@ export const beltBorderStyles: Record<Belt, string> = {
 };
 
 export const categories = Object.keys(categoryStyles) as Category[];
+export const intensities: Intensity[] = ["playful", "casual", "intense"];
 export const belts: Belt[] = [
   "unknown",
   "white",
@@ -123,7 +128,7 @@ export const sampleTechniques: Technique[] = [
   { name: "Armbar from closed guard", category: "submission" },
   { name: "Flower sweep", category: "sweep" },
   { name: "Hip escape reset", category: "reversal" },
-  { name: "Knee cut pass", category: "guard pass" },
+  { name: "Knee cut pass", category: "guard-pass" },
 ];
 
 export const samplePartners: Partner[] = [
@@ -166,7 +171,7 @@ export const sampleEntries: JournalEntry[] = [
   },
   {
     id: "2",
-    category: "guard pass",
+    category: "guard-pass",
     technique: "Knee cut pass",
     journalType: "attempt",
     partner: samplePartners[1],
@@ -228,6 +233,7 @@ export function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 export function formatWeightClass(weight: Partner["weight"]) {
+  if (!weight) return "Unknown weight";
   return weight === "unknown" ? "Unknown weight" : weight;
 }
 
@@ -244,6 +250,7 @@ export function formatWeightClassOption(weight: WeightClass) {
 }
 
 export function formatAgeClass(age: Partner["age"]) {
+  if (!age) return "Unknown age";
   if (age === "unknown") return "Unknown age";
   if (age === "young-adult") return "young adult";
 
@@ -274,6 +281,17 @@ export function formatBelt(belt: Belt) {
 
 export function getPartnerProfileMeta(partner: Partner) {
   return `${formatWeightClass(partner.weight)} / ${formatAgeClass(partner.age)}`;
+}
+
+export function formatCategoryLabel(category: Category) {
+  return category
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export function formatIntensity(intensity: Intensity) {
+  return intensity.charAt(0).toUpperCase() + intensity.slice(1);
 }
 
 export function Field({

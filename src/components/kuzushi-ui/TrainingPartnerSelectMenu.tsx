@@ -249,7 +249,7 @@ function PartnerAvatar({
       className={cx(
         "inline-flex shrink-0 rounded-full p-0",
         compact ? "border-2" : "border-[3px]",
-        beltBorderStyles[partner.belt],
+            beltBorderStyles[partner.belt ?? "unknown"],
       )}
     >
       <Avatar initials={partner.initials} size="xs" />
@@ -283,7 +283,7 @@ function rankPartners(partners: Partner[], query: string) {
 
 function scorePartner(partner: Partner, normalizedQuery: string) {
   const fullName = getPartnerLabel(partner);
-  const initials = `${partner.firstName[0] ?? ""}${partner.lastName[0] ?? ""}`;
+  const initials = `${partner.firstName?.[0] ?? ""}${partner.lastName?.[0] ?? ""}`;
   const searchableValues = [fullName, initials];
 
   return searchableValues.reduce<number | null>((bestScore, value) => {
@@ -324,7 +324,8 @@ function scoreOrderedMatch(value: string, query: string) {
 }
 
 function getPartnerLabel(partner: Partner) {
-  return `${partner.firstName} ${partner.lastName}`;
+  const label = [partner.firstName, partner.lastName].filter(Boolean).join(" ");
+  return label || "Unknown Partner";
 }
 
 function normalize(value: string) {
