@@ -54,6 +54,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import type { AccountDetail, PublicAccountSummary } from "@/lib/managers/types";
 import { sampleEntries } from "@/components/kuzushi-ui/shared";
+import { sampleAggregate } from "@/components/kuzushi-ui/AggregateOverview";
 
 const sampleAccount: AccountDetail = {
   id: "component-library-account",
@@ -243,11 +244,20 @@ const sections = [
   {
     title: "Stats",
     items: [
-      { name: "StatsChart", element: <StatsChart /> },
+      {
+        name: "StatsChart",
+        element: <StatsChart data={sampleAggregate.series} />,
+      },
       { name: "StatsRow", element: <StatsRow /> },
       { name: "AggregateViewFilters", element: <AggregateViewFilters /> },
-      { name: "AggregateView", element: <AggregateView /> },
-      { name: "AggregateOverview", element: <AggregateOverview /> },
+      {
+        name: "AggregateView",
+        element: <AggregateView data={sampleAggregate} />,
+      },
+      {
+        name: "AggregateOverview",
+        element: <AggregateOverview data={sampleAggregate} />,
+      },
     ],
   },
 ];

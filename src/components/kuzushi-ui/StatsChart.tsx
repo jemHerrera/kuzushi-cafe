@@ -1,6 +1,7 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+
 import {
   ChartContainer,
   ChartLegend,
@@ -9,9 +10,8 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import type { AggregateStatsDetail, Category } from "@/lib/managers/types";
 import type { AggregateTypeFilter } from "./AggregateViewFilters";
-import type { TechniqueAggregate } from "./AggregateOverview";
-import type { Category } from "./shared";
 
 const categoryChartColors: Record<Category, { light: string; strong: string }> =
   {
@@ -37,7 +37,7 @@ export function StatsChart({
   isTap = false,
 }: {
   category?: Category;
-  data?: TechniqueAggregate[];
+  data?: AggregateStatsDetail["series"];
   typeFilter?: AggregateTypeFilter;
   isTap?: boolean;
 }) {
@@ -56,30 +56,27 @@ export function StatsChart({
       color: colors.strong,
     },
   } satisfies ChartConfig;
-  const minimumChartWidth = Math.max(320, data.length * 100);
+  const minimumChartWidth = Math.max(560, data.length * 56);
 
   return (
     <div className="overflow-x-auto rounded-lg border border-zinc-200">
       <ChartContainer
-        className="h-88 min-h-88 aspect-auto"
+        className="h-80 min-h-80 aspect-auto"
         config={chartConfig}
         style={{ minWidth: minimumChartWidth, width: "100%" }}
       >
         <BarChart
           accessibilityLayer
           data={data}
-          margin={{ top: 16, right: 16, bottom: 16, left: 0 }}
+          margin={{ top: 16, right: 16, bottom: 8, left: 0 }}
         >
           <CartesianGrid vertical={false} />
           <XAxis
             axisLine={false}
-            angle={-35}
-            dataKey="technique"
-            height={100}
+            dataKey="label"
             interval={0}
             tickLine={false}
-            tickMargin={12}
-            textAnchor="end"
+            tickMargin={10}
           />
           <YAxis
             allowDecimals={false}

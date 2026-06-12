@@ -148,13 +148,13 @@
   - Type: Attempts Only, Success Only, or All.
   - Tap forces and disables All because tap entries have no journal type.
 - `AggregateView`
-  - Stacked Attempt and Success bar chart by technique when Type is All.
+  - Stacked Attempt and Success timeline chart when Type is All.
   - Single-series bars for Attempts Only, Success Only, and taps.
   - Technique list with count, share percentage, and progress bar.
 - `AggregateOverview`
   - Owns category, timeline, and type filter state.
-  - Aggregates supplied journal entries by technique.
-  - Sorts techniques by total occurrences.
+  - Loads owner or privacy-scoped public aggregate API data.
+  - Supports loading, retryable error, and owner/read-only empty states.
 
 ## Pages
 

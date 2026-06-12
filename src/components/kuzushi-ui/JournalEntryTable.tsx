@@ -33,10 +33,12 @@ import {
 
 export function JournalEntryTable({
   entries,
+  onEntriesChange,
   readOnly = false,
   refreshToken = 0,
 }: {
   entries?: JournalEntry[];
+  onEntriesChange?: () => void;
   readOnly?: boolean;
   refreshToken?: number;
 }) {
@@ -117,6 +119,7 @@ export function JournalEntryTable({
 
   function refreshEntries() {
     setRefreshKey((key) => key + 1);
+    onEntriesChange?.();
   }
 
   return (

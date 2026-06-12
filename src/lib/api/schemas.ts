@@ -220,7 +220,7 @@ export const journalUpdateSchema = z
 export const aggregateQuerySchema = z
   .object({
     category: z.enum(categories).optional(),
-    timeline: z.enum(["week", "month", "year", "custom"]),
+    timeline: z.enum(["week", "month", "year", "all", "custom"]),
     startDate: dateOnlyToDate.optional(),
     endDate: dateOnlyToDate.optional(),
     journalTypes: z.array(z.enum(journalTypes)).optional(),

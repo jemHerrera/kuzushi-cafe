@@ -311,7 +311,7 @@ not part of the contract.
 - Auth middleware: yes.
 - Input query:
   - `category?: Category`
-  - `timeline: "week" | "month" | "year" | "custom"`
+  - `timeline: "week" | "month" | "year" | "all" | "custom"`
   - `startDate?: string` ISO date
   - `endDate?: string` ISO date
   - `journalTypes?: JournalType[]`
@@ -319,7 +319,7 @@ not part of the contract.
   - `category?: Category`
   - `attempts: number`
   - `successes: number`
-  - `series: { label: string; attempts: number; successes: number }[]`
+  - `series: { label: string; attempts: number; successes: number; occurrences: number }[]`
   - `stats: { label: string; count: number; percentage: number }[]`
 - Manager methods: `IAggregateManager.getAggregateStats({ accountId: session.account.id, category, timeline, startDate, endDate, journalTypes })`.
 

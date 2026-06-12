@@ -19,6 +19,7 @@ import type {
   TrainingPartnerRelationshipStatus,
 } from "@/lib/managers/types";
 import { AlertBanner } from "./AlertBanner";
+import { AggregateOverview } from "./AggregateOverview";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
@@ -212,6 +213,17 @@ export function PublicProfile({
               )
             }
           />
+          <section className="grid gap-3 border-t border-zinc-200 pt-5">
+            <div>
+              <h3 className="text-lg font-bold text-zinc-950">
+                Training activity
+              </h3>
+              <p className="text-sm text-zinc-500">
+                Aggregate statistics visible to you.
+              </p>
+            </div>
+            <AggregateOverview accountId={accountId} />
+          </section>
         </section>
       ) : null}
       <AlertDialog

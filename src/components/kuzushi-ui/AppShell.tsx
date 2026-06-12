@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import type { AccountDetail } from "@/lib/managers/types";
 import type { PublicAccountSummary } from "@/lib/managers/types";
+import { AggregateOverview } from "./AggregateOverview";
 import { DonationModal } from "./DonationModal";
 import { Header } from "./Header";
 import { JournalEntryTable } from "./JournalEntryTable";
@@ -89,7 +90,16 @@ export function AppShell({ account }: { account: AccountDetail }) {
                 Welcome back, {currentAccount.firstName}
               </h2>
             </div>
-            <JournalEntryTable refreshToken={journalRefreshToken} />
+            <JournalEntryTable
+              onEntriesChange={() =>
+                setJournalRefreshToken((token) => token + 1)
+              }
+              refreshToken={journalRefreshToken}
+            />
+            <AggregateOverview
+              onAddEntry={() => setActiveModal("new-entry")}
+              refreshToken={journalRefreshToken}
+            />
           </section>
         </div>
       </div>

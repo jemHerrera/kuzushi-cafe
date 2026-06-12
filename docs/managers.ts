@@ -421,7 +421,7 @@ export interface IJournalEntryManager {
   }) => Promise<TechniqueTagDetail>;
 }
 
-export type AggregateTimeline = "week" | "month" | "year" | "custom";
+export type AggregateTimeline = "week" | "month" | "year" | "all" | "custom";
 
 export type AggregateStatsDetail = {
   object: "aggregate_stats";
@@ -437,6 +437,7 @@ export type AggregateStatsDetail = {
     label: string;
     attempts: number;
     successes: number;
+    occurrences: number;
   }[];
   stats: {
     label: string;

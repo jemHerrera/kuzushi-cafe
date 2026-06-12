@@ -39,14 +39,22 @@ export class AggregateManager {
     endDate?: Date;
     journalTypes?: JournalType[];
   }): Promise<AggregateStatsDetail> {
-    const interval = timelineInterval(params);
     const journalTypes = params.journalTypes ?? ["attempt", "success"];
+    const today = endOfDay(new Date());
+    const interval =
+      params.timeline === "all" ? undefined : timelineInterval(params);
     const entries = await this.loadEntries({
       accountId: params.accountId,
       category: params.category,
-      start: interval.start,
-      end: interval.end,
+      start: interval?.start,
+      end: interval?.end ?? today,
     });
+    const effectiveInterval =
+      interval ??
+      allTimeInterval(
+        entries.map((entry) => new Date(entry.trained_date)),
+        today,
+      );
     const filtered = filterByJournalType(
       entries,
       journalTypes,
@@ -68,15 +76,15 @@ export class AggregateManager {
       accountId: params.accountId,
       category: params.category,
       timeline: params.timeline,
-      startAt: interval.start.getTime(),
-      endAt: interval.end.getTime(),
+      startAt: effectiveInterval.start.getTime(),
+      endAt: effectiveInterval.end.getTime(),
       journalTypes,
       attempts,
       successes,
       series: createSeries(
         filtered,
-        interval.start,
-        interval.end,
+        effectiveInterval.start,
+        effectiveInterval.end,
         params.timeline,
       ),
       stats: [...counts.entries()]
@@ -101,17 +109,22 @@ export class AggregateManager {
     endDate?: Date;
     journalTypes?: JournalType[];
   }) {
-    const interval = timelineInterval(params);
     const journalTypes = params.journalTypes ?? ["attempt", "success"];
-    const entries = filterByJournalType(
-      await this.loadEntries({
-        accountId: params.accountId,
-        start: interval.start,
-        end: interval.end,
-      }),
-      journalTypes,
-      true,
-    );
+    const today = endOfDay(new Date());
+    const interval =
+      params.timeline === "all" ? undefined : timelineInterval(params);
+    const loadedEntries = await this.loadEntries({
+      accountId: params.accountId,
+      start: interval?.start,
+      end: interval?.end ?? today,
+    });
+    const entries = filterByJournalType(loadedEntries, journalTypes, true);
+    const effectiveInterval =
+      interval ??
+      allTimeInterval(
+        loadedEntries.map((entry) => new Date(entry.trained_date)),
+        today,
+      );
     const counts = new Map<Category, { attempts: number; successes: number }>();
 
     for (const entry of entries) {
@@ -128,8 +141,8 @@ export class AggregateManager {
       object: "category_breakdown" as const,
       accountId: params.accountId,
       timeline: params.timeline,
-      startAt: interval.start.getTime(),
-      endAt: interval.end.getTime(),
+      startAt: effectiveInterval.start.getTime(),
+      endAt: effectiveInterval.end.getTime(),
       journalTypes,
       items: [...counts.entries()]
         .map(([category, values]) => {
@@ -152,23 +165,39 @@ export class AggregateManager {
   private async loadEntries(params: {
     accountId: string;
     category?: Category;
-    start: Date;
-    end: Date;
+    start?: Date;
+    end?: Date;
   }) {
-    let query = this.supabase
-      .from("journal_entries")
-      .select("*")
-      .eq("account_id", params.accountId)
-      .gte("trained_date", params.start.toISOString())
-      .lte("trained_date", params.end.toISOString())
-      .order("trained_date", { ascending: true })
-      .limit(1000);
-    if (params.category) query = query.eq("category", params.category);
-    const { data, error } = await query;
-    if (error) {
-      throw new ManagerError("aggregate_query_failed", error.message, 500);
+    const pageSize = 1000;
+    const entries: JournalRow[] = [];
+
+    for (let offset = 0; ; offset += pageSize) {
+      let query = this.supabase
+        .from("journal_entries")
+        .select("*")
+        .eq("account_id", params.accountId)
+        .order("trained_date", { ascending: true })
+        .order("id", { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (params.start) {
+        query = query.gte("trained_date", params.start.toISOString());
+      }
+      if (params.end) {
+        query = query.lte("trained_date", params.end.toISOString());
+      }
+      if (params.category) query = query.eq("category", params.category);
+
+      const { data, error } = await query;
+      if (error) {
+        throw new ManagerError("aggregate_query_failed", error.message, 500);
+      }
+
+      const page = data ?? [];
+      entries.push(...page);
+      if (page.length < pageSize) break;
     }
-    return data ?? [];
+
+    return entries;
   }
 }
 
@@ -213,6 +242,14 @@ function timelineInterval(params: {
   return { start, end };
 }
 
+function allTimeInterval(dates: Date[], end: Date) {
+  const first = dates[0];
+  return {
+    start: first ? startOfDay(first) : startOfDay(end),
+    end,
+  };
+}
+
 function filterByJournalType(
   entries: JournalRow[],
   journalTypes: JournalType[],
@@ -233,6 +270,7 @@ function createSeries(
   timeline: AggregateTimeline,
 ) {
   const useMonths =
+    timeline === "all" ||
     timeline === "year" ||
     (timeline === "custom" &&
       (end.getTime() - start.getTime()) / 86_400_000 > 45);
@@ -247,11 +285,15 @@ function createSeries(
         : isSameDay(new Date(entry.trained_date), bucket),
     );
     return {
-      label: format(bucket, useMonths ? "MMM" : "MMM d"),
+      label: format(
+        bucket,
+        timeline === "all" ? "MMM yyyy" : useMonths ? "MMM" : "MMM d",
+      ),
       attempts: matching.filter((entry) => entry.journal_type === "attempt")
         .length,
       successes: matching.filter((entry) => entry.journal_type === "success")
         .length,
+      occurrences: matching.length,
     };
   });
 }
