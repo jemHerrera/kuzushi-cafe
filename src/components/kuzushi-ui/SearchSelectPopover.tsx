@@ -50,7 +50,7 @@ export function SearchSelectPopover({
   const searchRef = useRef<HTMLInputElement>(null);
 
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
+    <Popover open={open} onOpenChange={onOpenChange} modal>
       <PopoverAnchor asChild>{trigger}</PopoverAnchor>
       <PopoverContent
         align="start"
@@ -84,7 +84,10 @@ export function SearchSelectPopover({
         <div
           id={listboxId}
           role="listbox"
-          className={cn("grid max-h-72 overflow-y-auto p-1", listboxClassName)}
+          className={cn(
+            "grid min-h-0 max-h-72 touch-pan-y overflow-y-auto overscroll-contain p-1",
+            listboxClassName,
+          )}
         >
           {children}
         </div>

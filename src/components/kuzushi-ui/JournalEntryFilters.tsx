@@ -22,11 +22,9 @@ type JournalEntryFiltersProps = {
   query?: string;
   selectedCategories?: Category[];
   selectedTypes?: JournalType[];
-  isNoGi?: boolean;
   onQueryChange?: (query: string) => void;
   onCategoriesChange?: (categories: Category[]) => void;
   onTypesChange?: (types: JournalType[]) => void;
-  onIsNoGiChange?: (value: boolean | undefined) => void;
   onAddEntry?: () => void;
   showAddEntry?: boolean;
 };
@@ -43,22 +41,18 @@ export function JournalEntryFilters({
   query,
   selectedCategories,
   selectedTypes,
-  isNoGi,
   onQueryChange,
   onCategoriesChange,
   onTypesChange,
-  onIsNoGiChange,
   onAddEntry,
   showAddEntry = true,
 }: JournalEntryFiltersProps = {}) {
   const [internalQuery, setInternalQuery] = useState("");
   const [internalCategories, setInternalCategories] = useState<Category[]>([]);
   const [internalTypes, setInternalTypes] = useState<JournalType[]>([]);
-  const [internalIsNoGi, setInternalIsNoGi] = useState<boolean | undefined>();
   const currentQuery = query ?? internalQuery;
   const currentCategories = selectedCategories ?? internalCategories;
   const currentTypes = selectedTypes ?? internalTypes;
-  const currentIsNoGi = isNoGi ?? internalIsNoGi;
 
   function changeQuery(nextQuery: string) {
     if (query === undefined) setInternalQuery(nextQuery);
@@ -79,41 +73,37 @@ export function JournalEntryFilters({
     onTypesChange?.(nextTypes);
   }
 
-  function changeIsNoGi(nextValue: boolean | undefined) {
-    setInternalIsNoGi(nextValue);
-    onIsNoGiChange?.(nextValue);
-  }
-
   return (
-    <div
-      className={`grid gap-2 rounded-lg border border-zinc-200 bg-white p-2 ${
-        showAddEntry
-          ? "lg:grid-cols-[minmax(16rem,1fr)_auto_auto_auto_auto]"
-          : "lg:grid-cols-[minmax(16rem,1fr)_auto_auto_auto]"
-      }`}
-    >
-      <JournalEntrySearch value={currentQuery} onValueChange={changeQuery} />
-      <CheckboxFilterPill
-        label="Category"
-        options={categories.map((category) => ({
-          value: category,
-          label: formatCategoryLabel(category),
-        }))}
-        selected={currentCategories}
-        onSelectedChange={changeCategories}
-      />
-      <CheckboxFilterPill
-        label="Type"
-        options={typeOptions}
-        selected={currentTypes}
-        onSelectedChange={changeTypes}
-      />
-      <GiFilterPill value={currentIsNoGi} onValueChange={changeIsNoGi} />
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="order-3 min-w-40 flex-1 md:order-1">
+        <JournalEntrySearch value={currentQuery} onValueChange={changeQuery} />
+      </div>
+      <div className="order-2">
+        <CheckboxFilterPill
+          label="Category"
+          options={categories.map((category) => ({
+            value: category,
+            label: formatCategoryLabel(category),
+          }))}
+          selected={currentCategories}
+          onSelectedChange={changeCategories}
+        />
+      </div>
+      <div className="order-2 md:order-3">
+        <CheckboxFilterPill
+          label="Type"
+          options={typeOptions}
+          selected={currentTypes}
+          onSelectedChange={changeTypes}
+        />
+      </div>
       {showAddEntry ? (
-        <ButtonPrimary onClick={onAddEntry} type="button">
-          <Plus className="size-4" />
-          Add entry
-        </ButtonPrimary>
+        <div className="order-1 flex w-full justify-end md:order-4 md:w-auto">
+          <ButtonPrimary onClick={onAddEntry} type="button">
+            <Plus className="size-4" />
+            Add entry
+          </ButtonPrimary>
+        </div>
       ) : null}
     </div>
   );
@@ -195,32 +185,5 @@ function CheckboxFilterPill<T extends string>({
         </div>
       </PopoverContent>
     </Popover>
-  );
-}
-
-function GiFilterPill({
-  value,
-  onValueChange,
-}: {
-  value?: boolean;
-  onValueChange: (value: boolean | undefined) => void;
-}) {
-  const selected = value === undefined ? [] : [String(value)];
-
-  return (
-    <CheckboxFilterPill
-      label="Gi"
-      options={[
-        { value: "false", label: "Gi" },
-        { value: "true", label: "No-gi" },
-      ]}
-      selected={selected}
-      onSelectedChange={(nextSelected) => {
-        const nextValue = nextSelected.at(-1);
-        onValueChange(
-          nextValue === undefined ? undefined : nextValue === "true",
-        );
-      }}
-    />
   );
 }

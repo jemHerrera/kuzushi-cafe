@@ -74,13 +74,13 @@ export function AppShell({ account }: { account: AccountDetail }) {
           account={currentAccount}
           className="fixed inset-y-0 left-0 hidden lg:flex"
           onAction={openModal}
-          onSelectProfile={openPublicProfile}
         />
         <div className="min-w-0 lg:col-start-2">
           <div className="sticky top-0 z-30">
             <Header
               onMenuOpen={() => setIsNavigationOpen(true)}
               onNotificationsOpen={() => setIsNotificationsOpen(true)}
+              onSelectProfile={openPublicProfile}
             />
           </div>
           <section className="mx-auto grid w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
@@ -108,7 +108,6 @@ export function AppShell({ account }: { account: AccountDetail }) {
             account={currentAccount}
             className="max-w-none border-r-0"
             onAction={openModal}
-            onSelectProfile={openPublicProfile}
           />
         </SheetContent>
       </Sheet>

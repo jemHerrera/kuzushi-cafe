@@ -49,13 +49,15 @@ export function JournalEntryTable({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const isStatic = entries !== undefined || readOnly;
-  const query = useMemo(
-    () =>
-      parseJournalQuery(
-        `http://kuzushi.local${pathname}?${searchParams.toString()}`,
-      ),
-    [pathname, searchParams],
-  );
+  const query = useMemo(() => {
+    const parsed = parseJournalQuery(
+      `http://kuzushi.local${pathname}?${searchParams.toString()}`,
+    );
+    return {
+      ...parsed,
+      filter: { ...parsed.filter, isNoGi: undefined },
+    };
+  }, [pathname, searchParams]);
 
   useEffect(() => {
     if (isStatic) return;
@@ -123,7 +125,6 @@ export function JournalEntryTable({
         query={query.filter.search ?? ""}
         selectedCategories={query.filter.category ?? []}
         selectedTypes={query.filter.journalTypes ?? []}
-        isNoGi={query.filter.isNoGi}
         onQueryChange={(search) =>
           replaceQuery(
             updateJournalQuery(query, {
@@ -147,9 +148,6 @@ export function JournalEntryTable({
             }),
           )
         }
-        onIsNoGiChange={(isNoGi) =>
-          replaceQuery(updateJournalQuery(query, { filter: { isNoGi } }))
-        }
         onAddEntry={() => setIsCreateOpen(true)}
         showAddEntry={!readOnly}
       />
@@ -159,19 +157,19 @@ export function JournalEntryTable({
           message={error}
         />
       ) : null}
-      <div className="overflow-x-auto rounded-lg border border-zinc-200">
+      <div className="overflow-x-auto rounded-lg border-x border-b md:border border-zinc-200">
         <table
-          className={`w-full table-fixed border-collapse ${
-            readOnly ? "min-w-[1000px]" : "min-w-[1048px]"
+          className={`w-full border-collapse md:table-fixed ${
+            readOnly ? "md:min-w-[736px]" : "md:min-w-[776px]"
           }`}
         >
-          <colgroup>
-            <col className="w-[160px]" />
-            <col className="w-[340px]" />
-            <col className="w-[120px]" />
+          <colgroup className="max-md:hidden">
+            <col className="w-[124px]" />
             <col className="w-[220px]" />
-            <col className="w-[200px]" />
-            {!readOnly ? <col className="w-12" /> : null}
+            <col className="w-[88px]" />
+            <col className="w-[160px]" />
+            <col className="w-[144px]" />
+            {!readOnly ? <col className="w-10" /> : null}
           </colgroup>
           <JournalEntryHeading
             readOnly={readOnly}
@@ -294,8 +292,7 @@ function filterStaticEntries(entries: JournalEntry[], query: JournalQuery) {
       (entry) =>
         matchesSearch(entry, query.filter.search ?? "") &&
         matchesCategory(entry, query.filter.category ?? []) &&
-        matchesJournalType(entry, query.filter.journalTypes ?? []) &&
-        matchesGi(entry, query.filter.isNoGi),
+        matchesJournalType(entry, query.filter.journalTypes ?? []),
     )
     .sort((left, right) => compareEntries(left, right, query))
     .slice(query.offset, query.offset + query.limit);
@@ -306,7 +303,9 @@ function matchesSearch(entry: JournalEntry, search: string) {
   if (!normalizedSearch) return true;
 
   const partnerName = entry.partner
-    ? [entry.partner.firstName, entry.partner.lastName].filter(Boolean).join(" ")
+    ? [entry.partner.firstName, entry.partner.lastName]
+        .filter(Boolean)
+        .join(" ")
     : "";
 
   return [
@@ -319,7 +318,10 @@ function matchesSearch(entry: JournalEntry, search: string) {
   ].some((value) => normalize(value).includes(normalizedSearch));
 }
 
-function matchesCategory(entry: JournalEntry, categories: JournalEntry["category"][]) {
+function matchesCategory(
+  entry: JournalEntry,
+  categories: JournalEntry["category"][],
+) {
   return categories.length === 0 || categories.includes(entry.category);
 }
 
@@ -332,11 +334,11 @@ function matchesJournalType(
   return journalTypes.includes(entry.journalType);
 }
 
-function matchesGi(entry: JournalEntry, isNoGi?: boolean) {
-  return isNoGi === undefined || Boolean(entry.isNoGi) === isNoGi;
-}
-
-function compareEntries(left: JournalEntry, right: JournalEntry, query: JournalQuery) {
+function compareEntries(
+  left: JournalEntry,
+  right: JournalEntry,
+  query: JournalQuery,
+) {
   const direction = query.sort.direction === "asc" ? 1 : -1;
   const field = query.sort.field;
   const leftValue = sortValue(left, field);
@@ -350,7 +352,9 @@ function sortValue(entry: JournalEntry, field: JournalQuery["sort"]["field"]) {
   if (field === "name") return entry.technique;
   if (field === "journalType") return entry.journalType ?? "";
   return entry.partner
-    ? [entry.partner.firstName, entry.partner.lastName].filter(Boolean).join(" ")
+    ? [entry.partner.firstName, entry.partner.lastName]
+        .filter(Boolean)
+        .join(" ")
     : "";
 }
 

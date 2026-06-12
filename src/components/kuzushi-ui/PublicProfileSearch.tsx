@@ -14,7 +14,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import type {
@@ -86,22 +85,20 @@ export function PublicProfileSearch({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <button
         type="button"
-        className="flex h-11 w-full items-center gap-3 rounded-md border border-input bg-white px-3 text-left text-sm text-zinc-500 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="flex h-11 w-full gap-3 items-center rounded-md border border-input bg-white px-3 text-left text-sm text-zinc-500 transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         onClick={() => setIsOpen(true)}
       >
         <SearchIcon className="size-4 shrink-0 text-zinc-400" />
         <span className="min-w-0 flex-1 truncate">Search public profiles</span>
       </button>
       <DialogContent
-        className="overflow-hidden p-0 sm:max-w-2xl"
+        className="gap-0 overflow-hidden p-0 sm:max-w-2xl"
         showCloseButton={false}
       >
-        <DialogHeader>
-          <DialogTitle className="sr-only">Search public profiles</DialogTitle>
-          <DialogDescription className="sr-only">
-            Find training partners.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogTitle className="sr-only">Search public profiles</DialogTitle>
+        <DialogDescription className="sr-only">
+          Find training partners.
+        </DialogDescription>
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search training partners"

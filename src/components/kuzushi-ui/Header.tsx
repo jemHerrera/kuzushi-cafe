@@ -1,21 +1,25 @@
 import { Bell, Menu } from "lucide-react";
+import type { PublicAccountSummary } from "@/lib/managers/types";
 import { AlertBanner } from "./AlertBanner";
 import { BrandWordmark } from "./BrandWordmark";
 import { IconButton } from "./IconButton";
+import { PublicProfileSearch } from "./PublicProfileSearch";
 
 export function Header({
   alertMessage,
   onMenuOpen,
   onNotificationsOpen,
+  onSelectProfile,
 }: {
   alertMessage?: string;
   onMenuOpen?: () => void;
   onNotificationsOpen?: () => void;
+  onSelectProfile?: (profile: PublicAccountSummary) => void;
 }) {
   return (
     <header className="grid gap-3 border-b border-zinc-200 bg-white/90 p-4 backdrop-blur">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <IconButton
             className="lg:hidden"
             label="Open navigation"
@@ -25,6 +29,9 @@ export function Header({
           <span className="lg:hidden">
             <BrandWordmark href="/app" />
           </span>
+          <div className="w-11 shrink-0 sm:w-64">
+            <PublicProfileSearch onSelectProfile={onSelectProfile} />
+          </div>
           {alertMessage ? (
             <AlertBanner
               className="hidden grow sm:block"

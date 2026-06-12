@@ -51,6 +51,7 @@ import {
 } from "@/components/kuzushi-ui";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 import type { AccountDetail, PublicAccountSummary } from "@/lib/managers/types";
 import { sampleEntries } from "@/components/kuzushi-ui/shared";
 
@@ -197,7 +198,11 @@ const sections = [
       { name: "JournalEntryPagination", element: <JournalEntryPagination /> },
       {
         name: "JournalEntryTable",
-        element: <JournalEntryTable entries={sampleEntries} />,
+        element: (
+          <Suspense>
+            <JournalEntryTable entries={sampleEntries} />
+          </Suspense>
+        ),
       },
     ],
   },

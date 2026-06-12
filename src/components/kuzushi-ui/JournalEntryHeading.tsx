@@ -24,10 +24,10 @@ export function JournalEntryHeading({
   onSortChange?: (sort: JournalEntrySort) => void;
 } = {}) {
   return (
-    <thead className="bg-zinc-100 text-left text-xs uppercase text-zinc-600">
+    <thead className="bg-zinc-100 text-left text-xs uppercase text-zinc-600 max-md:hidden">
       <tr>
         {headings.map((heading) => (
-          <th key={heading.field} className="whitespace-nowrap px-3 py-2">
+          <th key={heading.field} className="whitespace-nowrap px-2 py-2">
             <SortButton
               heading={heading}
               sort={sort}
@@ -36,7 +36,7 @@ export function JournalEntryHeading({
           </th>
         ))}
         {!readOnly ? (
-          <th className="w-12 px-2 py-3">
+          <th className="w-10 px-1 py-3">
             <span className="sr-only">Entry actions</span>
           </th>
         ) : null}
@@ -56,7 +56,12 @@ function SortButton({
 }) {
   const isActive = sort?.field === heading.field;
   const direction = isActive ? sort.direction : undefined;
-  const Icon = direction === "asc" ? ArrowUp : direction === "desc" ? ArrowDown : ChevronsUpDown;
+  const Icon =
+    direction === "asc"
+      ? ArrowUp
+      : direction === "desc"
+        ? ArrowDown
+        : ChevronsUpDown;
 
   return (
     <Button

@@ -69,7 +69,6 @@ export function JournalEntryForm({
 }) {
   const notesId = useId();
   const intensityId = useId();
-  const giId = useId();
   const [category, setCategory] = useState<Category>(
     entry?.category ?? "submission",
   );
@@ -79,7 +78,6 @@ export function JournalEntryForm({
   const [intensity, setIntensity] = useState<Intensity | "">(
     entry?.intensity ?? "",
   );
-  const [isNoGi, setIsNoGi] = useState(entry?.isNoGi ?? false);
   const [journalType, setJournalType] = useState<JournalType>(
     entry?.journalType ?? "attempt",
   );
@@ -91,6 +89,7 @@ export function JournalEntryForm({
   );
   const [isPartnerTouched, setIsPartnerTouched] = useState(false);
   const [techniques, setTechniques] = useState<Technique[]>([]);
+  const [setups, setSetups] = useState<Technique[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [createNameTag, setCreateNameTag] = useState(false);
   const [createSetupTag, setCreateSetupTag] = useState(false);
@@ -111,18 +110,10 @@ export function JournalEntryForm({
     let isCurrent = true;
 
     async function loadTechniques() {
-      const params = new URLSearchParams({
-        category,
-        limit: "100",
-      });
-      const response = await fetch(`/api/technique-tags?${params}`);
-      if (!response.ok) return;
-
-      const data =
-        (await response.json()) as PaginatedResponse<TechniqueTagDetail>;
+      const tags = await loadTechniqueTags(category);
       if (!isCurrent) return;
       setTechniques(
-        data.items.map((tag) => ({ name: tag.label, category: tag.category })),
+        tags.map((tag) => ({ name: tag.label, category: tag.category })),
       );
     }
 
@@ -131,6 +122,23 @@ export function JournalEntryForm({
       isCurrent = false;
     };
   }, [category]);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadSetups() {
+      const tags = await loadTechniqueTags();
+      if (!isCurrent) return;
+      setSetups(
+        tags.map((tag) => ({ name: tag.label, category: tag.category })),
+      );
+    }
+
+    loadSetups();
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isCurrent = true;
@@ -158,9 +166,7 @@ export function JournalEntryForm({
   function selectCategory(nextCategory: Category) {
     setCategory(nextCategory);
     setCreateNameTag(false);
-    setCreateSetupTag(false);
     setTechniqueName("");
-    setSetupName("");
     if (nextCategory === "tap") {
       setJournalType("attempt");
     }
@@ -176,9 +182,12 @@ export function JournalEntryForm({
       setup: setupName,
       notes: notes || undefined,
       intensity: intensity || undefined,
-      isNoGi,
       trainedDate: format(trainedDate, "yyyy-MM-dd"),
-      ...(category === "tap" ? { journalType: null } : { journalType }),
+      ...(category === "tap"
+        ? mode === "update"
+          ? { journalType: null }
+          : {}
+        : { journalType }),
     };
 
     if (mode === "create") {
@@ -188,7 +197,7 @@ export function JournalEntryForm({
 
     if (selectedPartner?.id && selectedPartner.accountId) {
       body.trainingPartnerId = selectedPartner.id;
-    } else if (mode === "create" || isPartnerTouched) {
+    } else if (mode === "update" && isPartnerTouched) {
       body.trainingPartnerId = null;
     }
 
@@ -259,7 +268,12 @@ export function JournalEntryForm({
       className="p-3 sm:p-5"
     >
       <form className="grid gap-4" onSubmit={submitEntry}>
-        {error ? <AlertBanner className="border-red-200 bg-red-50 text-red-900" message={error} /> : null}
+        {error ? (
+          <AlertBanner
+            className="border-red-200 bg-red-50 text-red-900"
+            message={error}
+          />
+        ) : null}
         <PropertyField icon={Shapes} label="Category">
           <TechniqueCategoryPillSelect
             value={category}
@@ -293,7 +307,7 @@ export function JournalEntryForm({
           <TechniqueTagSelectMenu
             ariaLabel="Setup"
             category={category}
-            techniques={techniques}
+            techniques={setups}
             value={selectedSetup}
             placeholder="Find or add setup"
             variant="property"
@@ -337,18 +351,6 @@ export function JournalEntryForm({
                 {formatIntensity(item)}
               </option>
             ))}
-          </SelectInput>
-        </PropertyField>
-        <PropertyField icon={Shapes} label="Gi / No-gi" htmlFor={giId}>
-          <SelectInput
-            id={giId}
-            value={String(isNoGi)}
-            onChange={(event) => setIsNoGi(event.target.value === "true")}
-            disabled={isSubmitting || isDeleting}
-            variant="property"
-          >
-            <option value="false">Gi</option>
-            <option value="true">No-gi</option>
           </SelectInput>
         </PropertyField>
         <PropertyField icon={CalendarDays} label="Trained date">
@@ -416,12 +418,13 @@ export function JournalEntryForm({
                   type="button"
                 >
                   <Trash2 className="size-4" />
-                  {isDeleting ? "Deleting..." : "Delete entry"}
                 </ButtonSecondary>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete this journal entry?</AlertDialogTitle>
+                  <AlertDialogTitle>
+                    Delete this journal entry?
+                  </AlertDialogTitle>
                   <AlertDialogDescription>
                     This journal entry will be permanently removed. This action
                     cannot be undone.
@@ -474,4 +477,25 @@ function toPartner(partner: TrainingPartnerDetail): Partner {
     weight: partner.weight,
     age: partner.object === "custom_training_partner" ? partner.age : undefined,
   };
+}
+
+async function loadTechniqueTags(category?: Category) {
+  const pageSize = 100;
+  const tags: TechniqueTagDetail[] = [];
+
+  for (let offset = 0; ; offset += pageSize) {
+    const params = new URLSearchParams({
+      limit: String(pageSize),
+      offset: String(offset),
+    });
+    if (category) params.set("category", category);
+
+    const response = await fetch(`/api/technique-tags?${params}`);
+    if (!response.ok) return tags;
+
+    const data =
+      (await response.json()) as PaginatedResponse<TechniqueTagDetail>;
+    tags.push(...data.items);
+    if (data.items.length < pageSize) return tags;
+  }
 }

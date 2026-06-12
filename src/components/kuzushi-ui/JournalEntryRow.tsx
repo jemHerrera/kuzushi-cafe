@@ -1,7 +1,7 @@
 "use client";
 
 import { format, parseISO } from "date-fns";
-import { Ellipsis, Pencil, Trash2 } from "lucide-react";
+import { Ellipsis, Pencil, Trash2, UserRound } from "lucide-react";
 import { useState } from "react";
 import {
   AlertDialog,
@@ -83,22 +83,58 @@ export function JournalEntryRow({
 
   return (
     <>
-      <tr className="border-t border-zinc-200 bg-white">
-        <td className="overflow-hidden whitespace-nowrap px-3 py-3">
+      <tr className="border-t border-zinc-200 bg-white md:hidden">
+        <td colSpan={readOnly ? 5 : 6} className="p-0">
+          <button
+            type="button"
+            className="grid min-h-16 w-full items-center gap-2 px-3 py-3 text-left transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring disabled:cursor-default"
+            style={{
+              gridTemplateColumns: "2fr 5fr 2fr 1fr",
+            }}
+            disabled={readOnly}
+            onClick={() => setIsEditOpen(true)}
+          >
+            <span className="min-w-0 justify-self-start">
+              <TechniqueCategoryPill category={entry.category} />
+            </span>
+            <span className="min-w-0 text-center">
+              <span className="block truncate text-sm font-medium text-zinc-950">
+                {entry.technique}
+              </span>
+              {entry.setup ? (
+                <span className="block truncate text-xs text-zinc-500">
+                  from {entry.setup}
+                </span>
+              ) : null}
+            </span>
+            <span className="justify-self-center self-center">
+              {entry.journalType ? (
+                <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold capitalize text-zinc-700">
+                  {entry.journalType}
+                </span>
+              ) : (
+                <span className="text-xs text-zinc-400">—</span>
+              )}
+            </span>
+            <span className="justify-self-end">
+              <MobilePartnerAvatar partner={entry.partner} />
+            </span>
+          </button>
+        </td>
+      </tr>
+      <tr className="border-t border-zinc-200 bg-white max-md:hidden">
+        <td className="overflow-hidden whitespace-nowrap px-2 py-3">
           <TechniqueCategoryPill category={entry.category} />
         </td>
-        <td className="overflow-hidden px-3 py-3">
+        <td className="overflow-hidden px-2 py-3">
           <p className="truncate text-sm font-medium text-zinc-950">
             {entry.technique}
           </p>
           {entry.setup ? (
             <p className="truncate text-xs text-zinc-500">from {entry.setup}</p>
           ) : null}
-          {entry.notes ? (
-            <p className="truncate text-xs text-zinc-400">{entry.notes}</p>
-          ) : null}
         </td>
-        <td className="overflow-hidden whitespace-nowrap px-3 py-3">
+        <td className="overflow-hidden whitespace-nowrap px-2 py-3">
           {entry.journalType ? (
             <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold capitalize text-zinc-700">
               {entry.journalType}
@@ -107,22 +143,23 @@ export function JournalEntryRow({
             <span className="text-xs text-zinc-500">Not collected</span>
           )}
         </td>
-        <td className="overflow-hidden whitespace-nowrap px-3 py-3">
+        <td className="overflow-hidden whitespace-nowrap px-2 py-3">
           <PartnerCell partner={entry.partner} />
         </td>
-        <td className="overflow-hidden whitespace-nowrap px-3 py-3">
+        <td className="overflow-hidden whitespace-nowrap px-2 py-3">
           <div className="grid gap-0.5">
             <span className="text-sm font-medium text-zinc-900">
               {format(parseISO(entry.trainedDate), "MMMM dd, yyyy")}
             </span>
-            <span className="text-xs text-zinc-500">
-              {entry.isNoGi ? "No-gi" : "Gi"}
-              {entry.intensity ? ` / ${formatIntensity(entry.intensity)}` : ""}
-            </span>
+            {entry.intensity ? (
+              <span className="text-xs text-zinc-500">
+                {formatIntensity(entry.intensity)}
+              </span>
+            ) : null}
           </div>
         </td>
         {!readOnly ? (
-          <td className="w-12 whitespace-nowrap px-2 py-2 text-right">
+          <td className="w-10 whitespace-nowrap px-1 py-2 text-right">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -228,6 +265,34 @@ function PartnerCell({ partner }: { partner?: Partner }) {
       <span className="truncate text-sm font-medium text-zinc-900">
         {label || "Unknown Partner"}
       </span>
+    </span>
+  );
+}
+
+function MobilePartnerAvatar({ partner }: { partner?: Partner }) {
+  if (!partner) {
+    return (
+      <span
+        aria-label="No training partner"
+        className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-zinc-200 text-zinc-500"
+      >
+        <UserRound className="size-4" />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      aria-label={
+        [partner.firstName, partner.lastName].filter(Boolean).join(" ") ||
+        "Training partner"
+      }
+      className={cx(
+        "inline-flex shrink-0 rounded-full border-2",
+        beltBorderStyles[partner.belt ?? "unknown"],
+      )}
+    >
+      <Avatar initials={partner.initials} size="xs" />
     </span>
   );
 }

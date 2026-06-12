@@ -249,7 +249,7 @@ function PartnerAvatar({
       className={cx(
         "inline-flex shrink-0 rounded-full p-0",
         compact ? "border-2" : "border-[3px]",
-            beltBorderStyles[partner.belt ?? "unknown"],
+        beltBorderStyles[partner.belt ?? "unknown"],
       )}
     >
       <Avatar initials={partner.initials} size="xs" />

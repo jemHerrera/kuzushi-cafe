@@ -42,7 +42,9 @@ export function JournalEntryPagination({
           <PaginationItem>
             <PaginationPrevious
               aria-disabled={!hasPrevious}
-              className={!hasPrevious ? "pointer-events-none opacity-50" : undefined}
+              className={
+                !hasPrevious ? "pointer-events-none opacity-50" : undefined
+              }
               href="#"
               onClick={(event) => changePage(event, currentPage - 1)}
             />
@@ -50,7 +52,9 @@ export function JournalEntryPagination({
           <PaginationItem>
             <PaginationNext
               aria-disabled={!hasNext}
-              className={!hasNext ? "pointer-events-none opacity-50" : undefined}
+              className={
+                !hasNext ? "pointer-events-none opacity-50" : undefined
+              }
               href="#"
               onClick={(event) => changePage(event, currentPage + 1)}
             />

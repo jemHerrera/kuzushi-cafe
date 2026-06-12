@@ -36,7 +36,7 @@ export function UserSummary({
       <span
         className={cx(
           "inline-flex shrink-0 rounded-full border-4 p-0",
-          beltBorderStyles[summary.belt],
+          beltBorderStyles[summary.belt ?? "unknown"],
         )}
       >
         <Avatar initials={initials} src={profilePhoto} size="sm" />
@@ -46,7 +46,7 @@ export function UserSummary({
           {name}
         </span>
         <span className="block text-xs capitalize text-zinc-600">
-          {meta ?? `${summary.belt} belt`}
+          {meta ?? `${summary.belt ?? "unknown"} belt`}
         </span>
       </span>
     </span>
