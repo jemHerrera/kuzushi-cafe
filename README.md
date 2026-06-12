@@ -112,11 +112,11 @@ protocol-relative destinations are discarded.
 - [x] Build authentication UI for Google SSO, magic-link email entry, confirmation states, expired links, errors, loading, and post-auth onboarding.
 - [x] Build account UI for `MyProfile`, `CompleteProfile`, `PrivacySettings`, and `PublicProfile`.
 - [x] Build training-partner UI for profile search, potential training partners, inbound and outbound requests, relationship states, add, remove, block, and remove confirmation.
-- [ ] Build journal-entry create and update modals with category, technique/setup tag inputs, attempt/success fields, intensity, gi/no-gi, partner selection, trained date, delete confirmation, and submit states.
-- [ ] Build the journal-entry table with filters, sortable headings, pagination, horizontal mobile scrolling, edit/delete actions, and URL-persisted filters.
+- [x] Build journal-entry create and update modals with category, technique/setup tag inputs, attempt/success fields, intensity, gi/no-gi, partner selection, trained date, delete confirmation, and submit states.
+- [x] Build the journal-entry table with filters, sortable headings, pagination, horizontal mobile scrolling, edit/delete actions, and URL-persisted filters.
 - [x] Build aggregate overview and aggregate views with timeline filters, success filters, charts, category pills, loading states, empty states, and stats rows.
-- [ ] Build saved-technique UI with search, add, edit, delete, category pills, and "create saved tag" flows from journal forms.
-- [ ] Build notification UI with list pagination, deep links, mark-read, mark-all-read, empty state, loading state, error state, and retry.
+- [x] Build saved-technique UI with search, add, edit, delete, category pills, and "create saved tag" flows from journal forms.
+- [x] Build notification UI with list pagination, deep links, mark-read, mark-all-read, empty state, loading state, error state, and retry.
 - [ ] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
 - [ ] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.
 - [ ] Add integration tests for managers, endpoint authorization, journal-entry invariants, privacy scoping, training-partner relationships, and donation status handling.

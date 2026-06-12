@@ -277,6 +277,7 @@ export type Database = {
           heading: string
           id: string
           is_read: boolean
+          source_account_id: string | null
           text: string
           updated_date: string
         }
@@ -287,6 +288,7 @@ export type Database = {
           heading: string
           id?: string
           is_read?: boolean
+          source_account_id?: string | null
           text: string
           updated_date?: string
         }
@@ -297,6 +299,7 @@ export type Database = {
           heading?: string
           id?: string
           is_read?: boolean
+          source_account_id?: string | null
           text?: string
           updated_date?: string
         }
@@ -304,6 +307,13 @@ export type Database = {
           {
             foreignKeyName: "notifications_account_id_fkey"
             columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_source_account_id_fkey"
+            columns: ["source_account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
@@ -575,6 +585,7 @@ export type Database = {
           heading: string
           id: string
           is_read: boolean
+          source_account_id: string | null
           text: string
           updated_date: string
         }

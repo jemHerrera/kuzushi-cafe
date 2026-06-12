@@ -16,12 +16,14 @@ type TechniqueCategoryPillSelectProps = {
   value?: Category;
   onValueChange?: (category: Category) => void;
   variant?: "default" | "property" | "table";
+  disabled?: boolean;
 };
 
 export function TechniqueCategoryPillSelect({
   value,
   onValueChange,
   variant = "default",
+  disabled = false,
 }: TechniqueCategoryPillSelectProps = {}) {
   const [internalCategory, setInternalCategory] =
     useState<Category>("submission");
@@ -34,6 +36,7 @@ export function TechniqueCategoryPillSelect({
 
   return (
     <Select
+      disabled={disabled}
       value={selectedCategory}
       onValueChange={(nextValue) => selectCategory(nextValue as Category)}
     >

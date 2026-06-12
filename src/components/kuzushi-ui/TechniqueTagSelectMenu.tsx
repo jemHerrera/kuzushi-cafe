@@ -7,6 +7,7 @@ import {
   SearchSelectPopover,
   searchSelectOptionClassName,
 } from "./SearchSelectPopover";
+import { SavedTechniqueUpsert } from "./SavedTechniqueUpsert";
 import { cx, sampleTechniques, type Category, type Technique } from "./shared";
 
 type TechniqueTagSelectMenuProps = {
@@ -18,7 +19,10 @@ type TechniqueTagSelectMenuProps = {
   ariaLabel?: string;
   variant?: "default" | "property" | "table";
   onSelectTechnique?: (technique: Technique) => void;
-  onCreateSavedTag?: (label: string) => void;
+  onCreateSavedTag?: (input: {
+    label: string;
+    category: Category;
+  }) => Promise<Technique>;
 };
 
 export function TechniqueTagSelectMenu({
@@ -40,9 +44,11 @@ export function TechniqueTagSelectMenu({
     value !== undefined ? value : internalSelectedTechnique;
   const [query, setQuery] = useState(search);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [createLabel, setCreateLabel] = useState("");
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const trimmedQuery = query.trim();
   const visibleTechniques = useMemo(
-    () => rankTechniques(techniques, trimmedQuery),
+    () => rankTechniques(uniqueTechniques(techniques), trimmedQuery),
     [techniques, trimmedQuery],
   );
   const hasExactMatch = visibleTechniques.some(
@@ -65,16 +71,10 @@ export function TechniqueTagSelectMenu({
 
   function createSavedTag() {
     if (!trimmedQuery) return;
-
-    const technique = {
-      name: trimmedQuery,
-      category: category ?? techniques[0]?.category ?? "other",
-    };
-    setInternalSelectedTechnique(technique);
+    setCreateLabel(trimmedQuery);
     setQuery("");
-    onCreateSavedTag?.(trimmedQuery);
-    onSelectTechnique?.(technique);
     setIsOpen(false);
+    setIsCreateOpen(true);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -114,83 +114,98 @@ export function TechniqueTagSelectMenu({
   }
 
   return (
-    <SearchSelectPopover
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      listboxId={listboxId}
-      searchLabel={`Search ${ariaLabel ?? "techniques"}`}
-      searchPlaceholder="Search or add technique"
-      searchValue={query}
-      onSearchChange={(event) => {
-        setQuery(event.target.value);
-        setActiveIndex(0);
-      }}
-      onSearchKeyDown={handleKeyDown}
-      trigger={
-        <button
-          type="button"
-          aria-label={`${ariaLabel ?? "Technique"}: ${selectedTechnique?.name ?? placeholder}`}
-          aria-controls={isOpen ? listboxId : undefined}
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
-          className={cn(
-            "flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-            variant === "property" &&
-              "min-h-10 border-transparent bg-transparent px-2 py-1 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2",
-            variant === "table" &&
-              "min-h-8 border-transparent bg-transparent px-1 py-0 shadow-none hover:bg-zinc-50 focus-visible:border-transparent focus-visible:ring-0",
-          )}
-          onClick={openMenu}
-        >
-          <span className="min-w-0 flex-1 truncate font-medium">
-            {selectedTechnique?.name ?? placeholder}
-          </span>
-        </button>
-      }
-    >
-      {visibleTechniques.map((technique, index) => (
-        <button
-          key={`${technique.category}-${technique.name}`}
-          type="button"
-          role="option"
-          aria-selected={selectedTechnique?.name === technique.name}
-          className={cx(
-            searchSelectOptionClassName,
-            activeIndex === index && "bg-zinc-100",
-          )}
-          onMouseEnter={() => setActiveIndex(index)}
-          onClick={() => selectTechnique(technique)}
-        >
-          <span className="min-w-0 flex-1 truncate font-medium text-zinc-900">
-            {technique.name}
-          </span>
-          {selectedTechnique?.name === technique.name ? (
-            <Check className="size-4 shrink-0 text-zinc-600" />
-          ) : null}
-        </button>
-      ))}
+    <>
+      <SearchSelectPopover
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        listboxId={listboxId}
+        searchLabel={`Search ${ariaLabel ?? "techniques"}`}
+        searchPlaceholder="Search or add technique"
+        searchValue={query}
+        onSearchChange={(event) => {
+          setQuery(event.target.value);
+          setActiveIndex(0);
+        }}
+        onSearchKeyDown={handleKeyDown}
+        trigger={
+          <button
+            type="button"
+            aria-label={`${ariaLabel ?? "Technique"}: ${selectedTechnique?.name ?? placeholder}`}
+            aria-controls={isOpen ? listboxId : undefined}
+            aria-expanded={isOpen}
+            aria-haspopup="listbox"
+            className={cn(
+              "flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              variant === "property" &&
+                "min-h-10 border-transparent bg-transparent px-2 py-1 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2",
+              variant === "table" &&
+                "min-h-8 border-transparent bg-transparent px-1 py-0 shadow-none hover:bg-zinc-50 focus-visible:border-transparent focus-visible:ring-0",
+            )}
+            onClick={openMenu}
+          >
+            <span className="min-w-0 flex-1 truncate font-medium">
+              {selectedTechnique?.name ?? placeholder}
+            </span>
+          </button>
+        }
+      >
+        {visibleTechniques.map((technique, index) => (
+          <button
+            key={`${technique.category}-${technique.name}`}
+            type="button"
+            role="option"
+            aria-selected={selectedTechnique?.name === technique.name}
+            className={cx(
+              searchSelectOptionClassName,
+              activeIndex === index && "bg-zinc-100",
+            )}
+            onMouseEnter={() => setActiveIndex(index)}
+            onClick={() => selectTechnique(technique)}
+          >
+            <span className="min-w-0 flex-1 truncate font-medium text-zinc-900">
+              {technique.name}
+            </span>
+            {selectedTechnique?.name === technique.name ? (
+              <Check className="size-4 shrink-0 text-zinc-600" />
+            ) : null}
+          </button>
+        ))}
 
-      {canAdd ? (
-        <button
-          type="button"
-          role="option"
-          aria-selected={false}
-          className={cx(
-            searchSelectOptionClassName,
-            activeIndex === visibleTechniques.length && "bg-zinc-100",
-          )}
-          onMouseEnter={() => setActiveIndex(visibleTechniques.length)}
-          onClick={createSavedTag}
-        >
-          <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
-            <Plus className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1 truncate font-medium text-zinc-900">
-            Add &quot;{trimmedQuery}&quot;
-          </span>
-        </button>
-      ) : null}
-    </SearchSelectPopover>
+        {canAdd ? (
+          <button
+            type="button"
+            role="option"
+            aria-selected={false}
+            className={cx(
+              searchSelectOptionClassName,
+              activeIndex === visibleTechniques.length && "bg-zinc-100",
+            )}
+            onMouseEnter={() => setActiveIndex(visibleTechniques.length)}
+            onClick={createSavedTag}
+          >
+            <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+              <Plus className="size-4" />
+            </span>
+            <span className="min-w-0 flex-1 truncate font-medium text-zinc-900">
+              Add &quot;{trimmedQuery}&quot;
+            </span>
+          </button>
+        ) : null}
+      </SearchSelectPopover>
+      <SavedTechniqueUpsert
+        key={`${createLabel}-${category ?? "other"}`}
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        initialLabel={createLabel}
+        initialCategory={category ?? techniques[0]?.category ?? "other"}
+        presentation="dialog"
+        onSave={async (input) => {
+          if (!onCreateSavedTag) return false;
+          const technique = await onCreateSavedTag(input);
+          selectTechnique(technique);
+        }}
+      />
+    </>
   );
 }
 
@@ -254,4 +269,14 @@ function scoreOrderedMatch(value: string, query: string) {
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
+}
+
+function uniqueTechniques(techniques: Technique[]) {
+  const seen = new Set<string>();
+  return techniques.filter((technique) => {
+    const key = `${technique.category}:${normalize(technique.name)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

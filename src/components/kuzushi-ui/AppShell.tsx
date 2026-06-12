@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   Dialog,
@@ -29,7 +30,7 @@ import { SidePanel, type SidePanelAction } from "./SidePanel";
 import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
 
 type ShellModal =
-  | Exclude<SidePanelAction, "profile">
+  | Exclude<SidePanelAction, "profile" | "saved-techniques">
   | "profile"
   | "public-profile";
 
@@ -38,34 +39,59 @@ const modalDescriptions: Record<ShellModal, string> = {
   "new-entry":
     "Add a journal entry with technique, partner, and training details.",
   "training-partners": "Search, review, and manage your training partners.",
-  "saved-techniques": "Search, add, edit, and delete your saved techniques.",
   settings: "Choose who can view your profile and journal activity.",
   donation: "Choose a donation amount to support Kuzushi Cafe.",
   "public-profile": "View a public profile and manage relationship state.",
 };
 
 export function AppShell({ account }: { account: AccountDetail }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [currentAccount, setCurrentAccount] = useState(account);
   const [activeModal, setActiveModal] = useState<ShellModal | null>(null);
   const [journalRefreshToken, setJournalRefreshToken] = useState(0);
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isSavedTechniquesOpen, setIsSavedTechniquesOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] =
     useState<PublicAccountSummary | null>(null);
+  const profileAccountId = searchParams.get("profile")?.trim() || undefined;
+  const displayedModal = profileAccountId ? "public-profile" : activeModal;
 
   function openModal(action: SidePanelAction) {
     setIsNavigationOpen(false);
+    if (action === "saved-techniques") {
+      setIsSavedTechniquesOpen(true);
+      return;
+    }
     setActiveModal(action);
   }
 
   function closeModal() {
+    if (profileAccountId) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("profile");
+      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
+        scroll: false,
+      });
+    }
     setActiveModal(null);
+    setSelectedProfile(null);
   }
 
   function openPublicProfile(profile: PublicAccountSummary) {
     setIsNavigationOpen(false);
     setSelectedProfile(profile);
-    setActiveModal("public-profile");
+    openPublicProfileById(profile.id);
+  }
+
+  function openPublicProfileById(accountId: string) {
+    setIsNavigationOpen(false);
+    setIsNotificationsOpen(false);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("profile", accountId);
+    router.push(`${pathname}?${params}`, { scroll: false });
   }
 
   return (
@@ -128,12 +154,36 @@ export function AppShell({ account }: { account: AccountDetail }) {
           <SheetDescription className="sr-only">
             Review recent Kuzushi Cafe notifications.
           </SheetDescription>
-          <NotificationList className="h-full max-w-none border-l-0 pt-14" />
+          <NotificationList
+            className="h-full max-w-none border-l-0 pt-14"
+            onOpenProfile={openPublicProfileById}
+          />
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        open={isSavedTechniquesOpen}
+        onOpenChange={setIsSavedTechniquesOpen}
+      >
+        <SheetContent
+          className="w-full p-0 sm:max-w-md"
+          side="left"
+          showCloseButton={false}
+        >
+          <SheetTitle className="sr-only">Saved techniques</SheetTitle>
+          <SheetDescription className="sr-only">
+            Search, add, edit, and delete your saved techniques.
+          </SheetDescription>
+          <SavedTechniqueTagList
+            className="h-full"
+            onClose={() => setIsSavedTechniquesOpen(false)}
+            presentation="sheet"
+          />
         </SheetContent>
       </Sheet>
 
       <Dialog
-        open={activeModal !== null}
+        open={displayedModal !== null}
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
@@ -143,9 +193,9 @@ export function AppShell({ account }: { account: AccountDetail }) {
           showCloseButton={false}
         >
           <DialogDescription className="sr-only">
-            {activeModal ? modalDescriptions[activeModal] : ""}
+            {displayedModal ? modalDescriptions[displayedModal] : ""}
           </DialogDescription>
-          {activeModal === "profile" ? (
+          {displayedModal === "profile" ? (
             <MyProfile
               initialProfile={{
                 firstName: currentAccount.firstName ?? "",
@@ -163,34 +213,35 @@ export function AppShell({ account }: { account: AccountDetail }) {
               withinDialog
             />
           ) : null}
-          {activeModal === "new-entry" ? (
+          {displayedModal === "new-entry" ? (
             <JournalEntryCreate
               onClose={closeModal}
               onSaved={() => setJournalRefreshToken((token) => token + 1)}
               withinDialog
             />
           ) : null}
-          {activeModal === "training-partners" ? (
+          {displayedModal === "training-partners" ? (
             <TrainingPartnersListModal
               onClose={closeModal}
               onSelectPartner={openPublicProfile}
               withinDialog
             />
           ) : null}
-          {activeModal === "saved-techniques" ? (
-            <SavedTechniqueTagList onClose={closeModal} withinDialog />
-          ) : null}
-          {activeModal === "settings" ? (
+          {displayedModal === "settings" ? (
             <PrivacySettings onClose={closeModal} withinDialog />
           ) : null}
-          {activeModal === "donation" ? (
+          {displayedModal === "donation" ? (
             <DonationModal onClose={closeModal} withinDialog />
           ) : null}
-          {activeModal === "public-profile" && selectedProfile ? (
+          {displayedModal === "public-profile" && profileAccountId ? (
             <PublicProfile
-              key={selectedProfile.id}
-              accountId={selectedProfile.id}
-              initialProfile={selectedProfile}
+              key={profileAccountId}
+              accountId={profileAccountId}
+              initialProfile={
+                selectedProfile?.id === profileAccountId
+                  ? selectedProfile
+                  : undefined
+              }
               onClose={closeModal}
               onRelationshipChange={() => undefined}
               withinDialog

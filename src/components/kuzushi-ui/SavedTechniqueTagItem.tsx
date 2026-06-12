@@ -23,6 +23,7 @@ type SavedTechniqueTagItemProps = {
   onNameChange?: (name: string) => void;
   onCategoryChange?: (category: Category) => void;
   onDelete?: () => void;
+  disabled?: boolean;
 };
 
 export function SavedTechniqueTagItem({
@@ -30,6 +31,7 @@ export function SavedTechniqueTagItem({
   onNameChange,
   onCategoryChange,
   onDelete,
+  disabled = false,
 }: SavedTechniqueTagItemProps) {
   const [internalTechnique, setInternalTechnique] = useState(technique);
   const [draftName, setDraftName] = useState(technique.name);
@@ -84,6 +86,7 @@ export function SavedTechniqueTagItem({
         aria-label={`Technique label: ${currentName}`}
         className="h-8 min-w-0 border-transparent bg-transparent px-2 text-sm text-zinc-950 shadow-none focus-visible:border-transparent focus-visible:bg-zinc-50 focus-visible:ring-0"
         value={draftName}
+        disabled={disabled}
         onBlur={commitName}
         onChange={(event) => setDraftName(event.target.value)}
         onKeyDown={(event) => {
@@ -99,6 +102,7 @@ export function SavedTechniqueTagItem({
         }}
       />
       <TechniqueCategoryPillSelect
+        disabled={disabled}
         value={currentCategory}
         onValueChange={changeCategory}
       />
@@ -111,6 +115,7 @@ export function SavedTechniqueTagItem({
             variant="ghost"
             size="icon-lg"
             className="rounded-md text-zinc-500 hover:text-red-700"
+            disabled={disabled}
           >
             <Trash2 className="size-4" />
           </Button>

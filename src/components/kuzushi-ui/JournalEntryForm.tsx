@@ -91,8 +91,6 @@ export function JournalEntryForm({
   const [techniques, setTechniques] = useState<Technique[]>([]);
   const [setups, setSetups] = useState<Technique[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
-  const [createNameTag, setCreateNameTag] = useState(false);
-  const [createSetupTag, setCreateSetupTag] = useState(false);
   const [error, setError] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -114,7 +112,9 @@ export function JournalEntryForm({
       const tags = await loadTechniqueTags(tagCategory);
       if (!isCurrent) return;
       setTechniques(
-        tags.map((tag) => ({ name: tag.label, category: tag.category })),
+        uniqueTechniques(
+          tags.map((tag) => ({ name: tag.label, category: tag.category })),
+        ),
       );
     }
 
@@ -131,7 +131,9 @@ export function JournalEntryForm({
       const tags = await loadTechniqueTags();
       if (!isCurrent) return;
       setSetups(
-        tags.map((tag) => ({ name: tag.label, category: tag.category })),
+        uniqueTechniques(
+          tags.map((tag) => ({ name: tag.label, category: tag.category })),
+        ),
       );
     }
 
@@ -166,7 +168,6 @@ export function JournalEntryForm({
 
   function selectCategory(nextCategory: Category) {
     setCategory(nextCategory);
-    setCreateNameTag(false);
     setTechniqueName("");
     if (nextCategory === "tap") {
       setJournalType("attempt");
@@ -190,11 +191,6 @@ export function JournalEntryForm({
           : {}
         : { journalType }),
     };
-
-    if (mode === "create") {
-      body.createNameTag = createNameTag;
-      body.createSetupTag = createSetupTag;
-    }
 
     if (selectedPartner?.id && selectedPartner.accountId) {
       body.trainingPartnerId = selectedPartner.id;
@@ -290,11 +286,14 @@ export function JournalEntryForm({
             ariaLabel="Technique"
             onSelectTechnique={(technique) => {
               setTechniqueName(technique.name);
-              setCreateNameTag(false);
             }}
-            onCreateSavedTag={(label) => {
-              setTechniqueName(label);
-              setCreateNameTag(true);
+            onCreateSavedTag={async (input) => {
+              const tag = await createTechniqueTag(input);
+              const technique = { name: tag.label, category: tag.category };
+              setTechniques((current) =>
+                uniqueTechniques([...current, technique]),
+              );
+              return technique;
             }}
             variant="property"
           />
@@ -314,11 +313,12 @@ export function JournalEntryForm({
             variant="property"
             onSelectTechnique={(technique) => {
               setSetupName(technique.name);
-              setCreateSetupTag(false);
             }}
-            onCreateSavedTag={(label) => {
-              setSetupName(label);
-              setCreateSetupTag(true);
+            onCreateSavedTag={async (input) => {
+              const tag = await createTechniqueTag(input);
+              const technique = { name: tag.label, category: tag.category };
+              setSetups((current) => uniqueTechniques([...current, technique]));
+              return technique;
             }}
           />
         </PropertyField>
@@ -499,4 +499,30 @@ async function loadTechniqueTags(category?: Category) {
     tags.push(...data.items);
     if (data.items.length < pageSize) return tags;
   }
+}
+
+async function createTechniqueTag(input: {
+  label: string;
+  category: Category;
+}) {
+  const response = await fetch("/api/technique-tags", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!response.ok) {
+    const detail = (await response.json()) as ApiErrorDetail;
+    throw new Error(detail.error.message);
+  }
+  return (await response.json()) as TechniqueTagDetail;
+}
+
+function uniqueTechniques(techniques: Technique[]) {
+  const seen = new Set<string>();
+  return techniques.filter((technique) => {
+    const key = `${technique.category}:${technique.name.trim().toLocaleLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }

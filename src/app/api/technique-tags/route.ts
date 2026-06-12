@@ -7,6 +7,7 @@ import {
   paginationSchema,
   repeatedSearchParams,
   tagCreateSchema,
+  techniqueTagScopes,
 } from "@/lib/api/schemas";
 import { JournalEntryManager } from "@/lib/managers/journal";
 
@@ -15,6 +16,7 @@ const querySchema = paginationSchema.extend({
   category: z.enum(categories).optional(),
   sortField: z.enum(["label", "category", "createdAt"]).default("label"),
   sortDirection: z.enum(["asc", "desc"]).default("asc"),
+  scope: z.enum(techniqueTagScopes).default("visible"),
 });
 
 export async function GET(request: Request) {
@@ -25,6 +27,7 @@ export async function GET(request: Request) {
     return Response.json(
       await new JournalEntryManager(supabase).getTags({
         filter: { accountId, search: rest.search, category: rest.category },
+        scope: rest.scope,
         sort: { field: sortField, direction: sortDirection },
         limit: rest.limit,
         offset: rest.offset,

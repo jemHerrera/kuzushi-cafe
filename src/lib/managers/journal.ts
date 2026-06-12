@@ -360,11 +360,32 @@ export class JournalEntryManager {
       );
     }
 
+    const label = params.label.trim();
+    const { data: existingTags, error: existingTagsError } = await this.supabase
+      .from("technique_tags")
+      .select("label")
+      .eq("category", params.category)
+      .or(`is_public.eq.true,generated_by_account_id.eq.${params.generatedBy}`);
+    if (existingTagsError) {
+      throw new ManagerError("tags_failed", existingTagsError.message, 500);
+    }
+    if (
+      existingTags?.some(
+        (tag) => normalizeTagLabel(tag.label) === normalizeTagLabel(label),
+      )
+    ) {
+      throw new ManagerError(
+        "tag_already_exists",
+        "A saved technique with this label and category already exists.",
+        409,
+      );
+    }
+
     const { data, error } = await this.supabase
       .from("technique_tags")
       .insert({
-        key: createTagKey(params.label),
-        label: params.label.trim(),
+        key: createTagKey(label),
+        label,
         category: params.category,
         generated_by_account_id: params.generatedBy,
         is_public: false,
@@ -384,6 +405,7 @@ export class JournalEntryManager {
 
   async getTags(params: {
     filter: { search?: string; category?: Category; accountId?: string };
+    scope?: "visible" | "owned";
     sort?: {
       field: "label" | "category" | "createdAt";
       direction: "asc" | "desc";
@@ -392,7 +414,11 @@ export class JournalEntryManager {
     offset: number;
   }) {
     let query = this.supabase.from("technique_tags").select("*");
-    if (params.filter.accountId) {
+    if (params.scope === "owned" && params.filter.accountId) {
+      query = query
+        .eq("is_public", false)
+        .eq("generated_by_account_id", params.filter.accountId);
+    } else if (params.filter.accountId) {
       query = query.or(
         `is_public.eq.true,generated_by_account_id.eq.${params.filter.accountId}`,
       );
@@ -668,6 +694,10 @@ function createTagKey(label: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   return `${slug || "tag"}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+function normalizeTagLabel(label: string) {
+  return label.trim().toLocaleLowerCase();
 }
 
 function fuzzyScore(label: string, search: string) {

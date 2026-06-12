@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import {
@@ -56,7 +57,11 @@ export function StatsChart({
       color: colors.strong,
     },
   } satisfies ChartConfig;
-  const minimumChartWidth = Math.max(560, data.length * 56);
+  const isMobile = useIsMobile();
+  const minimumChartWidth = isMobile
+    ? Math.max(320, data.length * 28)
+    : Math.max(560, data.length * 56);
+  const maxBarSize = isMobile ? 24 : 48;
 
   return (
     <div className="overflow-x-auto rounded-lg border border-zinc-200">
@@ -73,8 +78,11 @@ export function StatsChart({
           <CartesianGrid vertical={false} />
           <XAxis
             axisLine={false}
+            angle={-65}
             dataKey="label"
+            height={72}
             interval={0}
+            textAnchor="end"
             tickLine={false}
             tickMargin={10}
           />
@@ -89,7 +97,7 @@ export function StatsChart({
             <Bar
               dataKey="attempts"
               fill="var(--color-attempts)"
-              maxBarSize={48}
+              maxBarSize={maxBarSize}
               radius={typeFilter === "all" ? [0, 0, 4, 4] : 4}
               stackId={typeFilter === "all" ? "type" : undefined}
             />
@@ -98,7 +106,7 @@ export function StatsChart({
             <Bar
               dataKey="successes"
               fill="var(--color-successes)"
-              maxBarSize={48}
+              maxBarSize={maxBarSize}
               radius={4}
               stackId={typeFilter === "all" ? "type" : undefined}
             />
@@ -107,7 +115,7 @@ export function StatsChart({
             <Bar
               dataKey="occurrences"
               fill="var(--color-occurrences)"
-              maxBarSize={48}
+              maxBarSize={maxBarSize}
               radius={4}
             />
           ) : null}
@@ -115,5 +123,17 @@ export function StatsChart({
         </BarChart>
       </ChartContainer>
     </div>
+  );
+}
+
+function useIsMobile() {
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      const mediaQuery = window.matchMedia("(max-width: 639px)");
+      mediaQuery.addEventListener("change", onStoreChange);
+      return () => mediaQuery.removeEventListener("change", onStoreChange);
+    },
+    () => window.matchMedia("(max-width: 639px)").matches,
+    () => false,
   );
 }

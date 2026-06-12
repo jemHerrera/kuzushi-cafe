@@ -197,6 +197,7 @@ export type NotificationDetail = {
   category: NotificationCategory;
   isRead: boolean;
   accountId: string;
+  sourceAccountId?: string;
   updatedAt: number;
 };
 

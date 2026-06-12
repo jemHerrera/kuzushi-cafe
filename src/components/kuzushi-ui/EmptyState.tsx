@@ -5,10 +5,12 @@ export function EmptyState({
   title = "No journal entries",
   body = "Entries track training patterns. Add one to get started.",
   onAction,
+  actionLabel = "Add journal entry",
 }: {
   title?: string;
   body?: string;
   onAction?: () => void;
+  actionLabel?: string;
 }) {
   return (
     <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-6 text-center">
@@ -17,7 +19,7 @@ export function EmptyState({
       <div className="mt-4">
         <ButtonPrimary onClick={onAction} type="button">
           <Plus className="size-4" />
-          Add journal entry
+          {actionLabel}
         </ButtonPrimary>
       </div>
     </div>
