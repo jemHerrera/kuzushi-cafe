@@ -2,6 +2,7 @@
 
 import { SearchIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -27,8 +28,10 @@ import { beltBorderStyles, cx } from "./shared";
 
 export function PublicProfileSearch({
   onSelectProfile,
+  trigger = "field",
 }: {
   onSelectProfile?: (profile: PublicAccountSummary) => void;
+  trigger?: "field" | "icon";
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -83,14 +86,30 @@ export function PublicProfileSearch({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <button
-        type="button"
-        className="flex h-11 w-full gap-3 items-center rounded-md border border-input bg-white px-3 text-left text-sm text-zinc-500 transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        onClick={() => setIsOpen(true)}
-      >
-        <SearchIcon className="size-4 shrink-0 text-zinc-400" />
-        <span className="min-w-0 flex-1 truncate">Search public profiles</span>
-      </button>
+      {trigger === "icon" ? (
+        <Button
+          type="button"
+          aria-label="Search public profiles"
+          title="Search public profiles"
+          variant="ghost"
+          size="icon-lg"
+          className="rounded-md text-zinc-700"
+          onClick={() => setIsOpen(true)}
+        >
+          <SearchIcon className="size-4" />
+        </Button>
+      ) : (
+        <button
+          type="button"
+          className="flex h-11 w-full items-center gap-3 rounded-md border border-input bg-white px-3 text-left text-sm text-zinc-500 transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          onClick={() => setIsOpen(true)}
+        >
+          <SearchIcon className="size-4 shrink-0 text-zinc-400" />
+          <span className="min-w-0 flex-1 truncate">
+            Search public profiles
+          </span>
+        </button>
+      )}
       <DialogContent
         className="gap-0 overflow-hidden p-0 sm:max-w-2xl"
         showCloseButton={false}

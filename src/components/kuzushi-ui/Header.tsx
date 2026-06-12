@@ -17,8 +17,31 @@ export function Header({
   onSelectProfile?: (profile: PublicAccountSummary) => void;
 }) {
   return (
-    <header className="grid gap-3 border-b border-zinc-200 bg-white/90 p-4 backdrop-blur">
-      <div className="flex items-center justify-between gap-4">
+    <header className="grid gap-2 border-b border-zinc-200 bg-white/90 px-2 py-1 backdrop-blur sm:gap-3 sm:p-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center sm:hidden">
+        <div className="justify-self-start">
+          <IconButton
+            label="Open navigation"
+            icon={<Menu className="size-4" />}
+            variant="ghost"
+            onClick={onMenuOpen}
+          />
+        </div>
+        <BrandWordmark href="/app" />
+        <div className="flex items-center justify-self-end">
+          <PublicProfileSearch
+            onSelectProfile={onSelectProfile}
+            trigger="icon"
+          />
+          <IconButton
+            label="Open notifications"
+            icon={<Bell className="size-4" />}
+            variant="ghost"
+            onClick={onNotificationsOpen}
+          />
+        </div>
+      </div>
+      <div className="hidden items-center justify-between gap-4 sm:flex">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <IconButton
             className="lg:hidden"
@@ -26,10 +49,7 @@ export function Header({
             icon={<Menu className="size-4" />}
             onClick={onMenuOpen}
           />
-          <span className="lg:hidden">
-            <BrandWordmark href="/app" />
-          </span>
-          <div className="w-11 shrink-0 sm:w-64">
+          <div className="w-64 shrink-0">
             <PublicProfileSearch onSelectProfile={onSelectProfile} />
           </div>
           {alertMessage ? (

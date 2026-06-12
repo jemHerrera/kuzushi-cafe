@@ -2,35 +2,66 @@ import { Plus } from "lucide-react";
 
 import type { AggregateStatsDetail, Category } from "@/lib/managers/types";
 import { ButtonPrimary } from "./ButtonPrimary";
-import type { AggregateTypeFilter } from "./AggregateViewFilters";
+import type {
+  AggregateTimeline,
+  AggregateTypeFilter,
+} from "./AggregateViewFilters";
 import { StatsChart } from "./StatsChart";
 import { StatsRow } from "./StatsRow";
-import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
-import { formatCategoryLabel } from "./shared";
+
+const categoryPluralLabels: Record<Category, string> = {
+  submission: "submissions",
+  takedown: "takedowns",
+  sweep: "sweeps",
+  "guard-pass": "guard passes",
+  reversal: "reversals",
+  "back-take": "back takes",
+  "leg-entry": "leg entries",
+  escape: "escapes",
+  tap: "taps",
+  "off-balance": "off-balances",
+  position: "positions",
+  "guard-retention": "guard retentions",
+  other: "other techniques",
+};
+
+const timelinePhrases: Record<AggregateTimeline, string> = {
+  week: "this week",
+  month: "this month",
+  year: "this year",
+  all: "of all time",
+};
 
 export function AggregateView({
   category = "submission",
   data,
   onAddEntry,
   typeFilter = "all",
+  timeline = "month",
 }: {
   category?: Category;
   data: AggregateStatsDetail;
   onAddEntry?: () => void;
   typeFilter?: AggregateTypeFilter;
+  timeline?: AggregateTimeline;
 }) {
   const hasData = data.stats.length > 0;
+  const categoryLabel = categoryPluralLabels[category];
+  const activityLabel = formatActivityLabel(
+    category,
+    categoryLabel,
+    typeFilter,
+  );
 
   return (
     <section className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-zinc-950">
-            {" "}
-            {formatCategoryLabel(category)}s
+            {capitalize(categoryLabel)}
           </h3>
           <p className="text-sm text-zinc-500">
-            Attempts and successes across the selected period
+            Your {activityLabel} {timelinePhrases[timeline]}.
           </p>
         </div>
       </div>
@@ -75,3 +106,33 @@ export function AggregateView({
     </section>
   );
 }
+
+function capitalize(value: string) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function formatActivityLabel(
+  category: Category,
+  categoryLabel: string,
+  typeFilter: AggregateTypeFilter,
+) {
+  if (category === "tap" || typeFilter === "all") return categoryLabel;
+  if (typeFilter === "success") return `successful ${categoryLabel}`;
+  return `${singularCategoryLabels[category]} attempts`;
+}
+
+const singularCategoryLabels: Record<Category, string> = {
+  submission: "submission",
+  takedown: "takedown",
+  sweep: "sweep",
+  "guard-pass": "guard pass",
+  reversal: "reversal",
+  "back-take": "back take",
+  "leg-entry": "leg entry",
+  escape: "escape",
+  tap: "tap",
+  "off-balance": "off-balance",
+  position: "position",
+  "guard-retention": "guard retention",
+  other: "other technique",
+};

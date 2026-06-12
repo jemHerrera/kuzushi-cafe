@@ -159,6 +159,7 @@ export function AggregateOverview({
           data={displayedAggregate}
           onAddEntry={accountId ? undefined : onAddEntry}
           typeFilter={effectiveTypeFilter}
+          timeline={timeline}
         />
       ) : null}
     </section>

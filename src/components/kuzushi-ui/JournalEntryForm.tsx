@@ -110,7 +110,8 @@ export function JournalEntryForm({
     let isCurrent = true;
 
     async function loadTechniques() {
-      const tags = await loadTechniqueTags(category);
+      const tagCategory = category === "tap" ? "submission" : category;
+      const tags = await loadTechniqueTags(tagCategory);
       if (!isCurrent) return;
       setTechniques(
         tags.map((tag) => ({ name: tag.label, category: tag.category })),
