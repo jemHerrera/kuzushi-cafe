@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   parseJournalQuery,
   serializeJournalQuery,
@@ -18,7 +19,7 @@ import type {
   JournalEntryDetail,
   PaginatedResponse,
 } from "@/lib/managers/types";
-import { AlertBanner } from "./AlertBanner";
+import { ErrorState } from "./ErrorState";
 import { JournalEntryCreate } from "./JournalEntryCreate";
 import { JournalEntryFilters } from "./JournalEntryFilters";
 import { JournalEntryHeading } from "./JournalEntryHeading";
@@ -155,9 +156,9 @@ export function JournalEntryTable({
         showAddEntry={!readOnly}
       />
       {error ? (
-        <AlertBanner
-          className="border-red-200 bg-red-50 text-red-900"
+        <ErrorState
           message={error}
+          onRetry={() => setRefreshKey((key) => key + 1)}
         />
       ) : null}
       <div className="overflow-x-auto rounded-lg border-x border-b md:border border-zinc-200">
@@ -182,15 +183,17 @@ export function JournalEntryTable({
             }
           />
           <tbody>
-            {visibleEntries.map((entry) => (
-              <JournalEntryRow
-                key={entry.id}
-                entry={entry}
-                readOnly={readOnly}
-                onSaved={refreshEntries}
-                onDeleted={refreshEntries}
-              />
-            ))}
+            {!isLoading
+              ? visibleEntries.map((entry) => (
+                  <JournalEntryRow
+                    key={entry.id}
+                    entry={entry}
+                    readOnly={readOnly}
+                    onSaved={refreshEntries}
+                    onDeleted={refreshEntries}
+                  />
+                ))
+              : null}
             {!isLoading && visibleEntries.length === 0 ? (
               <tr>
                 <td
@@ -201,29 +204,22 @@ export function JournalEntryTable({
                 </td>
               </tr>
             ) : null}
-            {isLoading ? (
-              <tr>
-                <td
-                  className="px-3 py-10 text-center text-sm text-zinc-500"
-                  colSpan={readOnly ? 5 : 6}
-                >
-                  Loading journal entries...
-                </td>
-              </tr>
-            ) : null}
+            {isLoading ? <JournalTableSkeleton readOnly={readOnly} /> : null}
           </tbody>
         </table>
-        <JournalEntryPagination
-          page={page}
-          hasNext={hasNext}
-          onPageChange={(nextPage) =>
-            replaceQuery(
-              updateJournalQuery(query, {
-                offset: (nextPage - 1) * query.limit,
-              }),
-            )
-          }
-        />
+        {!isLoading ? (
+          <JournalEntryPagination
+            page={page}
+            hasNext={hasNext}
+            onPageChange={(nextPage) =>
+              replaceQuery(
+                updateJournalQuery(query, {
+                  offset: (nextPage - 1) * query.limit,
+                }),
+              )
+            }
+          />
+        ) : null}
       </div>
       {!readOnly ? (
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
@@ -244,6 +240,24 @@ export function JournalEntryTable({
       ) : null}
     </section>
   );
+}
+
+function JournalTableSkeleton({ readOnly }: { readOnly: boolean }) {
+  return Array.from({ length: 4 }, (_, row) => (
+    <tr
+      key={row}
+      aria-label={row === 0 ? "Loading journal entries" : undefined}
+    >
+      {Array.from({ length: readOnly ? 5 : 6 }, (_, column) => (
+        <td
+          key={column}
+          className="border-t border-zinc-100 px-3 py-3 first:border-t-0"
+        >
+          <Skeleton className="h-5 w-full" />
+        </td>
+      ))}
+    </tr>
+  ));
 }
 
 function toJournalEntry(entry: JournalEntryDetail): JournalEntry {

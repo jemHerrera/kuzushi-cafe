@@ -188,11 +188,12 @@ export function DonationModal({
                 type="button"
                 aria-pressed={selectedPreset === preset}
                 className={cx(
-                  "h-10 rounded-md border text-sm font-semibold transition-colors",
+                  "h-10 rounded-md border text-sm font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50",
                   selectedPreset === preset
                     ? "border-zinc-950 bg-zinc-950 text-white"
                     : "border-zinc-300 bg-white text-zinc-950 hover:bg-zinc-50",
                 )}
+                disabled={isSubmitting}
                 onClick={() => selectPreset(preset)}
               >
                 ${preset}

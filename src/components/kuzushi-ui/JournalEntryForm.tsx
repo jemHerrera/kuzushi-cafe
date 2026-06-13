@@ -14,17 +14,6 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useEffect, useId, useMemo, useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +22,9 @@ import { AlertBanner } from "./AlertBanner";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { DateSelector } from "./DateSelector";
+import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
+import { ErrorState } from "./ErrorState";
+import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 import { PropertyField } from "./PropertyField";
 import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
@@ -94,6 +86,9 @@ export function JournalEntryForm({
   const [error, setError] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isOptionsLoading, setIsOptionsLoading] = useState(true);
+  const [optionsError, setOptionsError] = useState<string>();
+  const [optionsRetryToken, setOptionsRetryToken] = useState(0);
 
   const selectedTechnique = useMemo(
     () => (techniqueName ? { name: techniqueName, category } : null),
@@ -107,64 +102,51 @@ export function JournalEntryForm({
   useEffect(() => {
     let isCurrent = true;
 
-    async function loadTechniques() {
-      const tagCategory = category === "tap" ? "submission" : category;
-      const tags = await loadTechniqueTags(tagCategory);
-      if (!isCurrent) return;
-      setTechniques(
-        uniqueTechniques(
-          tags.map((tag) => ({ name: tag.label, category: tag.category })),
-        ),
-      );
+    async function loadOptions() {
+      setIsOptionsLoading(true);
+      setOptionsError(undefined);
+      try {
+        const tagCategory = category === "tap" ? "submission" : category;
+        const [techniqueTags, setupTags, loadedPartners] = await Promise.all([
+          loadTechniqueTags(tagCategory),
+          loadTechniqueTags(),
+          loadTrainingPartners(),
+        ]);
+        if (!isCurrent) return;
+        setTechniques(
+          uniqueTechniques(
+            techniqueTags.map((tag) => ({
+              name: tag.label,
+              category: tag.category,
+            })),
+          ),
+        );
+        setSetups(
+          uniqueTechniques(
+            setupTags.map((tag) => ({
+              name: tag.label,
+              category: tag.category,
+            })),
+          ),
+        );
+        setPartners(loadedPartners);
+      } catch (loadError) {
+        if (!isCurrent) return;
+        setOptionsError(
+          loadError instanceof Error
+            ? loadError.message
+            : "We could not load journal form options.",
+        );
+      } finally {
+        if (isCurrent) setIsOptionsLoading(false);
+      }
     }
 
-    loadTechniques();
+    loadOptions();
     return () => {
       isCurrent = false;
     };
-  }, [category]);
-
-  useEffect(() => {
-    let isCurrent = true;
-
-    async function loadSetups() {
-      const tags = await loadTechniqueTags();
-      if (!isCurrent) return;
-      setSetups(
-        uniqueTechniques(
-          tags.map((tag) => ({ name: tag.label, category: tag.category })),
-        ),
-      );
-    }
-
-    loadSetups();
-    return () => {
-      isCurrent = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let isCurrent = true;
-
-    async function loadPartners() {
-      const response = await fetch("/api/training-partners?limit=100");
-      if (!response.ok) return;
-
-      const data =
-        (await response.json()) as PaginatedResponse<TrainingPartnerDetail>;
-      if (!isCurrent) return;
-      setPartners(
-        data.items
-          .filter((partner) => partner.object === "training_partner")
-          .map(toPartner),
-      );
-    }
-
-    loadPartners();
-    return () => {
-      isCurrent = false;
-    };
-  }, []);
+  }, [category, optionsRetryToken]);
 
   function selectCategory(nextCategory: Category) {
     setCategory(nextCategory);
@@ -247,7 +229,7 @@ export function JournalEntryForm({
       onDeleted?.();
       onClose?.();
     } catch (deleteError) {
-      setError(
+      throw new Error(
         deleteError instanceof Error
           ? deleteError.message
           : "We could not delete this journal entry.",
@@ -271,8 +253,22 @@ export function JournalEntryForm({
             message={error}
           />
         ) : null}
+        {optionsError ? (
+          <ErrorState
+            message={optionsError}
+            onRetry={() => setOptionsRetryToken((token) => token + 1)}
+          />
+        ) : null}
+        {isOptionsLoading ? (
+          <LoadingState
+            label="Loading journal form options"
+            rows={2}
+            variant="form"
+          />
+        ) : null}
         <PropertyField icon={Shapes} label="Category">
           <TechniqueCategoryPillSelect
+            disabled={isSubmitting || isDeleting || isOptionsLoading}
             value={category}
             onValueChange={selectCategory}
             variant="property"
@@ -281,6 +277,7 @@ export function JournalEntryForm({
         <PropertyField icon={Tag} label="Technique">
           <TechniqueTagSelectMenu
             category={category}
+            disabled={isSubmitting || isDeleting || isOptionsLoading}
             techniques={techniques}
             value={selectedTechnique}
             ariaLabel="Technique"
@@ -307,6 +304,7 @@ export function JournalEntryForm({
           <TechniqueTagSelectMenu
             ariaLabel="Setup"
             category={category}
+            disabled={isSubmitting || isDeleting || isOptionsLoading}
             techniques={setups}
             value={selectedSetup}
             placeholder="Find or add setup"
@@ -368,6 +366,7 @@ export function JournalEntryForm({
         <PropertyField icon={UserRound} label="Partner">
           <TrainingPartnerInput
             ariaLabel="Select training partner"
+            disabled={isSubmitting || isDeleting || isOptionsLoading}
             partners={partners}
             value={selectedPartner}
             onSelectPartner={(partner) => {
@@ -411,47 +410,36 @@ export function JournalEntryForm({
         ) : null}
         <div className="flex flex-wrap justify-between gap-3">
           {mode === "update" ? (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <ButtonSecondary
-                  className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
-                  disabled={isSubmitting || isDeleting}
-                  type="button"
-                >
-                  <Trash2 className="size-4" />
-                </ButtonSecondary>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>
-                    Delete this journal entry?
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This journal entry will be permanently removed. This action
-                    cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel disabled={isDeleting}>
-                    Cancel
-                  </AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-red-600 text-white hover:bg-red-700"
-                    disabled={isDeleting}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      deleteEntry();
-                    }}
-                  >
-                    {isDeleting ? "Deleting..." : "Delete entry"}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <DestructiveConfirmDialog
+              actionLabel="Delete entry"
+              description="This journal entry will be permanently removed. This action cannot be undone."
+              disabled={isSubmitting || isDeleting}
+              onConfirm={deleteEntry}
+              onPendingChange={setIsDeleting}
+              pendingLabel="Deleting..."
+              title="Delete this journal entry?"
+            >
+              <ButtonSecondary
+                className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
+                disabled={isSubmitting || isDeleting}
+                type="button"
+              >
+                <Trash2 className="size-4" />
+              </ButtonSecondary>
+            </DestructiveConfirmDialog>
           ) : (
             <span />
           )}
-          <ButtonPrimary type="submit" disabled={isSubmitting || isDeleting}>
+          <ButtonPrimary
+            type="submit"
+            disabled={
+              isSubmitting ||
+              isDeleting ||
+              isOptionsLoading ||
+              Boolean(optionsError) ||
+              !techniqueName.trim()
+            }
+          >
             <Plus className="size-4" />
             {isSubmitting
               ? mode === "create"
@@ -492,13 +480,30 @@ async function loadTechniqueTags(category?: Category) {
     if (category) params.set("category", category);
 
     const response = await fetch(`/api/technique-tags?${params}`);
-    if (!response.ok) return tags;
+    if (!response.ok) {
+      const detail = (await response.json()) as ApiErrorDetail;
+      throw new Error(detail.error.message);
+    }
 
     const data =
       (await response.json()) as PaginatedResponse<TechniqueTagDetail>;
     tags.push(...data.items);
     if (data.items.length < pageSize) return tags;
   }
+}
+
+async function loadTrainingPartners() {
+  const response = await fetch("/api/training-partners?limit=100");
+  if (!response.ok) {
+    const detail = (await response.json()) as ApiErrorDetail;
+    throw new Error(detail.error.message);
+  }
+
+  const data =
+    (await response.json()) as PaginatedResponse<TrainingPartnerDetail>;
+  return data.items
+    .filter((partner) => partner.object === "training_partner")
+    .map(toPartner);
 }
 
 async function createTechniqueTag(input: {

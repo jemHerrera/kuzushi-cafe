@@ -102,7 +102,15 @@ export function CompleteProfile({
         disabled={isSubmitting}
       />
       <div className="flex justify-end">
-        <ButtonPrimary type="submit" disabled={isSubmitting}>
+        <ButtonPrimary
+          type="submit"
+          disabled={
+            isSubmitting ||
+            !isConnected ||
+            !profile.firstName.trim() ||
+            !profile.lastName.trim()
+          }
+        >
           {isSubmitting ? "Saving..." : "Continue"}
         </ButtonPrimary>
       </div>

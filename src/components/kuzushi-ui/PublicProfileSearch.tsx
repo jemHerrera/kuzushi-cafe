@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -22,8 +21,10 @@ import type {
   PaginatedResponse,
   PublicAccountSummary,
 } from "@/lib/managers/types";
-import { AlertBanner } from "./AlertBanner";
 import { Avatar } from "./Avatar";
+import { EmptyState } from "./EmptyState";
+import { ErrorState } from "./ErrorState";
+import { LoadingState } from "./LoadingState";
 import { beltBorderStyles, cx } from "./shared";
 
 export function PublicProfileSearch({
@@ -38,6 +39,7 @@ export function PublicProfileSearch({
   const [profiles, setProfiles] = useState<PublicAccountSummary[]>([]);
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -77,7 +79,7 @@ export function PublicProfileSearch({
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [isOpen, query]);
+  }, [isOpen, query, retryToken]);
 
   function selectProfile(profile: PublicAccountSummary) {
     onSelectProfile?.(profile);
@@ -126,51 +128,66 @@ export function PublicProfileSearch({
           />
           <CommandList className="max-h-96">
             {error ? (
-              <div className="p-3">
-                <AlertBanner message={error} />
-              </div>
+              <ErrorState
+                className="p-3"
+                message={error}
+                onRetry={() => setRetryToken((token) => token + 1)}
+              />
             ) : null}
-            <CommandEmpty>
-              {isLoading ? "Searching profiles..." : "No profiles found."}
-            </CommandEmpty>
-            <CommandGroup heading="">
-              {profiles.map((profile) => (
-                <CommandItem
-                  key={profile.id}
-                  keywords={[
-                    profile.firstName ?? "",
-                    profile.lastName ?? "",
-                    `${profile.firstName} ${profile.lastName}`,
-                    profile.belt ?? "",
-                    profile.relationshipStatus ?? "",
-                  ]}
-                  value={profile.id}
-                  className="min-h-10 gap-3 rounded-md px-3 py-2 cursor-pointer"
-                  onSelect={() => selectProfile(profile)}
-                >
-                  <span
-                    className={cx(
-                      "inline-flex shrink-0 rounded-full border-[3px] p-0",
-                      beltBorderStyles[profile.belt ?? "unknown"],
-                    )}
+            {isLoading ? (
+              <LoadingState
+                className="p-3"
+                label="Searching public profiles"
+                rows={4}
+              />
+            ) : null}
+            {!isLoading && !error && profiles.length === 0 ? (
+              <EmptyState
+                body="Try a different name or search term."
+                className="m-3 py-8"
+                title="No profiles found"
+              />
+            ) : null}
+            {!isLoading && !error ? (
+              <CommandGroup heading="">
+                {profiles.map((profile) => (
+                  <CommandItem
+                    key={profile.id}
+                    keywords={[
+                      profile.firstName ?? "",
+                      profile.lastName ?? "",
+                      `${profile.firstName} ${profile.lastName}`,
+                      profile.belt ?? "",
+                      profile.relationshipStatus ?? "",
+                    ]}
+                    value={profile.id}
+                    className="min-h-10 gap-3 rounded-md px-3 py-2 cursor-pointer"
+                    onSelect={() => selectProfile(profile)}
                   >
-                    <Avatar
-                      initials={initialsForProfile(profile)}
-                      src={profile.profilePhoto}
-                      size="xs"
-                    />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-zinc-950">
-                      {displayName(profile)}
+                    <span
+                      className={cx(
+                        "inline-flex shrink-0 rounded-full border-[3px] p-0",
+                        beltBorderStyles[profile.belt ?? "unknown"],
+                      )}
+                    >
+                      <Avatar
+                        initials={initialsForProfile(profile)}
+                        src={profile.profilePhoto}
+                        size="xs"
+                      />
                     </span>
-                    <span className="block truncate text-xs text-zinc-500">
-                      {relationshipLabel(profile.relationshipStatus)}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-zinc-950">
+                        {displayName(profile)}
+                      </span>
+                      <span className="block truncate text-xs text-zinc-500">
+                        {relationshipLabel(profile.relationshipStatus)}
+                      </span>
                     </span>
-                  </span>
-                </CommandItem>
-              ))}
-            </CommandGroup>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ) : null}
           </CommandList>
         </Command>
       </DialogContent>

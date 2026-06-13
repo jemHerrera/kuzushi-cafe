@@ -4,16 +4,6 @@ import { format, parseISO } from "date-fns";
 import { Ellipsis, Pencil, Trash2, UserRound } from "lucide-react";
 import { useState } from "react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -27,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { ApiErrorDetail } from "@/lib/managers/types";
 import { Avatar } from "./Avatar";
+import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
 import { JournalEntryUpdate } from "./JournalEntryUpdate";
 import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import {
@@ -52,33 +43,18 @@ export function JournalEntryRow({
 }: JournalEntryRowProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string>();
 
   async function deleteEntry() {
-    setDeleteError(undefined);
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/journal-entries/${entry.id}`, {
-        method: "DELETE",
-      });
+    const response = await fetch(`/api/journal-entries/${entry.id}`, {
+      method: "DELETE",
+    });
 
-      if (!response.ok) {
-        const detail = (await response.json()) as ApiErrorDetail;
-        throw new Error(detail.error.message);
-      }
-
-      setIsDeleteOpen(false);
-      onDeleted?.();
-    } catch (error) {
-      setDeleteError(
-        error instanceof Error
-          ? error.message
-          : "We could not delete this journal entry.",
-      );
-    } finally {
-      setIsDeleting(false);
+    if (!response.ok) {
+      const detail = (await response.json()) as ApiErrorDetail;
+      throw new Error(detail.error.message);
     }
+
+    onDeleted?.();
   }
 
   return (
@@ -209,37 +185,15 @@ export function JournalEntryRow({
         </Dialog>
       ) : null}
       {!readOnly ? (
-        <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete this journal entry?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This journal entry will be permanently removed. This action
-                cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            {deleteError ? (
-              <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-900">
-                {deleteError}
-              </p>
-            ) : null}
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction
-                className="bg-red-600 text-white hover:bg-red-700"
-                disabled={isDeleting}
-                onClick={(event) => {
-                  event.preventDefault();
-                  deleteEntry();
-                }}
-              >
-                {isDeleting ? "Deleting..." : "Delete entry"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <DestructiveConfirmDialog
+          actionLabel="Delete entry"
+          description="This journal entry will be permanently removed. This action cannot be undone."
+          onConfirm={deleteEntry}
+          onOpenChange={setIsDeleteOpen}
+          open={isDeleteOpen}
+          pendingLabel="Deleting..."
+          title="Delete this journal entry?"
+        />
       ) : null}
     </>
   );

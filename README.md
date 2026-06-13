@@ -118,7 +118,7 @@ protocol-relative destinations are discarded.
 - [x] Build saved-technique UI with search, add, edit, delete, category pills, and "create saved tag" flows from journal forms.
 - [x] Build notification UI with list pagination, deep links, mark-read, mark-all-read, empty state, loading state, error state, and retry.
 - [x] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
-- [ ] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.
+- [x] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.
 - [ ] Add integration tests for managers, endpoint authorization, journal-entry invariants, privacy scoping, training-partner relationships, and donation status handling.
 - [ ] Add /privacy-policy and /terms-of-service
 - [ ] Add end-to-end tests for sign-in, profile completion, journal entry CRUD, filters and sorting, training-partner requests, public profile visibility, saved techniques, notifications, and donation checkout return flows.

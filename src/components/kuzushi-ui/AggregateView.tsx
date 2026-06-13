@@ -1,7 +1,5 @@
-import { Plus } from "lucide-react";
-
 import type { AggregateStatsDetail, Category } from "@/lib/managers/types";
-import { ButtonPrimary } from "./ButtonPrimary";
+import { EmptyState } from "./EmptyState";
 import type {
   AggregateTimeline,
   AggregateTypeFilter,
@@ -85,23 +83,11 @@ export function AggregateView({
           </div>
         </>
       ) : (
-        <div className="rounded-lg border border-dashed border-zinc-300 px-6 py-10 text-center">
-          <h3 className="text-base font-bold text-zinc-950">
-            No aggregate data yet
-          </h3>
-          <p className="mx-auto mt-2 max-w-sm text-sm text-zinc-600">
-            Charts appear after journal entries matching these filters are
-            created.
-          </p>
-          {onAddEntry ? (
-            <div className="mt-4">
-              <ButtonPrimary onClick={onAddEntry} type="button">
-                <Plus className="size-4" />
-                Add journal entry
-              </ButtonPrimary>
-            </div>
-          ) : null}
-        </div>
+        <EmptyState
+          body="Charts appear after journal entries matching these filters are created."
+          onAction={onAddEntry}
+          title="No aggregate data yet"
+        />
       )}
     </section>
   );

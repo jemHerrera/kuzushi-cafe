@@ -15,7 +15,8 @@ import type {
   PaginatedResponse,
   TechniqueTagDetail,
 } from "@/lib/managers/types";
-import { AlertBanner } from "./AlertBanner";
+import { EmptyState } from "./EmptyState";
+import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 import { SavedTechniqueTagItem } from "./SavedTechniqueTagItem";
@@ -143,7 +144,9 @@ export function SavedTechniqueTagList({
       if (!response.ok) throw await apiError(response);
       setRefreshToken((token) => token + 1);
     } catch (deleteError) {
-      setError(messageFor(deleteError, "We could not delete this technique."));
+      throw new Error(
+        messageFor(deleteError, "We could not delete this technique."),
+      );
     } finally {
       setMutationId(undefined);
     }
@@ -164,19 +167,11 @@ export function SavedTechniqueTagList({
         />
       </div>
       {error ? (
-        <div className="grid gap-2 p-2">
-          <AlertBanner
-            className="border-red-200 bg-red-50 text-red-900"
-            message={error}
-          />
-          <Button
-            className="justify-self-start"
-            variant="outline"
-            onClick={() => setRefreshToken((token) => token + 1)}
-          >
-            Retry
-          </Button>
-        </div>
+        <ErrorState
+          className="p-2"
+          message={error}
+          onRetry={() => setRefreshToken((token) => token + 1)}
+        />
       ) : null}
       {isLoading ? (
         <div className="p-2">
@@ -185,7 +180,23 @@ export function SavedTechniqueTagList({
       ) : null}
       {!isLoading && !error ? (
         <CommandList className="max-h-none min-h-0 flex-1 p-1">
-          <CommandEmpty>No saved techniques found.</CommandEmpty>
+          <CommandEmpty className="py-2">
+            <EmptyState
+              body={
+                debouncedQuery
+                  ? "Try a different search term."
+                  : "Add techniques you want to reuse in journal entries."
+              }
+              className="mx-1"
+              onAction={debouncedQuery ? undefined : () => setIsAddOpen(true)}
+              actionLabel="Add saved technique"
+              title={
+                debouncedQuery
+                  ? "No saved techniques found"
+                  : "No saved techniques yet"
+              }
+            />
+          </CommandEmpty>
           <CommandGroup className="grid gap-1.5">
             {techniques.map((technique) => (
               <CommandItem

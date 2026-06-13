@@ -109,7 +109,14 @@ export function MyProfile({
             disabled={isSubmitting}
           />
           <div className="flex justify-end">
-            <ButtonPrimary type="submit" disabled={isSubmitting}>
+            <ButtonPrimary
+              type="submit"
+              disabled={
+                isSubmitting ||
+                !profile.firstName.trim() ||
+                !profile.lastName.trim()
+              }
+            >
               {isSubmitting ? "Saving..." : "Save profile"}
             </ButtonPrimary>
           </div>

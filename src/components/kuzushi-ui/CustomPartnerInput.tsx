@@ -7,9 +7,11 @@ import {
   Plus,
   Scale,
   UserRound,
+  X,
 } from "lucide-react";
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import type {
   AgeClass,
   ApiErrorDetail,
@@ -36,11 +38,13 @@ export function CustomPartnerInput({
   onBack,
   onClose,
   onCreated,
+  presentation = "modal",
   withinDialog = false,
 }: {
   onBack?: () => void;
   onClose?: () => void;
   onCreated?: (partner: TrainingPartnerDetail) => void;
+  presentation?: "modal" | "sheet";
   withinDialog?: boolean;
 }) {
   const [firstName, setFirstName] = useState("");
@@ -89,13 +93,8 @@ export function CustomPartnerInput({
     }
   }
 
-  return (
-    <ModalFrame
-      title="Add custom partner"
-      onClose={onClose}
-      withinDialog={withinDialog}
-      className="p-3 sm:p-5"
-    >
+  const content = (
+    <>
       <button
         className="inline-flex w-fit items-center gap-2 rounded-md text-sm font-semibold text-zinc-700 transition hover:text-zinc-950 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         onClick={onBack}
@@ -184,6 +183,41 @@ export function CustomPartnerInput({
           </ButtonPrimary>
         </div>
       </form>
+    </>
+  );
+
+  if (presentation === "sheet") {
+    return (
+      <section className="flex h-full min-h-0 flex-col overflow-y-auto bg-white">
+        <div className="flex items-center justify-between gap-3 p-4 pb-0">
+          <h2 className="text-lg font-bold text-zinc-950">
+            Add custom partner
+          </h2>
+          <Button
+            aria-label="Close"
+            title="Close"
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            className="rounded-md text-zinc-700"
+            onClick={onClose}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+        <div className="grid gap-4 p-4">{content}</div>
+      </section>
+    );
+  }
+
+  return (
+    <ModalFrame
+      title="Add custom partner"
+      onClose={onClose}
+      withinDialog={withinDialog}
+      className="p-3 sm:p-5"
+    >
+      {content}
     </ModalFrame>
   );
 }

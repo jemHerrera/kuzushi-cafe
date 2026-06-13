@@ -9,6 +9,7 @@ export function TrainingPartnerInput({
   showLabel = true,
   variant = "default",
   ariaLabel,
+  disabled = false,
 }: {
   partners?: Partner[];
   value?: Partner | null;
@@ -17,11 +18,13 @@ export function TrainingPartnerInput({
   showLabel?: boolean;
   variant?: "default" | "property";
   ariaLabel?: string;
+  disabled?: boolean;
 } = {}) {
   if (!showLabel) {
     return (
       <TrainingPartnerSelectMenu
         ariaLabel={ariaLabel}
+        disabled={disabled}
         partners={partners}
         value={value}
         onSelectPartner={onSelectPartner}
@@ -38,6 +41,7 @@ export function TrainingPartnerInput({
       </span>
       <TrainingPartnerSelectMenu
         ariaLabel={ariaLabel}
+        disabled={disabled}
         partners={partners}
         value={value}
         onSelectPartner={onSelectPartner}

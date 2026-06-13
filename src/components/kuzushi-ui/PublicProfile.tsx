@@ -3,16 +3,6 @@
 import { Ban, Check, UserMinus, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import type {
   ApiErrorDetail,
   PublicAccountSummary,
@@ -23,6 +13,8 @@ import { AggregateOverview } from "./AggregateOverview";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
+import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
+import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 import { beltBorderStyles, cx, formatBelt } from "./shared";
@@ -53,6 +45,7 @@ export function PublicProfile({
   const [isLoading, setIsLoading] = useState(!initialProfile);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirming, setConfirming] = useState<DestructiveAction | null>(null);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     if (initialProfile) return;
@@ -90,12 +83,13 @@ export function PublicProfile({
     return () => {
       isActive = false;
     };
-  }, [accountId, initialProfile]);
+  }, [accountId, initialProfile, retryToken]);
 
   async function runAction(
     label: string,
     request: () => Promise<Response>,
     nextStatus?: TrainingPartnerRelationshipStatus,
+    rethrow = false,
   ) {
     setError(undefined);
     setMessage(undefined);
@@ -116,14 +110,14 @@ export function PublicProfile({
       setMessage(label);
       onRelationshipChange?.();
     } catch (actionError) {
-      setError(
+      const actionMessage =
         actionError instanceof Error
           ? actionError.message
-          : "We could not update this relationship.",
-      );
+          : "We could not update this relationship.";
+      if (rethrow) throw new Error(actionMessage);
+      setError(actionMessage);
     } finally {
       setIsSubmitting(false);
-      setConfirming(null);
     }
   }
 
@@ -136,8 +130,17 @@ export function PublicProfile({
       withinDialog={withinDialog}
       className="p-3 sm:p-5"
     >
-      {isLoading ? <LoadingState label="Loading public profile" /> : null}
-      {error ? <AlertBanner message={error} /> : null}
+      {isLoading ? (
+        <LoadingState label="Loading public profile" variant="profile" />
+      ) : null}
+      {error ? (
+        <ErrorState
+          message={error}
+          onRetry={
+            profile ? undefined : () => setRetryToken((token) => token + 1)
+          }
+        />
+      ) : null}
       {message ? <AlertBanner message={message} /> : null}
       {profile ? (
         <section className="grid gap-5">
@@ -226,56 +229,42 @@ export function PublicProfile({
           </section>
         </section>
       ) : null}
-      <AlertDialog
+      <DestructiveConfirmDialog
+        actionLabel={confirming === "block" ? "Block" : "Remove"}
+        description={
+          confirming === "block"
+            ? "They will not be able to request you as a training partner until you unblock them."
+            : "This removes the accepted relationship for both accounts."
+        }
+        disabled={isSubmitting}
+        onConfirm={async () => {
+          if (confirming === "block") {
+            await runAction(
+              "Account blocked.",
+              () =>
+                fetch(`/api/training-partners/${accountId}/block`, {
+                  method: "POST",
+                }),
+              "blocked",
+              true,
+            );
+            return;
+          }
+
+          await runAction(
+            "Training partner removed.",
+            () => removeAcceptedPartner(accountId),
+            "removed",
+            true,
+          );
+        }}
         open={confirming !== null}
         onOpenChange={(open) => {
           if (!open) setConfirming(null);
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {confirming === "block" ? `Block ${name}?` : `Remove ${name}?`}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirming === "block"
-                ? "They will not be able to request you as a training partner until you unblock them."
-                : "This removes the accepted relationship for both accounts."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isSubmitting}
-              variant="destructive"
-              onClick={(event) => {
-                event.preventDefault();
-                if (confirming === "block") {
-                  runAction(
-                    "Account blocked.",
-                    () =>
-                      fetch(`/api/training-partners/${accountId}/block`, {
-                        method: "POST",
-                      }),
-                    "blocked",
-                  );
-                  return;
-                }
-
-                runAction(
-                  "Training partner removed.",
-                  () => removeAcceptedPartner(accountId),
-                  "removed",
-                );
-              }}
-            >
-              {confirming === "block" ? "Block" : "Remove"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        pendingLabel={confirming === "block" ? "Blocking..." : "Removing..."}
+        title={confirming === "block" ? `Block ${name}?` : `Remove ${name}?`}
+      />
     </ModalFrame>
   );
 }

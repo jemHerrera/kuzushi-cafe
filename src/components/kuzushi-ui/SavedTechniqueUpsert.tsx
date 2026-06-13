@@ -115,6 +115,7 @@ export function SavedTechniqueUpsert({
         }}
       />
       <TechniqueCategoryPillSelect
+        disabled={isSaving}
         value={category}
         onValueChange={setCategory}
       />

@@ -18,6 +18,7 @@ type TechniqueTagSelectMenuProps = {
   placeholder?: string;
   ariaLabel?: string;
   variant?: "default" | "property" | "table";
+  disabled?: boolean;
   onSelectTechnique?: (technique: Technique) => void;
   onCreateSavedTag?: (input: {
     label: string;
@@ -33,6 +34,7 @@ export function TechniqueTagSelectMenu({
   placeholder = "Select technique",
   ariaLabel,
   variant = "default",
+  disabled = false,
   onSelectTechnique,
   onCreateSavedTag,
 }: TechniqueTagSelectMenuProps) {
@@ -130,12 +132,13 @@ export function TechniqueTagSelectMenu({
         trigger={
           <button
             type="button"
+            disabled={disabled}
             aria-label={`${ariaLabel ?? "Technique"}: ${selectedTechnique?.name ?? placeholder}`}
             aria-controls={isOpen ? listboxId : undefined}
             aria-expanded={isOpen}
             aria-haspopup="listbox"
             className={cn(
-              "flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              "flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-zinc-200 bg-white px-3 py-2 text-left text-sm text-zinc-900 shadow-sm transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50",
               variant === "property" &&
                 "min-h-10 border-transparent bg-transparent px-2 py-1 shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:ring-2",
               variant === "table" &&

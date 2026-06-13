@@ -8,7 +8,8 @@ import type {
   NotificationDetail,
   PaginatedResponse,
 } from "@/lib/managers/types";
-import { AlertBanner } from "./AlertBanner";
+import { EmptyState } from "./EmptyState";
+import { ErrorState } from "./ErrorState";
 import { JournalEntryPagination } from "./JournalEntryPagination";
 import { LoadingState } from "./LoadingState";
 import { NotificationItem } from "./NotificationItem";
@@ -144,32 +145,20 @@ export function NotificationList({
         </Button>
       </div>
       {error ? (
-        <div className="grid gap-2">
-          <AlertBanner
-            className="border-red-200 bg-red-50 text-red-900"
-            message={error}
-          />
-          <Button
-            className="justify-self-start"
-            variant="outline"
-            onClick={() => setRefreshToken((token) => token + 1)}
-          >
-            Retry
-          </Button>
-        </div>
+        <ErrorState
+          message={error}
+          onRetry={() => setRefreshToken((token) => token + 1)}
+        />
       ) : null}
       {isLoading ? <LoadingState label="Loading notifications" /> : null}
       {!isLoading && !error && visibleNotifications.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-300 px-4 py-10 text-center">
-          <h4 className="text-sm font-semibold text-zinc-950">
-            No notifications
-          </h4>
-          <p className="mt-1 text-sm text-zinc-500">
-            New activity will appear here.
-          </p>
-        </div>
+        <EmptyState
+          body="New activity will appear here."
+          className="px-4 py-10"
+          title="No notifications"
+        />
       ) : null}
-      {!isLoading
+      {!isLoading && !error
         ? visibleNotifications.map((notification) => (
             <NotificationItem
               key={notification.id}
@@ -183,7 +172,7 @@ export function NotificationList({
             />
           ))
         : null}
-      {!isLoading && visibleNotifications.length > 0 ? (
+      {!isLoading && !error && visibleNotifications.length > 0 ? (
         <JournalEntryPagination
           page={page}
           hasNext={hasNext}

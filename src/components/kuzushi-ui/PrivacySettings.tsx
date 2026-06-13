@@ -11,6 +11,7 @@ import type {
 } from "@/lib/managers/types";
 import { AlertBanner } from "./AlertBanner";
 import { ButtonPrimary } from "./ButtonPrimary";
+import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 
@@ -48,15 +49,17 @@ export function PrivacySettings({
   const [settings, setSettings] =
     useState<PrivacySettingsValue>(defaultSettings);
   const [error, setError] = useState<string>();
+  const [loadError, setLoadError] = useState<string>();
   const [message, setMessage] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let isActive = true;
 
     async function loadSettings() {
-      setError(undefined);
+      setLoadError(undefined);
       try {
         const response = await fetch("/api/account/privacy");
         if (!response.ok) {
@@ -78,7 +81,7 @@ export function PrivacySettings({
         });
       } catch (loadError) {
         if (!isActive) return;
-        setError(
+        setLoadError(
           loadError instanceof Error
             ? loadError.message
             : "We could not load privacy settings.",
@@ -93,7 +96,7 @@ export function PrivacySettings({
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [retryToken]);
 
   function updateSetting(key: PrivacyKey, visibility: PrivacyType) {
     setMessage(undefined);
@@ -137,7 +140,16 @@ export function PrivacySettings({
       className="p-3 sm:p-5"
     >
       {isLoading ? (
-        <LoadingState label="Loading privacy settings" />
+        <LoadingState
+          label="Loading privacy settings"
+          rows={5}
+          variant="form"
+        />
+      ) : loadError ? (
+        <ErrorState
+          message={loadError}
+          onRetry={() => setRetryToken((token) => token + 1)}
+        />
       ) : (
         <form className="grid gap-4" onSubmit={submitSettings}>
           {error ? <AlertBanner message={error} /> : null}
@@ -155,6 +167,7 @@ export function PrivacySettings({
                   aria-label={`${label} visibility`}
                   className="grid grid-cols-3 gap-1 rounded-md bg-zinc-100 p-1"
                   value={settings[key]}
+                  disabled={isSubmitting}
                   onValueChange={(value) =>
                     updateSetting(key, value as PrivacyType)
                   }

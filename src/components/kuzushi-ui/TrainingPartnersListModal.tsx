@@ -1,18 +1,17 @@
 "use client";
 
-import { Ban, Check, Inbox, Plus, UserMinus, UsersRound } from "lucide-react";
+import {
+  Ban,
+  Check,
+  Inbox,
+  Plus,
+  UserMinus,
+  UsersRound,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   AccountDetail,
@@ -27,16 +26,13 @@ import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { CustomPartnerInput } from "./CustomPartnerInput";
+import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
+import { EmptyState } from "./EmptyState";
+import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 import { TrainingPartnerSearch } from "./TrainingPartnerSearch";
-import {
-  beltBorderStyles,
-  cx,
-  formatAgeClass,
-  formatBelt,
-  formatWeightClass,
-} from "./shared";
+import { beltBorderStyles, cx, formatBelt, formatWeightClass } from "./shared";
 
 type ConfirmAction =
   | { type: "remove"; partner: TrainingPartnerDetail }
@@ -46,11 +42,13 @@ export function TrainingPartnersListModal({
   onClose,
   onTitleChange,
   onSelectPartner,
+  presentation = "modal",
   withinDialog = false,
 }: {
   onClose?: () => void;
   onTitleChange?: (title: string) => void;
   onSelectPartner?: (partner: PublicAccountSummary) => void;
+  presentation?: "modal" | "sheet";
   withinDialog?: boolean;
 }) {
   const [view, setView] = useState<"list" | "custom">("list");
@@ -153,6 +151,7 @@ export function TrainingPartnersListModal({
     label: string,
     request: () => Promise<Response>,
     refresh: () => Promise<void>,
+    rethrow = false,
   ) {
     setError(undefined);
     setMessage(undefined);
@@ -167,14 +166,14 @@ export function TrainingPartnersListModal({
       setMessage(label);
       await refresh();
     } catch (actionError) {
-      setError(
+      const actionMessage =
         actionError instanceof Error
           ? actionError.message
-          : "We could not update this relationship.",
-      );
+          : "We could not update this relationship.";
+      if (rethrow) throw new Error(actionMessage);
+      setError(actionMessage);
     } finally {
       setIsSubmitting(false);
-      setConfirming(null);
     }
   }
 
@@ -187,19 +186,21 @@ export function TrainingPartnersListModal({
           setMessage("Custom training partner added.");
           loadPartners();
         }}
+        presentation={presentation}
         withinDialog={withinDialog}
       />
     );
   }
 
-  return (
-    <ModalFrame
-      title="My training partners"
-      onClose={onClose}
-      withinDialog={withinDialog}
-    >
-      <div className="flex min-h-80 flex-col gap-4">
-        {error ? <AlertBanner message={error} /> : null}
+  const content = (
+    <>
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
+        {error ? (
+          <ErrorState
+            message={error}
+            onRetry={activeTab === "partners" ? loadPartners : loadRequests}
+          />
+        ) : null}
         {message ? <AlertBanner message={message} /> : null}
         <Tabs
           className="min-h-0 flex-1"
@@ -214,24 +215,28 @@ export function TrainingPartnersListModal({
               className="h-8 gap-2 rounded-full border border-zinc-200 bg-white px-4 data-[state=active]:border-zinc-950 data-[state=active]:bg-zinc-950 data-[state=active]:text-white"
             >
               <UsersRound className="size-4" />
-              Training Partners
+              Partners
             </TabsTrigger>
             <TabsTrigger
               value="requests"
               className="h-8 gap-2 rounded-full border border-zinc-200 bg-white px-4 data-[state=active]:border-zinc-950 data-[state=active]:bg-zinc-950 data-[state=active]:text-white"
             >
               <Inbox className="size-4" />
-              Partner Requests
+              Requests
             </TabsTrigger>
           </TabsList>
           <TabsContent
             value="partners"
             className="mt-1 flex min-h-0 flex-1 flex-col gap-3"
           >
-            <TrainingPartnerSearch value={query} onValueChange={setQuery} />
+            <TrainingPartnerSearch
+              disabled={isSubmitting}
+              value={query}
+              onValueChange={setQuery}
+            />
             {isPartnersLoading ? (
               <LoadingState label="Loading training partners" />
-            ) : (
+            ) : !error ? (
               <PartnerList>
                 {partners.length ? (
                   partners.map((partner) => (
@@ -259,23 +264,32 @@ export function TrainingPartnersListModal({
                     />
                   ))
                 ) : (
-                  <EmptyListText>No training partners found.</EmptyListText>
+                  <EmptyState
+                    body={
+                      query.trim()
+                        ? "Try a different search term."
+                        : "Add a registered account or create a custom training partner."
+                    }
+                    className="py-8"
+                    title="No training partners found"
+                  />
                 )}
               </PartnerList>
-            )}
+            ) : null}
             <ButtonPrimary
               className="mt-auto w-full"
+              disabled={isSubmitting}
               onClick={openCustomPartner}
               type="button"
             >
               <Plus className="size-4" />
-              Add custom training partner
+              Add Custom
             </ButtonPrimary>
           </TabsContent>
           <TabsContent value="requests" className="mt-1 grid gap-3">
             {isRequestsLoading ? (
               <LoadingState label="Loading partner requests" />
-            ) : (
+            ) : !error ? (
               <PartnerList>
                 {inbound.length ? (
                   inbound.map((account) => (
@@ -324,74 +338,101 @@ export function TrainingPartnersListModal({
                     />
                   ))
                 ) : (
-                  <EmptyListText>No inbound requests.</EmptyListText>
+                  <EmptyState
+                    body="New requests from other grapplers will appear here."
+                    className="py-8"
+                    title="No inbound requests"
+                  />
                 )}
               </PartnerList>
-            )}
+            ) : null}
           </TabsContent>
         </Tabs>
       </div>
-      <AlertDialog
+      <DestructiveConfirmDialog
+        actionLabel={confirming?.type === "block" ? "Block" : "Remove"}
+        description={
+          confirming?.type === "block"
+            ? "Blocked accounts cannot send you training-partner requests until you unblock them."
+            : "This removes the partner from your accepted training-partner list."
+        }
+        disabled={isSubmitting}
+        onConfirm={async () => {
+          if (!confirming) return;
+          if (confirming.type === "block") {
+            await runAction(
+              "Account blocked.",
+              () =>
+                fetch(`/api/training-partners/${confirming.account.id}/block`, {
+                  method: "POST",
+                }),
+              async () => {
+                await Promise.all([loadPartners(), loadRequests()]);
+              },
+              true,
+            );
+            return;
+          }
+
+          await runAction(
+            "Training partner removed.",
+            () =>
+              fetch(`/api/training-partners/${confirming.partner.id}`, {
+                method: "DELETE",
+              }),
+            loadPartners,
+            true,
+          );
+        }}
         open={confirming !== null}
         onOpenChange={(open) => {
           if (!open) setConfirming(null);
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {confirming?.type === "block"
-                ? `Block ${displayAccountName(confirming.account)}?`
-                : `Remove ${confirming ? displayPartnerName(confirming.partner) : "partner"}?`}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {confirming?.type === "block"
-                ? "Blocked accounts cannot send you training-partner requests until you unblock them."
-                : "This removes the partner from your accepted training-partner list."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isSubmitting}
-              variant="destructive"
-              onClick={(event) => {
-                event.preventDefault();
-                if (!confirming) return;
-                if (confirming.type === "block") {
-                  runAction(
-                    "Account blocked.",
-                    () =>
-                      fetch(
-                        `/api/training-partners/${confirming.account.id}/block`,
-                        {
-                          method: "POST",
-                        },
-                      ),
-                    async () => {
-                      await Promise.all([loadPartners(), loadRequests()]);
-                    },
-                  );
-                  return;
-                }
+        pendingLabel={
+          confirming?.type === "block" ? "Blocking..." : "Removing..."
+        }
+        title={
+          confirming?.type === "block"
+            ? `Block ${displayAccountName(confirming.account)}?`
+            : `Remove ${confirming ? displayPartnerName(confirming.partner) : "partner"}?`
+        }
+      />
+    </>
+  );
 
-                runAction(
-                  "Training partner removed.",
-                  () =>
-                    fetch(`/api/training-partners/${confirming.partner.id}`, {
-                      method: "DELETE",
-                    }),
-                  loadPartners,
-                );
-              }}
-            >
-              {confirming?.type === "block" ? "Block" : "Remove"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+  if (presentation === "sheet") {
+    return (
+      <section className="flex h-full min-h-0 flex-col bg-white">
+        <div className="flex items-center justify-between gap-3 p-4 pb-0">
+          <h2 className="text-lg font-bold text-zinc-950">
+            My training partners
+          </h2>
+          <Button
+            aria-label="Close"
+            title="Close"
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            className="rounded-md text-zinc-700"
+            onClick={onClose}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+          {content}
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <ModalFrame
+      title="My training partners"
+      onClose={onClose}
+      withinDialog={withinDialog}
+    >
+      {content}
     </ModalFrame>
   );
 }
@@ -414,7 +455,7 @@ function TrainingPartnerRow({
   partner: TrainingPartnerDetail;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-md border border-zinc-200 bg-white p-2">
+    <div className="flex flex-wrap items-center gap-2 bg-white p-2">
       <ProfileButton
         belt={partner.belt}
         disabled={disabled || partner.object !== "training_partner"}
@@ -434,8 +475,13 @@ function TrainingPartnerRow({
             Block
           </ButtonSecondary>
         ) : null}
-        <ButtonSecondary type="button" onClick={onRemove} disabled={disabled}>
-          <UserMinus className="size-4" />
+        <ButtonSecondary
+          className="h-8 gap-1.5 px-3 text-xs"
+          type="button"
+          onClick={onRemove}
+          disabled={disabled}
+        >
+          <UserMinus className="size-3.5" />
           Remove
         </ButtonSecondary>
       </div>
@@ -509,12 +555,6 @@ function ProfileButton({
   );
 }
 
-function EmptyListText({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="rounded-md px-2 py-2 text-sm text-zinc-500">{children}</p>
-  );
-}
-
 function partnerToPublicSummary(
   partner: Extract<TrainingPartnerDetail, { object: "training_partner" }>,
 ): PublicAccountSummary {
@@ -564,7 +604,6 @@ function partnerMeta(partner: TrainingPartnerDetail) {
   return [
     partner.belt ? `${formatBelt(partner.belt)} belt` : undefined,
     partner.weight ? formatWeightClass(partner.weight) : undefined,
-    partner.age ? formatAgeClass(partner.age) : undefined,
   ]
     .filter(Boolean)
     .join(" / ");

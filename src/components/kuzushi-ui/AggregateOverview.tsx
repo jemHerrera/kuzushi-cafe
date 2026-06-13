@@ -8,14 +8,14 @@ import type {
   Category,
   JournalType,
 } from "@/lib/managers/types";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AggregateView } from "./AggregateView";
 import {
   AggregateViewFilters,
   type AggregateTimeline,
   type AggregateTypeFilter,
 } from "./AggregateViewFilters";
-import { AlertBanner } from "./AlertBanner";
-import { ButtonSecondary } from "./ButtonSecondary";
+import { ErrorState } from "./ErrorState";
 
 export const sampleAggregate: AggregateStatsDetail = {
   object: "aggregate_stats",
@@ -137,19 +137,10 @@ export function AggregateOverview({
         onTypeFilterChange={setTypeFilter}
       />
       {error ? (
-        <div className="grid gap-2">
-          <AlertBanner
-            className="border-red-200 bg-red-50 text-red-900"
-            message={error}
-          />
-          <ButtonSecondary
-            className="w-fit"
-            onClick={() => setRetryToken((token) => token + 1)}
-            type="button"
-          >
-            Retry
-          </ButtonSecondary>
-        </div>
+        <ErrorState
+          message={error}
+          onRetry={() => setRetryToken((token) => token + 1)}
+        />
       ) : null}
       {isLoading ? (
         <AggregateLoadingState />
@@ -183,15 +174,15 @@ function AggregateLoadingState() {
       className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4"
     >
       <div className="grid gap-2">
-        <div className="h-6 w-32 animate-pulse rounded bg-zinc-100" />
-        <div className="h-4 w-64 max-w-full animate-pulse rounded bg-zinc-100" />
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-4 w-64 max-w-full" />
       </div>
-      <div className="h-72 animate-pulse rounded-lg bg-zinc-100" />
+      <Skeleton className="h-72 rounded-lg" />
       <div className="grid gap-3">
         {[1, 2, 3].map((item) => (
           <div key={item} className="grid gap-2">
-            <div className="h-4 animate-pulse rounded bg-zinc-100" />
-            <div className="h-2 animate-pulse rounded bg-zinc-100" />
+            <Skeleton className="h-4" />
+            <Skeleton className="h-2" />
           </div>
         ))}
       </div>

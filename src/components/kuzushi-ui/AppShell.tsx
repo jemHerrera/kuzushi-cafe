@@ -30,7 +30,10 @@ import { SidePanel, type SidePanelAction } from "./SidePanel";
 import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
 
 type ShellModal =
-  | Exclude<SidePanelAction, "profile" | "saved-techniques">
+  | Exclude<
+      SidePanelAction,
+      "profile" | "saved-techniques" | "training-partners"
+    >
   | "profile"
   | "public-profile";
 
@@ -38,7 +41,6 @@ const modalDescriptions: Record<ShellModal, string> = {
   profile: "View and update your profile details.",
   "new-entry":
     "Add a journal entry with technique, partner, and training details.",
-  "training-partners": "Search, review, and manage your training partners.",
   settings: "Choose who can view your profile and journal activity.",
   donation: "Choose a donation amount to support Kuzushi Cafe.",
   "public-profile": "View a public profile and manage relationship state.",
@@ -54,6 +56,7 @@ export function AppShell({ account }: { account: AccountDetail }) {
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSavedTechniquesOpen, setIsSavedTechniquesOpen] = useState(false);
+  const [isTrainingPartnersOpen, setIsTrainingPartnersOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] =
     useState<PublicAccountSummary | null>(null);
   const profileAccountId = searchParams.get("profile")?.trim() || undefined;
@@ -73,6 +76,10 @@ export function AppShell({ account }: { account: AccountDetail }) {
     setIsNavigationOpen(false);
     if (action === "saved-techniques") {
       setIsSavedTechniquesOpen(true);
+      return;
+    }
+    if (action === "training-partners") {
+      setIsTrainingPartnersOpen(true);
       return;
     }
     setActiveModal(action);
@@ -194,6 +201,30 @@ export function AppShell({ account }: { account: AccountDetail }) {
         </SheetContent>
       </Sheet>
 
+      <Sheet
+        open={isTrainingPartnersOpen}
+        onOpenChange={setIsTrainingPartnersOpen}
+      >
+        <SheetContent
+          className="w-full p-0 sm:max-w-md"
+          side="left"
+          showCloseButton={false}
+        >
+          <SheetTitle className="sr-only">Training partners</SheetTitle>
+          <SheetDescription className="sr-only">
+            Search, review, and manage your training partners.
+          </SheetDescription>
+          <TrainingPartnersListModal
+            onClose={() => setIsTrainingPartnersOpen(false)}
+            onSelectPartner={(profile) => {
+              setIsTrainingPartnersOpen(false);
+              openPublicProfile(profile);
+            }}
+            presentation="sheet"
+          />
+        </SheetContent>
+      </Sheet>
+
       <Dialog
         open={displayedModal !== null}
         onOpenChange={(open) => {
@@ -229,13 +260,6 @@ export function AppShell({ account }: { account: AccountDetail }) {
             <JournalEntryCreate
               onClose={closeModal}
               onSaved={() => setJournalRefreshToken((token) => token + 1)}
-              withinDialog
-            />
-          ) : null}
-          {displayedModal === "training-partners" ? (
-            <TrainingPartnersListModal
-              onClose={closeModal}
-              onSelectPartner={openPublicProfile}
               withinDialog
             />
           ) : null}

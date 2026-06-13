@@ -145,7 +145,7 @@ export function SignInForm({
           <Button
             type="submit"
             className="h-11 font-semibold"
-            disabled={Boolean(pendingProvider)}
+            disabled={Boolean(pendingProvider) || !email.trim()}
           >
             {pendingProvider === "magic-link"
               ? "Sending link..."
