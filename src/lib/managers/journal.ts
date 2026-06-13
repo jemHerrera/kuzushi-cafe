@@ -251,9 +251,7 @@ export class JournalEntryManager {
       throw new ManagerError("journal_entries_failed", error.message, 500);
     }
 
-    let items = await Promise.all(
-      (data ?? []).map((row) => this.withPartner(row)),
-    );
+    let items = await this.withPartners(data ?? []);
     if (needsClientSort) {
       const direction = sort.direction === "asc" ? 1 : -1;
       items = items
@@ -583,6 +581,37 @@ export class JournalEntryManager {
       .eq("id", row.training_partner_id)
       .maybeSingle();
     return toJournalEntry(row, data);
+  }
+
+  private async withPartners(rows: JournalRow[]) {
+    const partnerIds = [
+      ...new Set(
+        rows
+          .map((row) => row.training_partner_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    if (!partnerIds.length) return rows.map((row) => toJournalEntry(row));
+
+    const { data, error } = await this.supabase
+      .from("training_partners")
+      .select("*")
+      .in("id", partnerIds);
+    if (error) {
+      throw new ManagerError("training_partners_failed", error.message, 500);
+    }
+
+    const partners = new Map(
+      (data ?? []).map((partner) => [partner.id, partner]),
+    );
+    return rows.map((row) =>
+      toJournalEntry(
+        row,
+        row.training_partner_id
+          ? partners.get(row.training_partner_id)
+          : undefined,
+      ),
+    );
   }
 
   private async createCustomPartner(

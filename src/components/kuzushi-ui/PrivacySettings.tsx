@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -50,7 +51,6 @@ export function PrivacySettings({
     useState<PrivacySettingsValue>(defaultSettings);
   const [error, setError] = useState<string>();
   const [loadError, setLoadError] = useState<string>();
-  const [message, setMessage] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
@@ -99,14 +99,12 @@ export function PrivacySettings({
   }, [retryToken]);
 
   function updateSetting(key: PrivacyKey, visibility: PrivacyType) {
-    setMessage(undefined);
     setSettings((current) => ({ ...current, [key]: visibility }));
   }
 
   async function submitSettings(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(undefined);
-    setMessage(undefined);
     setIsSubmitting(true);
     try {
       const response = await fetch("/api/account/privacy", {
@@ -120,7 +118,7 @@ export function PrivacySettings({
         throw new Error(detail.error.message);
       }
 
-      setMessage("Privacy settings saved.");
+      toast.success("Privacy settings saved.");
     } catch (submitError) {
       setError(
         submitError instanceof Error
@@ -153,7 +151,6 @@ export function PrivacySettings({
       ) : (
         <form className="grid gap-4" onSubmit={submitSettings}>
           {error ? <AlertBanner message={error} /> : null}
-          {message ? <AlertBanner message={message} /> : null}
           <div className="grid gap-1">
             {privacyRows.map(([key, label]) => (
               <div

@@ -19,9 +19,11 @@ const PAGE_SIZE = 10;
 
 export function NotificationList({
   className,
+  onIndicatorsChange,
   onOpenProfile,
 }: {
   className?: string;
+  onIndicatorsChange?: () => void | Promise<void>;
   onOpenProfile?: (accountId: string) => void;
 }) {
   const [page, setPage] = useState(1);
@@ -78,6 +80,7 @@ export function NotificationList({
         { method: "PATCH" },
       );
       if (!response.ok) throw await apiError(response);
+      await onIndicatorsChange?.();
     } catch (markError) {
       setNotifications((current) =>
         current.map((item) =>
@@ -102,6 +105,7 @@ export function NotificationList({
         method: "PATCH",
       });
       if (!response.ok) throw await apiError(response);
+      await onIndicatorsChange?.();
     } catch (markError) {
       setNotifications(previous);
       setError(

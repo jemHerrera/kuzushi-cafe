@@ -13,6 +13,7 @@ import type {
   TrainingPartnerDetail,
   WeightClass,
 } from "@/lib/managers/types";
+import { savedTagCategories as savedTagCategoryValues } from "@/lib/api/schemas";
 
 export type {
   AgeClass,
@@ -93,6 +94,7 @@ export const beltBorderStyles: Record<Belt, string> = {
 };
 
 export const categories = Object.keys(categoryStyles) as Category[];
+export const savedTagCategories = [...savedTagCategoryValues] as Category[];
 export const intensities: Intensity[] = ["playful", "casual", "intense"];
 export const belts: Belt[] = [
   "unknown",

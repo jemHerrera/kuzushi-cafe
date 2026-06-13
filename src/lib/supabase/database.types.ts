@@ -596,6 +596,26 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      send_training_partner_request: {
+        Args: { recipient_account_id: string; requester_account_id: string }
+        Returns: {
+          account_id: string
+          category: Database["public"]["Enums"]["notification_category"]
+          created_date: string
+          heading: string
+          id: string
+          is_read: boolean
+          source_account_id: string | null
+          text: string
+          updated_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       training_partner_relationship_status: {
         Args: { other_account_id: string; viewer_account_id: string }
         Returns: string
@@ -643,7 +663,10 @@ export type Database = {
         | "other"
       intensity: "playful" | "casual" | "intense"
       journal_type: "attempt" | "success"
-      notification_category: "journal-entry-partner" | "chat"
+      notification_category:
+        | "journal-entry-partner"
+        | "chat"
+        | "training-partner-request"
       privacy_type: "public" | "training-partners" | "private"
       weight_class: "unknown" | "feather" | "light" | "middle" | "heavy"
     }
@@ -808,7 +831,11 @@ export const Constants = {
       ],
       intensity: ["playful", "casual", "intense"],
       journal_type: ["attempt", "success"],
-      notification_category: ["journal-entry-partner", "chat"],
+      notification_category: [
+        "journal-entry-partner",
+        "chat",
+        "training-partner-request",
+      ],
       privacy_type: ["public", "training-partners", "private"],
       weight_class: ["unknown", "feather", "light", "middle", "heavy"],
     },

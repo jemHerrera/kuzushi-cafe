@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import type { AccountDetail, ApiErrorDetail } from "@/lib/managers/types";
 import { AlertBanner } from "./AlertBanner";
@@ -35,7 +36,6 @@ export function MyProfile({
   const router = useRouter();
   const [profile, setProfile] = useState(initialProfile);
   const [error, setError] = useState<string>();
-  const [message, setMessage] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initials =
     [profile.firstName, profile.lastName]
@@ -46,7 +46,6 @@ export function MyProfile({
   async function submitProfile(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(undefined);
-    setMessage(undefined);
 
     if (!profile.firstName.trim() || !profile.lastName.trim()) {
       setError("First and last name are required.");
@@ -75,7 +74,7 @@ export function MyProfile({
 
       const account = (await response.json()) as AccountDetail;
       onSaved?.(account);
-      setMessage("Profile saved.");
+      toast.success("Profile saved.");
       router.refresh();
     } catch (submitError) {
       setError(
@@ -102,7 +101,6 @@ export function MyProfile({
         <Avatar initials={initials} src={profilePhoto} size="lg" />
         <div className="grid gap-4">
           {error ? <AlertBanner message={error} /> : null}
-          {message ? <AlertBanner message={message} /> : null}
           <ProfileFields
             value={profile}
             onChange={setProfile}

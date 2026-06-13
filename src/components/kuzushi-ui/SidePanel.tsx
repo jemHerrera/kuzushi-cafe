@@ -29,10 +29,12 @@ type SidePanelAction =
 export function SidePanel({
   account,
   className,
+  hasInboundTrainingPartnerRequests = false,
   onAction,
 }: {
   account: AccountDetail;
   className?: string;
+  hasInboundTrainingPartnerRequests?: boolean;
   onAction: (action: SidePanelAction) => void;
 }) {
   const navItems = [
@@ -109,6 +111,13 @@ export function SidePanel({
             >
               <Icon className="size-4" />
               {item.label}
+              {item.action === "training-partners" &&
+              hasInboundTrainingPartnerRequests ? (
+                <span
+                  aria-hidden="true"
+                  className="ml-auto size-2 rounded-full bg-red-500"
+                />
+              ) : null}
             </button>
           );
         })}

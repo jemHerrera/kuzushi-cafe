@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,7 +22,6 @@ import type {
   PublicAccountSummary,
   TrainingPartnerDetail,
 } from "@/lib/managers/types";
-import { AlertBanner } from "./AlertBanner";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
@@ -39,12 +39,16 @@ type ConfirmAction =
   | { type: "block"; account: PublicAccountSummary | AccountDetail };
 
 export function TrainingPartnersListModal({
+  hasInboundTrainingPartnerRequests = false,
+  onIndicatorsChange,
   onClose,
   onTitleChange,
   onSelectPartner,
   presentation = "modal",
   withinDialog = false,
 }: {
+  hasInboundTrainingPartnerRequests?: boolean;
+  onIndicatorsChange?: () => void | Promise<void>;
   onClose?: () => void;
   onTitleChange?: (title: string) => void;
   onSelectPartner?: (partner: PublicAccountSummary) => void;
@@ -59,7 +63,6 @@ export function TrainingPartnersListModal({
   const [partners, setPartners] = useState<TrainingPartnerDetail[]>([]);
   const [inbound, setInbound] = useState<AccountDetail[]>([]);
   const [error, setError] = useState<string>();
-  const [message, setMessage] = useState<string>();
   const [isPartnersLoading, setIsPartnersLoading] = useState(true);
   const [isRequestsLoading, setIsRequestsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -154,7 +157,6 @@ export function TrainingPartnersListModal({
     rethrow = false,
   ) {
     setError(undefined);
-    setMessage(undefined);
     setIsSubmitting(true);
     try {
       const response = await request();
@@ -163,8 +165,9 @@ export function TrainingPartnersListModal({
         throw new Error(detail.error.message);
       }
 
-      setMessage(label);
       await refresh();
+      await onIndicatorsChange?.();
+      toast.success(label);
     } catch (actionError) {
       const actionMessage =
         actionError instanceof Error
@@ -183,8 +186,8 @@ export function TrainingPartnersListModal({
         onBack={openList}
         onClose={onClose}
         onCreated={() => {
-          setMessage("Custom training partner added.");
-          loadPartners();
+          toast.success("Custom training partner added.");
+          void loadPartners();
         }}
         presentation={presentation}
         withinDialog={withinDialog}
@@ -201,7 +204,6 @@ export function TrainingPartnersListModal({
             onRetry={activeTab === "partners" ? loadPartners : loadRequests}
           />
         ) : null}
-        {message ? <AlertBanner message={message} /> : null}
         <Tabs
           className="min-h-0 flex-1"
           value={activeTab}
@@ -223,6 +225,12 @@ export function TrainingPartnersListModal({
             >
               <Inbox className="size-4" />
               Requests
+              {hasInboundTrainingPartnerRequests ? (
+                <span
+                  aria-hidden="true"
+                  className="size-2 rounded-full bg-red-500"
+                />
+              ) : null}
             </TabsTrigger>
           </TabsList>
           <TabsContent

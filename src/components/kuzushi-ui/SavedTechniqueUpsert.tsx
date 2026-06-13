@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { AlertBanner } from "./AlertBanner";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
-import { type Category } from "./shared";
+import { savedTagCategories, type Category } from "./shared";
 
 type SavedTechniqueUpsertProps = {
   open?: boolean;
@@ -116,6 +116,7 @@ export function SavedTechniqueUpsert({
       />
       <TechniqueCategoryPillSelect
         disabled={isSaving}
+        options={savedTagCategories}
         value={category}
         onValueChange={setCategory}
       />

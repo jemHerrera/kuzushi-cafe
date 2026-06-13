@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -34,23 +34,29 @@ import {
 
 export function JournalEntryTable({
   entries,
+  initialEntries = [],
+  initialQueryKey,
   onEntriesChange,
   readOnly = false,
   refreshToken = 0,
 }: {
   entries?: JournalEntry[];
+  initialEntries?: JournalEntryDetail[];
+  initialQueryKey?: string;
   onEntriesChange?: () => void;
   readOnly?: boolean;
   refreshToken?: number;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [apiEntries, setApiEntries] = useState<JournalEntry[]>([]);
+  const [apiEntries, setApiEntries] = useState<JournalEntry[]>(() =>
+    initialEntries.map(toJournalEntry),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const hasUsedInitialEntries = useRef(false);
   const isStatic = entries !== undefined || readOnly;
   const query = useMemo(() => {
     const parsed = parseJournalQuery(
@@ -71,6 +77,17 @@ export function JournalEntryTable({
       limit: query.limit + 1,
     };
     const params = serializeJournalQuery(requestQuery);
+    const queryKey = serializeJournalQuery(query).toString();
+    if (
+      !hasUsedInitialEntries.current &&
+      initialQueryKey === queryKey &&
+      refreshKey === 0 &&
+      refreshToken === 0
+    ) {
+      hasUsedInitialEntries.current = true;
+      return;
+    }
+    hasUsedInitialEntries.current = true;
 
     async function loadEntries() {
       setIsLoading(true);
@@ -102,7 +119,7 @@ export function JournalEntryTable({
 
     loadEntries();
     return () => controller.abort();
-  }, [isStatic, query, refreshKey, refreshToken]);
+  }, [initialQueryKey, isStatic, query, refreshKey, refreshToken]);
 
   const tableEntries = isStatic ? (entries ?? sampleEntries) : apiEntries;
   const visibleEntries = isStatic
@@ -113,9 +130,11 @@ export function JournalEntryTable({
 
   function replaceQuery(nextQuery: JournalQuery) {
     const params = serializeJournalQuery(nextQuery);
-    router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
-      scroll: false,
-    });
+    window.history.replaceState(
+      null,
+      "",
+      `${pathname}${params.size ? `?${params}` : ""}`,
+    );
   }
 
   function refreshEntries() {
@@ -183,17 +202,15 @@ export function JournalEntryTable({
             }
           />
           <tbody>
-            {!isLoading
-              ? visibleEntries.map((entry) => (
-                  <JournalEntryRow
-                    key={entry.id}
-                    entry={entry}
-                    readOnly={readOnly}
-                    onSaved={refreshEntries}
-                    onDeleted={refreshEntries}
-                  />
-                ))
-              : null}
+            {visibleEntries.map((entry) => (
+              <JournalEntryRow
+                key={entry.id}
+                entry={entry}
+                readOnly={readOnly}
+                onSaved={refreshEntries}
+                onDeleted={refreshEntries}
+              />
+            ))}
             {!isLoading && visibleEntries.length === 0 ? (
               <tr>
                 <td
@@ -204,7 +221,9 @@ export function JournalEntryTable({
                 </td>
               </tr>
             ) : null}
-            {isLoading ? <JournalTableSkeleton readOnly={readOnly} /> : null}
+            {isLoading && visibleEntries.length === 0 ? (
+              <JournalTableSkeleton readOnly={readOnly} />
+            ) : null}
           </tbody>
         </table>
         {!isLoading ? (

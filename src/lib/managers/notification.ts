@@ -51,6 +51,35 @@ export class NotificationManager {
     };
   }
 
+  async getIndicators(params: { accountId: string }) {
+    const [notificationsResult, requestsResult] = await Promise.all([
+      this.supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("account_id", params.accountId)
+        .eq("is_read", false),
+      this.supabase
+        .from("training_partner_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("recipient_account_id", params.accountId),
+    ]);
+
+    if (notificationsResult.error || requestsResult.error) {
+      throw new ManagerError(
+        "notification_indicators_failed",
+        notificationsResult.error?.message ??
+          requestsResult.error?.message ??
+          "Could not load notification indicators.",
+        500,
+      );
+    }
+
+    return {
+      hasUnreadNotifications: (notificationsResult.count ?? 0) > 0,
+      hasInboundTrainingPartnerRequests: (requestsResult.count ?? 0) > 0,
+    };
+  }
+
   async markNotificationAsRead(params: { id: string; accountId: string }) {
     const { data, error } = await this.supabase
       .from("notifications")

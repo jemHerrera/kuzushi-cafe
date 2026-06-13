@@ -46,6 +46,20 @@ export const categories = [
   "guard-retention",
   "other",
 ] as const;
+export const savedTagCategories = [
+  "submission",
+  "takedown",
+  "sweep",
+  "guard-pass",
+  "reversal",
+  "back-take",
+  "leg-entry",
+  "escape",
+  "off-balance",
+  "position",
+  "guard-retention",
+  "other",
+] as const;
 export const intensities = ["playful", "casual", "intense"] as const;
 export const journalTypes = ["attempt", "success"] as const;
 export const privacyTypes = ["public", "training-partners", "private"] as const;
@@ -234,12 +248,12 @@ export const aggregateQuerySchema = z
 
 export const tagCreateSchema = z.object({
   label: requiredText,
-  category: z.enum(categories),
+  category: z.enum(savedTagCategories),
 });
 export const tagUpdateSchema = z
   .object({
     label: requiredText.optional(),
-    category: z.enum(categories).optional(),
+    category: z.enum(savedTagCategories).optional(),
   })
   .refine(
     (value) => Object.values(value).some((item) => item !== undefined),

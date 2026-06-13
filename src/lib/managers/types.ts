@@ -201,6 +201,11 @@ export type NotificationDetail = {
   updatedAt: number;
 };
 
+export type NotificationIndicators = {
+  hasUnreadNotifications: boolean;
+  hasInboundTrainingPartnerRequests: boolean;
+};
+
 export type DonationCheckoutStatus =
   | "success"
   | "canceled"

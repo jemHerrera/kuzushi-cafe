@@ -2,13 +2,13 @@
 
 import { Ban, Check, UserMinus, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 import type {
   ApiErrorDetail,
   PublicAccountSummary,
   TrainingPartnerRelationshipStatus,
 } from "@/lib/managers/types";
-import { AlertBanner } from "./AlertBanner";
 import { AggregateOverview } from "./AggregateOverview";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
@@ -41,7 +41,6 @@ export function PublicProfile({
     TrainingPartnerRelationshipStatus | undefined
   >(initialProfile?.relationshipStatus);
   const [error, setError] = useState<string>();
-  const [message, setMessage] = useState<string>();
   const [isLoading, setIsLoading] = useState(!initialProfile);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirming, setConfirming] = useState<DestructiveAction | null>(null);
@@ -92,7 +91,6 @@ export function PublicProfile({
     rethrow = false,
   ) {
     setError(undefined);
-    setMessage(undefined);
     setIsSubmitting(true);
     try {
       const response = await request();
@@ -107,7 +105,7 @@ export function PublicProfile({
           current ? { ...current, relationshipStatus: nextStatus } : current,
         );
       }
-      setMessage(label);
+      toast.success(label);
       onRelationshipChange?.();
     } catch (actionError) {
       const actionMessage =
@@ -141,7 +139,6 @@ export function PublicProfile({
           }
         />
       ) : null}
-      {message ? <AlertBanner message={message} /> : null}
       {profile ? (
         <section className="grid gap-5">
           <header className="flex flex-wrap items-start gap-3 border-b border-zinc-200 pb-5">

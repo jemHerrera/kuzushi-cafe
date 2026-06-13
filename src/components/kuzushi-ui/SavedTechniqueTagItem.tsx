@@ -6,7 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
 import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
-import { sampleTechniques, type Category, type Technique } from "./shared";
+import {
+  sampleTechniques,
+  savedTagCategories,
+  type Category,
+  type Technique,
+} from "./shared";
 
 type SavedTechniqueTagItemProps = {
   technique?: Technique;
@@ -93,6 +98,7 @@ export function SavedTechniqueTagItem({
       />
       <TechniqueCategoryPillSelect
         disabled={disabled}
+        options={savedTagCategories}
         value={currentCategory}
         onValueChange={changeCategory}
         variant="small"

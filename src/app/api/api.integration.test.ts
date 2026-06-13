@@ -18,9 +18,13 @@ import * as accountProfileRoute from "@/app/api/accounts/[id]/route";
 import * as publicJournalRoute from "@/app/api/accounts/[id]/journal-entries/route";
 import * as journalDetailRoute from "@/app/api/journal-entries/[id]/route";
 import * as journalRoute from "@/app/api/journal-entries/route";
+import * as notificationReadRoute from "@/app/api/notifications/[id]/read/route";
+import * as indicatorRoute from "@/app/api/notifications/indicators/route";
+import * as notificationRoute from "@/app/api/notifications/route";
 import * as tagDetailRoute from "@/app/api/technique-tags/[id]/route";
 import * as tagRoute from "@/app/api/technique-tags/route";
 import * as blockRoute from "@/app/api/training-partners/[id]/block/route";
+import * as requestRoute from "@/app/api/training-partners/[id]/request/route";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -187,6 +191,153 @@ describe.skipIf(!hasLocalSupabase)("API route integration", () => {
       { params: Promise.resolve({ id: tagId }) },
     );
     expect(foreignTag.status).toBe(404);
+  });
+
+  it("rejects Tap as a saved-tag category", async () => {
+    serverClient.current = users[0].client;
+    const createResponse = await tagRoute.POST(
+      jsonRequest("/api/technique-tags", "POST", {
+        label: `Invalid Tap ${suffix}`,
+        category: "tap",
+      }),
+    );
+    expect(createResponse.status).toBe(422);
+
+    const created = await tagRoute.POST(
+      jsonRequest("/api/technique-tags", "POST", {
+        label: `Valid tag ${suffix}`,
+        category: "submission",
+      }),
+    );
+    expect(created.status).toBe(201);
+    const tagId = (await created.json()).id as string;
+
+    const updateResponse = await tagDetailRoute.PATCH(
+      jsonRequest(`/api/technique-tags/${tagId}`, "PATCH", {
+        category: "tap",
+      }),
+      { params: Promise.resolve({ id: tagId }) },
+    );
+    expect(updateResponse.status).toBe(422);
+  });
+
+  it("includes partner snapshots in journal list results", async () => {
+    serverClient.current = users[0].client;
+    const created = await journalRoute.POST(
+      jsonRequest("/api/journal-entries", "POST", {
+        name: "Partner entry",
+        setup: "Open guard",
+        category: "sweep",
+        partnerFirstName: "Batch",
+        partnerLastName: "Partner",
+      }),
+    );
+    expect(created.status).toBe(201);
+
+    const listed = await journalRoute.GET(
+      new Request(
+        "http://localhost/api/journal-entries?search=Partner%20entry",
+      ),
+    );
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toMatchObject({
+      items: [
+        {
+          name: "Partner entry",
+          trainingPartner: {
+            firstName: "Batch",
+            lastName: "Partner",
+          },
+        },
+      ],
+    });
+  });
+
+  it("creates one notification atomically with a training partner request", async () => {
+    serverClient.current = users[0].client;
+    const sent = await requestRoute.POST(
+      new Request(
+        `http://localhost/api/training-partners/${users[1].accountId}/request`,
+        { method: "POST" },
+      ),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(sent.status).toBe(200);
+
+    const duplicate = await requestRoute.POST(
+      new Request(
+        `http://localhost/api/training-partners/${users[1].accountId}/request`,
+        { method: "POST" },
+      ),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(duplicate.status).toBe(409);
+
+    serverClient.current = users[1].client;
+    const notifications = await notificationRoute.GET(
+      new Request("http://localhost/api/notifications?limit=10&offset=0"),
+    );
+    expect(notifications.status).toBe(200);
+    const notificationList = await notifications.json();
+    expect(notificationList).toMatchObject({
+      items: [
+        {
+          category: "training-partner-request",
+          isRead: false,
+          sourceAccountId: users[0].accountId,
+        },
+      ],
+    });
+
+    const indicators = await indicatorRoute.GET();
+    expect(indicators.status).toBe(200);
+    expect(await indicators.json()).toEqual({
+      hasUnreadNotifications: true,
+      hasInboundTrainingPartnerRequests: true,
+    });
+
+    const notificationId = notificationList.items[0].id as string;
+    const markedRead = await notificationReadRoute.PATCH(
+      new Request(`http://localhost/api/notifications/${notificationId}/read`, {
+        method: "PATCH",
+      }),
+      { params: Promise.resolve({ id: notificationId }) },
+    );
+    expect(markedRead.status).toBe(200);
+    expect(await (await indicatorRoute.GET()).json()).toEqual({
+      hasUnreadNotifications: false,
+      hasInboundTrainingPartnerRequests: true,
+    });
+
+    const { count: requestCount } = await admin
+      .from("training_partner_requests")
+      .select("id", { count: "exact", head: true })
+      .eq("requester_account_id", users[0].accountId)
+      .eq("recipient_account_id", users[1].accountId);
+    const { count: notificationCount } = await admin
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("category", "training-partner-request")
+      .eq("source_account_id", users[0].accountId)
+      .eq("account_id", users[1].accountId);
+    expect(requestCount).toBe(1);
+    expect(notificationCount).toBe(1);
+
+    serverClient.current = users[0].client;
+    const canceled = await requestRoute.DELETE(
+      new Request(
+        `http://localhost/api/training-partners/${users[1].accountId}/request`,
+        { method: "DELETE" },
+      ),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(canceled.status).toBe(200);
+
+    serverClient.current = users[1].client;
+    expect(await (await indicatorRoute.GET()).json()).toEqual({
+      hasUnreadNotifications: false,
+      hasInboundTrainingPartnerRequests: false,
+    });
   });
 
   it("applies public journal privacy and blocked-profile scoping", async () => {

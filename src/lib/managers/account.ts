@@ -247,25 +247,10 @@ export class AccountManager {
     fromAccountId: string;
     toAccountId: string;
   }) {
-    const { status } = await this.getTrainingPartnerRelationshipStatus({
-      accountId: params.fromAccountId,
-      otherAccountId: params.toAccountId,
+    const { error } = await this.supabase.rpc("send_training_partner_request", {
+      requester_account_id: params.fromAccountId,
+      recipient_account_id: params.toAccountId,
     });
-
-    if (!["none", "removed"].includes(status)) {
-      throw new ManagerError(
-        "relationship_conflict",
-        `Cannot send a request while relationship status is ${status}.`,
-        409,
-      );
-    }
-
-    const { error } = await this.supabase
-      .from("training_partner_requests")
-      .insert({
-        requester_account_id: params.fromAccountId,
-        recipient_account_id: params.toAccountId,
-      });
 
     if (error) {
       throw new ManagerError("request_failed", error.message, 409);

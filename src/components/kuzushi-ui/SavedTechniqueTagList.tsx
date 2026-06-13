@@ -19,6 +19,7 @@ import { EmptyState } from "./EmptyState";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
+import { useJournalFormOptions } from "./JournalFormOptionsProvider";
 import { SavedTechniqueTagItem } from "./SavedTechniqueTagItem";
 import { SavedTechniqueUpsert } from "./SavedTechniqueUpsert";
 import { cx, type Category } from "./shared";
@@ -45,6 +46,7 @@ export function SavedTechniqueTagList({
   const [mutationId, setMutationId] = useState<string>();
   const [refreshToken, setRefreshToken] = useState(0);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const { removeTag, upsertTag } = useJournalFormOptions();
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -101,6 +103,7 @@ export function SavedTechniqueTagList({
         body: JSON.stringify(input),
       });
       if (!response.ok) throw await apiError(response);
+      upsertTag((await response.json()) as TechniqueTagDetail);
       setQuery("");
       setDebouncedQuery("");
       setRefreshToken((token) => token + 1);
@@ -123,6 +126,7 @@ export function SavedTechniqueTagList({
       });
       if (!response.ok) throw await apiError(response);
       const updated = (await response.json()) as TechniqueTagDetail;
+      upsertTag(updated);
       setTechniques((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
@@ -142,6 +146,7 @@ export function SavedTechniqueTagList({
         method: "DELETE",
       });
       if (!response.ok) throw await apiError(response);
+      removeTag(technique.id);
       setRefreshToken((token) => token + 1);
     } catch (deleteError) {
       throw new Error(

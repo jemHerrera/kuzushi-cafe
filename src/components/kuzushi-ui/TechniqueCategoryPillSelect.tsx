@@ -14,6 +14,7 @@ import { categories, categoryStyles, cx, type Category } from "./shared";
 
 type TechniqueCategoryPillSelectProps = {
   value?: Category;
+  options?: Category[];
   onValueChange?: (category: Category) => void;
   variant?: "default" | "property" | "table" | "small";
   disabled?: boolean;
@@ -21,6 +22,7 @@ type TechniqueCategoryPillSelectProps = {
 
 export function TechniqueCategoryPillSelect({
   value,
+  options = categories,
   onValueChange,
   variant = "default",
   disabled = false,
@@ -63,7 +65,7 @@ export function TechniqueCategoryPillSelect({
         align="start"
         position="popper"
       >
-        {categories.map((category) => (
+        {options.map((category) => (
           <SelectItem
             key={category}
             value={category}

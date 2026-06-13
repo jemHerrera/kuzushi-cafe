@@ -7,11 +7,13 @@ import { PublicProfileSearch } from "./PublicProfileSearch";
 
 export function Header({
   alertMessage,
+  hasUnreadNotifications = false,
   onMenuOpen,
   onNotificationsOpen,
   onSelectProfile,
 }: {
   alertMessage?: string;
+  hasUnreadNotifications?: boolean;
   onMenuOpen?: () => void;
   onNotificationsOpen?: () => void;
   onSelectProfile?: (profile: PublicAccountSummary) => void;
@@ -34,8 +36,14 @@ export function Header({
             trigger="icon"
           />
           <IconButton
+            className="relative"
             label="Open notifications"
-            icon={<Bell className="size-4" />}
+            icon={
+              <>
+                <Bell className="size-4" />
+                {hasUnreadNotifications ? <IndicatorDot /> : null}
+              </>
+            }
             variant="ghost"
             onClick={onNotificationsOpen}
           />
@@ -64,8 +72,14 @@ export function Header({
           )}
         </div>
         <IconButton
+          className="relative"
           label="Open notifications"
-          icon={<Bell className="size-4" />}
+          icon={
+            <>
+              <Bell className="size-4" />
+              {hasUnreadNotifications ? <IndicatorDot /> : null}
+            </>
+          }
           onClick={onNotificationsOpen}
         />
       </div>
@@ -73,5 +87,14 @@ export function Header({
         <AlertBanner className="sm:hidden" message={alertMessage} />
       ) : null}
     </header>
+  );
+}
+
+function IndicatorDot() {
+  return (
+    <span
+      aria-hidden="true"
+      className="absolute right-1.5 top-1.5 size-2 rounded-full bg-red-500 ring-2 ring-white"
+    />
   );
 }

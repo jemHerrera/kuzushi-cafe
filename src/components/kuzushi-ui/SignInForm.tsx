@@ -123,9 +123,7 @@ export function SignInForm({
             disabled={Boolean(pendingProvider)}
             onClick={() => void requestSignIn("magic-link", sentEmail)}
           >
-            {pendingProvider === "magic-link"
-              ? "Sending..."
-              : "Resend sign-in link"}
+            {pendingProvider === "magic-link" ? "Sending..." : "Resend"}
           </Button>
         </div>
       ) : (
@@ -147,9 +145,7 @@ export function SignInForm({
             className="h-11 font-semibold"
             disabled={Boolean(pendingProvider) || !email.trim()}
           >
-            {pendingProvider === "magic-link"
-              ? "Sending link..."
-              : "Email me a sign-in link"}
+            Continue
           </Button>
         </form>
       )}

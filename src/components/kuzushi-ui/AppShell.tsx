@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
@@ -14,8 +14,13 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
-import type { AccountDetail } from "@/lib/managers/types";
-import type { PublicAccountSummary } from "@/lib/managers/types";
+import type {
+  AccountDetail,
+  JournalEntryDetail,
+  NotificationIndicators,
+  PaginatedResponse,
+  PublicAccountSummary,
+} from "@/lib/managers/types";
 import { AggregateOverview } from "./AggregateOverview";
 import { DonationModal } from "./DonationModal";
 import { Header } from "./Header";
@@ -46,7 +51,15 @@ const modalDescriptions: Record<ShellModal, string> = {
   "public-profile": "View a public profile and manage relationship state.",
 };
 
-export function AppShell({ account }: { account: AccountDetail }) {
+export function AppShell({
+  account,
+  initialJournal,
+  initialJournalQueryKey,
+}: {
+  account: AccountDetail;
+  initialJournal: PaginatedResponse<JournalEntryDetail>;
+  initialJournalQueryKey: string;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -57,6 +70,10 @@ export function AppShell({ account }: { account: AccountDetail }) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [isSavedTechniquesOpen, setIsSavedTechniquesOpen] = useState(false);
   const [isTrainingPartnersOpen, setIsTrainingPartnersOpen] = useState(false);
+  const [indicators, setIndicators] = useState<NotificationIndicators>({
+    hasUnreadNotifications: false,
+    hasInboundTrainingPartnerRequests: false,
+  });
   const [selectedProfile, setSelectedProfile] =
     useState<PublicAccountSummary | null>(null);
   const profileAccountId = searchParams.get("profile")?.trim() || undefined;
@@ -71,6 +88,32 @@ export function AppShell({ account }: { account: AccountDetail }) {
     : donationReturnState
       ? "donation"
       : activeModal;
+
+  const refreshIndicators = useCallback(async () => {
+    try {
+      const response = await fetch("/api/notifications/indicators");
+      if (!response.ok) return;
+      setIndicators((await response.json()) as NotificationIndicators);
+    } catch {
+      // Indicators are supplemental and will retry on the next focus or action.
+    }
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      void refreshIndicators();
+    }, 0);
+
+    function handleFocus() {
+      void refreshIndicators();
+    }
+
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [refreshIndicators]);
 
   function openModal(action: SidePanelAction) {
     setIsNavigationOpen(false);
@@ -119,11 +162,15 @@ export function AppShell({ account }: { account: AccountDetail }) {
         <SidePanel
           account={currentAccount}
           className="fixed inset-y-0 left-0 hidden lg:flex"
+          hasInboundTrainingPartnerRequests={
+            indicators.hasInboundTrainingPartnerRequests
+          }
           onAction={openModal}
         />
         <div className="min-w-0 lg:col-start-2">
           <div className="sticky top-0 z-30">
             <Header
+              hasUnreadNotifications={indicators.hasUnreadNotifications}
               onMenuOpen={() => setIsNavigationOpen(true)}
               onNotificationsOpen={() => setIsNotificationsOpen(true)}
               onSelectProfile={openPublicProfile}
@@ -136,6 +183,8 @@ export function AppShell({ account }: { account: AccountDetail }) {
               </h2>
             </div>
             <JournalEntryTable
+              initialEntries={initialJournal.items}
+              initialQueryKey={initialJournalQueryKey}
               onEntriesChange={() =>
                 setJournalRefreshToken((token) => token + 1)
               }
@@ -162,6 +211,9 @@ export function AppShell({ account }: { account: AccountDetail }) {
           <SidePanel
             account={currentAccount}
             className="max-w-none border-r-0"
+            hasInboundTrainingPartnerRequests={
+              indicators.hasInboundTrainingPartnerRequests
+            }
             onAction={openModal}
           />
         </SheetContent>
@@ -175,6 +227,7 @@ export function AppShell({ account }: { account: AccountDetail }) {
           </SheetDescription>
           <NotificationList
             className="h-full max-w-none border-l-0 pt-14"
+            onIndicatorsChange={refreshIndicators}
             onOpenProfile={openPublicProfileById}
           />
         </SheetContent>
@@ -215,6 +268,10 @@ export function AppShell({ account }: { account: AccountDetail }) {
             Search, review, and manage your training partners.
           </SheetDescription>
           <TrainingPartnersListModal
+            hasInboundTrainingPartnerRequests={
+              indicators.hasInboundTrainingPartnerRequests
+            }
+            onIndicatorsChange={refreshIndicators}
             onClose={() => setIsTrainingPartnersOpen(false)}
             onSelectPartner={(profile) => {
               setIsTrainingPartnersOpen(false);
@@ -284,7 +341,7 @@ export function AppShell({ account }: { account: AccountDetail }) {
                   : undefined
               }
               onClose={closeModal}
-              onRelationshipChange={() => undefined}
+              onRelationshipChange={() => void refreshIndicators()}
               withinDialog
             />
           ) : null}

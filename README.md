@@ -121,12 +121,15 @@ protocol-relative destinations are discarded.
 - [x] Build notification UI with list pagination, deep links, mark-read, mark-all-read, empty state, loading state, error state, and retry.
 - [x] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
 - [x] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.
-- [ ] Add integration tests for managers, endpoint authorization, journal-entry invariants, privacy scoping, training-partner relationships, and donation status handling.
 - [x] Add /privacy-policy and /terms-of-service
-- [ ] Add end-to-end tests for sign-in, profile completion, journal entry CRUD, filters and sorting, training-partner requests, public profile visibility, saved techniques, notifications, and donation checkout return flows.
-
-## Dev Notes
-
-- [] Change Training activity into activity dots (Like Github) - filters are years
-- [] Change Technique occurences to vertical bar chart
-- []
+- [x] Create notification when sending training partner request
+  - [x] Ensure notificationd dot
+- [x] Remove all success banner
+- [x] Journal entry slow loading. Also loading when changing categories. Improve this performance
+  - [x] When creating new tag from "Tap", automatic category should be Submission, and remove Tap from the list
+- [ ] Added as training partner but still shows Unknown partner, and wrong image
+- [ ] Customize Signin email
+- [ ] Setup hello@kuzushi.cafe
+- [ ] Update public profile page
+- [ ] Change Training activity into activity dots (Like Github) - filters are years
+- [ ] Change Technique occurences to vertical bar chart
