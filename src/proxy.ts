@@ -18,10 +18,26 @@ function copyCookies(source: NextResponse, target: NextResponse) {
 }
 
 export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const hasAuthCallbackParams =
+    request.nextUrl.searchParams.has("code") ||
+    request.nextUrl.searchParams.has("token_hash") ||
+    request.nextUrl.searchParams.has("error");
+
+  if (pathname === "/" && hasAuthCallbackParams) {
+    const callbackUrl = new URL("/auth/callback", request.url);
+    callbackUrl.search = request.nextUrl.search;
+
+    if (!callbackUrl.searchParams.has("next")) {
+      callbackUrl.searchParams.set("next", DEFAULT_AUTHENTICATED_PATH);
+    }
+
+    return NextResponse.redirect(callbackUrl, 307);
+  }
+
   const { supabase, getResponse } = createSupabaseProxyClient(request);
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
-  const pathname = request.nextUrl.pathname;
   const isProtectedPage = pathname === "/app" || pathname.startsWith("/app/");
   const isSignInPage = pathname === SIGN_IN_PATH;
   const isCompleteProfilePage = pathname === COMPLETE_PROFILE_PATH;

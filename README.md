@@ -76,8 +76,10 @@ Local magic-link email is rendered from
 
 For the hosted Supabase project:
 
-- Set the site URL to `https://kuzushi.cafe`.
-- Add `https://kuzushi.cafe/auth/callback` to the allowed redirect URLs.
+- Set the site URL to `https://www.kuzushi.cafe`.
+- Add `https://www.kuzushi.cafe/auth/callback` to the allowed redirect URLs.
+- Keep `https://kuzushi.cafe/auth/callback` allowed while apex-domain
+  deployments or old sign-in attempts may still use it.
 - Configure Google using the client ID and secret for the hosted project.
 - Replace the hosted Magic Link email template link with:
 
