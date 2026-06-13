@@ -265,191 +265,199 @@ export function JournalEntryForm({
             rows={2}
             variant="form"
           />
-        ) : null}
-        <PropertyField icon={Shapes} label="Category">
-          <TechniqueCategoryPillSelect
-            disabled={isSubmitting || isDeleting || isOptionsLoading}
-            value={category}
-            onValueChange={selectCategory}
-            variant="property"
-          />
-        </PropertyField>
-        <PropertyField icon={Tag} label="Technique">
-          <TechniqueTagSelectMenu
-            category={category}
-            disabled={isSubmitting || isDeleting || isOptionsLoading}
-            techniques={techniques}
-            value={selectedTechnique}
-            ariaLabel="Technique"
-            onSelectTechnique={(technique) => {
-              setTechniqueName(technique.name);
-            }}
-            onCreateSavedTag={async (input) => {
-              const tag = await createTechniqueTag(input);
-              const technique = { name: tag.label, category: tag.category };
-              setTechniques((current) =>
-                uniqueTechniques([...current, technique]),
-              );
-              return technique;
-            }}
-            variant="property"
-          />
-        </PropertyField>
-        <PropertyField
-          icon={Route}
-          label="Setup"
-          description="Describe how you got to the technique, including positions, entries, or transitions that set it up."
-          descriptionLabel="What is setup?"
-        >
-          <TechniqueTagSelectMenu
-            ariaLabel="Setup"
-            category={category}
-            disabled={isSubmitting || isDeleting || isOptionsLoading}
-            techniques={setups}
-            value={selectedSetup}
-            placeholder="Find or add setup"
-            variant="property"
-            onSelectTechnique={(technique) => {
-              setSetupName(technique.name);
-            }}
-            onCreateSavedTag={async (input) => {
-              const tag = await createTechniqueTag(input);
-              const technique = { name: tag.label, category: tag.category };
-              setSetups((current) => uniqueTechniques([...current, technique]));
-              return technique;
-            }}
-          />
-        </PropertyField>
-        <PropertyField
-          icon={NotebookPen}
-          label="Notes"
-          description="Include what worked, what failed, adjustments to try, and details you want to remember next time."
-          descriptionLabel="What should I include in notes?"
-          htmlFor={notesId}
-        >
-          <Textarea
-            id={notesId}
-            className="min-h-10 resize-none border-transparent bg-transparent px-2 py-2 text-sm shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:bg-zinc-100 focus-visible:ring-0"
-            placeholder="Add notes"
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            disabled={isSubmitting || isDeleting}
-          />
-        </PropertyField>
-        <PropertyField icon={Gauge} label="Intensity" htmlFor={intensityId}>
-          <SelectInput
-            id={intensityId}
-            value={intensity}
-            onChange={(event) => setIntensity(event.target.value as Intensity)}
-            disabled={isSubmitting || isDeleting}
-            variant="property"
-          >
-            <option value="">Select intensity</option>
-            {intensities.map((item) => (
-              <option key={item} value={item}>
-                {formatIntensity(item)}
-              </option>
-            ))}
-          </SelectInput>
-        </PropertyField>
-        <PropertyField icon={CalendarDays} label="Trained date">
-          <DateSelector
-            ariaLabel="Trained date"
-            value={trainedDate}
-            onValueChange={(date) => {
-              if (date) setTrainedDate(date);
-            }}
-            disabled={isSubmitting || isDeleting}
-            variant="property"
-          />
-        </PropertyField>
-        <PropertyField icon={UserRound} label="Partner">
-          <TrainingPartnerInput
-            ariaLabel="Select training partner"
-            disabled={isSubmitting || isDeleting || isOptionsLoading}
-            partners={partners}
-            value={selectedPartner}
-            onSelectPartner={(partner) => {
-              setSelectedPartner(partner);
-              setIsPartnerTouched(true);
-            }}
-            onSelectUnknownPartner={() => {
-              setSelectedPartner(null);
-              setIsPartnerTouched(true);
-            }}
-            showLabel={false}
-            variant="property"
-          />
-        </PropertyField>
-        {category !== "tap" ? (
-          <PropertyField icon={CircleCheck} label="Outcome">
-            <RadioGroup
-              aria-label="Outcome"
-              className="flex min-h-8 flex-wrap items-center gap-1"
-              name="outcome"
-              value={journalType}
-              onValueChange={(value) => setJournalType(value as JournalType)}
-              disabled={isSubmitting || isDeleting}
-            >
-              <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
-                <RadioGroupItem
-                  className="size-3.5 shadow-none cursor-pointer"
-                  value="attempt"
-                />
-                Attempt
-              </Label>
-              <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
-                <RadioGroupItem
-                  className="size-3.5 shadow-none cursor-pointer"
-                  value="success"
-                />
-                Success
-              </Label>
-            </RadioGroup>
-          </PropertyField>
-        ) : null}
-        <div className="flex flex-wrap justify-between gap-3">
-          {mode === "update" ? (
-            <DestructiveConfirmDialog
-              actionLabel="Delete entry"
-              description="This journal entry will be permanently removed. This action cannot be undone."
-              disabled={isSubmitting || isDeleting}
-              onConfirm={deleteEntry}
-              onPendingChange={setIsDeleting}
-              pendingLabel="Deleting..."
-              title="Delete this journal entry?"
-            >
-              <ButtonSecondary
-                className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
+        ) : (
+          <>
+            <PropertyField icon={Shapes} label="Category">
+              <TechniqueCategoryPillSelect
                 disabled={isSubmitting || isDeleting}
-                type="button"
+                value={category}
+                onValueChange={selectCategory}
+                variant="property"
+              />
+            </PropertyField>
+            <PropertyField icon={Tag} label="Technique">
+              <TechniqueTagSelectMenu
+                category={category}
+                disabled={isSubmitting || isDeleting}
+                techniques={techniques}
+                value={selectedTechnique}
+                ariaLabel="Technique"
+                onSelectTechnique={(technique) => {
+                  setTechniqueName(technique.name);
+                }}
+                onCreateSavedTag={async (input) => {
+                  const tag = await createTechniqueTag(input);
+                  const technique = { name: tag.label, category: tag.category };
+                  setTechniques((current) =>
+                    uniqueTechniques([...current, technique]),
+                  );
+                  return technique;
+                }}
+                variant="property"
+              />
+            </PropertyField>
+            <PropertyField
+              icon={Route}
+              label="Setup"
+              description="Describe how you got to the technique, including positions, entries, or transitions that set it up."
+              descriptionLabel="What is setup?"
+            >
+              <TechniqueTagSelectMenu
+                ariaLabel="Setup"
+                category={category}
+                disabled={isSubmitting || isDeleting}
+                techniques={setups}
+                value={selectedSetup}
+                placeholder="Find or add setup"
+                variant="property"
+                onSelectTechnique={(technique) => {
+                  setSetupName(technique.name);
+                }}
+                onCreateSavedTag={async (input) => {
+                  const tag = await createTechniqueTag(input);
+                  const technique = { name: tag.label, category: tag.category };
+                  setSetups((current) =>
+                    uniqueTechniques([...current, technique]),
+                  );
+                  return technique;
+                }}
+              />
+            </PropertyField>
+            <PropertyField
+              icon={NotebookPen}
+              label="Notes"
+              description="Include what worked, what failed, adjustments to try, and details you want to remember next time."
+              descriptionLabel="What should I include in notes?"
+              htmlFor={notesId}
+            >
+              <Textarea
+                id={notesId}
+                className="min-h-10 resize-none border-transparent bg-transparent px-2 py-2 text-sm shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:bg-zinc-100 focus-visible:ring-0"
+                placeholder="Add notes"
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                disabled={isSubmitting || isDeleting}
+              />
+            </PropertyField>
+            <PropertyField icon={Gauge} label="Intensity" htmlFor={intensityId}>
+              <SelectInput
+                id={intensityId}
+                value={intensity}
+                onChange={(event) =>
+                  setIntensity(event.target.value as Intensity)
+                }
+                disabled={isSubmitting || isDeleting}
+                variant="property"
               >
-                <Trash2 className="size-4" />
-              </ButtonSecondary>
-            </DestructiveConfirmDialog>
-          ) : (
-            <span />
-          )}
-          <ButtonPrimary
-            type="submit"
-            disabled={
-              isSubmitting ||
-              isDeleting ||
-              isOptionsLoading ||
-              Boolean(optionsError) ||
-              !techniqueName.trim()
-            }
-          >
-            <Plus className="size-4" />
-            {isSubmitting
-              ? mode === "create"
-                ? "Adding..."
-                : "Saving..."
-              : mode === "create"
-                ? "Add entry"
-                : "Save changes"}
-          </ButtonPrimary>
-        </div>
+                <option value="">Select intensity</option>
+                {intensities.map((item) => (
+                  <option key={item} value={item}>
+                    {formatIntensity(item)}
+                  </option>
+                ))}
+              </SelectInput>
+            </PropertyField>
+            <PropertyField icon={CalendarDays} label="Trained date">
+              <DateSelector
+                ariaLabel="Trained date"
+                value={trainedDate}
+                onValueChange={(date) => {
+                  if (date) setTrainedDate(date);
+                }}
+                disabled={isSubmitting || isDeleting}
+                variant="property"
+              />
+            </PropertyField>
+            <PropertyField icon={UserRound} label="Partner">
+              <TrainingPartnerInput
+                ariaLabel="Select training partner"
+                disabled={isSubmitting || isDeleting}
+                partners={partners}
+                value={selectedPartner}
+                onSelectPartner={(partner) => {
+                  setSelectedPartner(partner);
+                  setIsPartnerTouched(true);
+                }}
+                onSelectUnknownPartner={() => {
+                  setSelectedPartner(null);
+                  setIsPartnerTouched(true);
+                }}
+                showLabel={false}
+                variant="property"
+              />
+            </PropertyField>
+            {category !== "tap" ? (
+              <PropertyField icon={CircleCheck} label="Outcome">
+                <RadioGroup
+                  aria-label="Outcome"
+                  className="flex min-h-8 flex-wrap items-center gap-1"
+                  name="outcome"
+                  value={journalType}
+                  onValueChange={(value) =>
+                    setJournalType(value as JournalType)
+                  }
+                  disabled={isSubmitting || isDeleting}
+                >
+                  <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
+                    <RadioGroupItem
+                      className="size-3.5 shadow-none cursor-pointer"
+                      value="attempt"
+                    />
+                    Attempt
+                  </Label>
+                  <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
+                    <RadioGroupItem
+                      className="size-3.5 shadow-none cursor-pointer"
+                      value="success"
+                    />
+                    Success
+                  </Label>
+                </RadioGroup>
+              </PropertyField>
+            ) : null}
+            <div className="flex flex-wrap justify-between gap-3">
+              {mode === "update" ? (
+                <DestructiveConfirmDialog
+                  actionLabel="Delete entry"
+                  description="This journal entry will be permanently removed. This action cannot be undone."
+                  disabled={isSubmitting || isDeleting}
+                  onConfirm={deleteEntry}
+                  onPendingChange={setIsDeleting}
+                  pendingLabel="Deleting..."
+                  title="Delete this journal entry?"
+                >
+                  <ButtonSecondary
+                    className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
+                    disabled={isSubmitting || isDeleting}
+                    type="button"
+                  >
+                    <Trash2 className="size-4" />
+                  </ButtonSecondary>
+                </DestructiveConfirmDialog>
+              ) : (
+                <span />
+              )}
+              <ButtonPrimary
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  isDeleting ||
+                  Boolean(optionsError) ||
+                  !techniqueName.trim()
+                }
+              >
+                <Plus className="size-4" />
+                {isSubmitting
+                  ? mode === "create"
+                    ? "Adding..."
+                    : "Saving..."
+                  : mode === "create"
+                    ? "Add entry"
+                    : "Save changes"}
+              </ButtonPrimary>
+            </div>
+          </>
+        )}
       </form>
     </ModalFrame>
   );
