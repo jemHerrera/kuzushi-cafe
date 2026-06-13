@@ -15,7 +15,7 @@ import { categories, categoryStyles, cx, type Category } from "./shared";
 type TechniqueCategoryPillSelectProps = {
   value?: Category;
   onValueChange?: (category: Category) => void;
-  variant?: "default" | "property" | "table";
+  variant?: "default" | "property" | "table" | "small";
   disabled?: boolean;
 };
 
@@ -47,10 +47,16 @@ export function TechniqueCategoryPillSelect({
           categoryStyles[selectedCategory],
           variant === "property" && "",
           variant === "table" && "px-2 py-0.5",
+          variant === "small" && "px-2 max-h-7 py-0 text-[11px]",
         )}
       >
         <SelectValue>{selectedCategory}</SelectValue>
-        <ChevronDown className="size-3.5 shrink-0 text-current" />
+        <ChevronDown
+          className={cx(
+            "size-3.5 shrink-0 text-current",
+            variant === "small" && "size-3",
+          )}
+        />
       </SelectTrigger>
       <SelectContent
         className="min-w-44 bg-white/75 p-1 shadow-lg backdrop-blur-md"

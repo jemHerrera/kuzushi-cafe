@@ -190,7 +190,7 @@ export function SavedTechniqueTagList({
             {techniques.map((technique) => (
               <CommandItem
                 key={`${technique.id}-${technique.updatedAt}-${refreshToken}`}
-                className="min-h-0 rounded-md border border-zinc-200 bg-white p-0 hover:bg-white focus-visible:bg-white [&>svg:last-child]:hidden mb-2"
+                className="mb-2 min-h-0 rounded-md bg-white p-0 hover:bg-white focus-visible:bg-white data-selected:bg-white data-selected:text-zinc-950 [&>svg:last-child]:hidden"
                 value={technique.id}
                 onSelect={() => undefined}
               >

@@ -105,6 +105,7 @@ export function SavedTechniqueTagItem({
         disabled={disabled}
         value={currentCategory}
         onValueChange={changeCategory}
+        variant="small"
       />
       <AlertDialog>
         <AlertDialogTrigger asChild>
