@@ -228,7 +228,7 @@ export function TrainingPartnersListModal({
               {hasInboundTrainingPartnerRequests ? (
                 <span
                   aria-hidden="true"
-                  className="size-2 rounded-full bg-red-500"
+                  className="size-2 rounded-full bg-emerald-500"
                 />
               ) : null}
             </TabsTrigger>
@@ -310,6 +310,7 @@ export function TrainingPartnersListModal({
                           <ButtonPrimary
                             type="button"
                             disabled={isSubmitting}
+                            className="h-8 px-2"
                             onClick={() =>
                               runAction(
                                 "Training partner request accepted.",
@@ -333,6 +334,7 @@ export function TrainingPartnersListModal({
                           <ButtonSecondary
                             type="button"
                             disabled={isSubmitting}
+                            className="h-8 px-2"
                             onClick={() =>
                               setConfirming({ type: "block", account })
                             }
@@ -463,7 +465,7 @@ function TrainingPartnerRow({
   partner: TrainingPartnerDetail;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 bg-white p-2">
+    <div className="flex flex-wrap items-center gap-2 bg-white">
       <ProfileButton
         belt={partner.belt}
         disabled={disabled || partner.object !== "training_partner"}
@@ -477,12 +479,6 @@ function TrainingPartnerRow({
         onOpen={onOpen}
       />
       <div className="ml-auto flex flex-wrap gap-2">
-        {onBlock ? (
-          <ButtonSecondary type="button" onClick={onBlock} disabled={disabled}>
-            <Ban className="size-4" />
-            Block
-          </ButtonSecondary>
-        ) : null}
         <ButtonSecondary
           className="h-8 gap-1.5 px-3 text-xs"
           type="button"
@@ -509,7 +505,7 @@ function AccountRow({
   onOpen: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-md border border-zinc-200 bg-white p-2">
+    <div className="flex flex-wrap items-center gap-2 bg-white p-2">
       <ProfileButton
         belt={account.belt}
         disabled={disabled}

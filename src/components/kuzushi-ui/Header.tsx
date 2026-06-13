@@ -94,7 +94,7 @@ function IndicatorDot() {
   return (
     <span
       aria-hidden="true"
-      className="absolute right-1.5 top-1.5 size-2 rounded-full bg-red-500 ring-2 ring-white"
+      className="absolute right-1.5 top-1.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white"
     />
   );
 }

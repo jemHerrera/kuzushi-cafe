@@ -115,7 +115,7 @@ export function SidePanel({
               hasInboundTrainingPartnerRequests ? (
                 <span
                   aria-hidden="true"
-                  className="ml-auto size-2 rounded-full bg-red-500"
+                  className="ml-auto size-2 rounded-full bg-emerald-500"
                 />
               ) : null}
             </button>
