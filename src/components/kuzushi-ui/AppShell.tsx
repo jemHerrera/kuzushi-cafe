@@ -131,7 +131,7 @@ export function AppShell({ account }: { account: AccountDetail }) {
           </div>
           <section className="mx-auto grid w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
             <div>
-              <h2 className="mt-1 text-3xl font-black tracking-tight">
+              <h2 className="mt-1 text-3xl italic font-black tracking-tight">
                 Welcome back, {currentAccount.firstName}
               </h2>
             </div>
