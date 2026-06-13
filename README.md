@@ -117,8 +117,14 @@ protocol-relative destinations are discarded.
 - [x] Build aggregate overview and aggregate views with timeline filters, success filters, charts, category pills, loading states, empty states, and stats rows.
 - [x] Build saved-technique UI with search, add, edit, delete, category pills, and "create saved tag" flows from journal forms.
 - [x] Build notification UI with list pagination, deep links, mark-read, mark-all-read, empty state, loading state, error state, and retry.
-- [ ] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
+- [x] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
 - [ ] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.
 - [ ] Add integration tests for managers, endpoint authorization, journal-entry invariants, privacy scoping, training-partner relationships, and donation status handling.
 - [ ] Add /privacy-policy and /terms-of-service
 - [ ] Add end-to-end tests for sign-in, profile completion, journal entry CRUD, filters and sorting, training-partner requests, public profile visibility, saved techniques, notifications, and donation checkout return flows.
+
+## Dev Notes
+
+- [] Change Training activity into activity dots (Like Github) - filters are years
+- [] Change Technique occurences to vertical bar chart
+- []

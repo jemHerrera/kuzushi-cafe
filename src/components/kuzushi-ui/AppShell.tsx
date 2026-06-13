@@ -57,7 +57,17 @@ export function AppShell({ account }: { account: AccountDetail }) {
   const [selectedProfile, setSelectedProfile] =
     useState<PublicAccountSummary | null>(null);
   const profileAccountId = searchParams.get("profile")?.trim() || undefined;
-  const displayedModal = profileAccountId ? "public-profile" : activeModal;
+  const donationReturn = searchParams.get("donation");
+  const donationReturnState =
+    donationReturn === "success" || donationReturn === "canceled"
+      ? donationReturn
+      : undefined;
+  const donationSessionId = searchParams.get("session_id")?.trim() || undefined;
+  const displayedModal = profileAccountId
+    ? "public-profile"
+    : donationReturnState
+      ? "donation"
+      : activeModal;
 
   function openModal(action: SidePanelAction) {
     setIsNavigationOpen(false);
@@ -69,9 +79,11 @@ export function AppShell({ account }: { account: AccountDetail }) {
   }
 
   function closeModal() {
-    if (profileAccountId) {
+    if (profileAccountId || donationReturnState) {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("profile");
+      params.delete("donation");
+      params.delete("session_id");
       router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
         scroll: false,
       });
@@ -231,7 +243,12 @@ export function AppShell({ account }: { account: AccountDetail }) {
             <PrivacySettings onClose={closeModal} withinDialog />
           ) : null}
           {displayedModal === "donation" ? (
-            <DonationModal onClose={closeModal} withinDialog />
+            <DonationModal
+              onClose={closeModal}
+              returnState={donationReturnState}
+              sessionId={donationSessionId}
+              withinDialog
+            />
           ) : null}
           {displayedModal === "public-profile" && profileAccountId ? (
             <PublicProfile
