@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function SignOutButton() {
   const router = useRouter();
@@ -23,13 +23,12 @@ export function SignOutButton() {
   }
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      disabled={isSigningOut}
+    <Link
+      href="#"
+      className="hover:text-zinc-950"
       onClick={() => void signOut()}
     >
-      {isSigningOut ? "Signing out..." : "Sign out"}
-    </Button>
+      Sign out
+    </Link>
   );
 }

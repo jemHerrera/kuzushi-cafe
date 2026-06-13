@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { BrandWordmark, SignInForm } from "@/components/kuzushi-ui";
 import { safeRelativePath } from "@/lib/auth/redirects";
 
@@ -22,6 +24,23 @@ export default async function SignInPage({
           next={safeRelativePath(params.next)}
           initialError={params.error}
         />
+        <p className="mt-6 text-center text-xs leading-5 text-zinc-500">
+          By continuing, you agree to the{" "}
+          <Link
+            className="font-semibold text-zinc-700 underline underline-offset-4"
+            href="/terms-of-service"
+          >
+            Terms of Service
+          </Link>{" "}
+          and acknowledge the{" "}
+          <Link
+            className="font-semibold text-zinc-700 underline underline-offset-4"
+            href="/privacy-policy"
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </section>
     </main>
   );

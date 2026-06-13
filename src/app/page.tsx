@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { BrandWordmark, SignInForm } from "@/components/kuzushi-ui";
 
 export default function Home() {
@@ -27,6 +29,18 @@ export default function Home() {
             <SignInForm next="/app" />
           </div>
         </div>
+
+        <footer className="flex flex-wrap gap-x-5 gap-y-2 border-t border-zinc-200 py-5 text-sm text-zinc-600">
+          <Link className="hover:text-zinc-950" href="/privacy-policy">
+            Privacy Policy
+          </Link>
+          <Link className="hover:text-zinc-950" href="/terms-of-service">
+            Terms of Service
+          </Link>
+          <a className="hover:text-zinc-950" href="mailto:hello@kuzushi.cafe">
+            Contact
+          </a>
+        </footer>
       </section>
     </main>
   );

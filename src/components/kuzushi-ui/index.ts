@@ -26,6 +26,7 @@ export { JournalEntrySearch } from "./JournalEntrySearch";
 export { JournalEntryTable } from "./JournalEntryTable";
 export { JournalEntryUpdate } from "./JournalEntryUpdate";
 export { JournalTypePillSelect } from "./JournalTypePillSelect";
+export { LegalPage } from "./LegalPage";
 export { LoadingState } from "./LoadingState";
 export { MyProfile } from "./MyProfile";
 export { NotificationItem } from "./NotificationItem";

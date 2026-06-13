@@ -8,6 +8,7 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
+import Link from "next/link";
 
 import type { AccountDetail } from "@/lib/managers/types";
 import { cn } from "@/lib/utils";
@@ -121,7 +122,15 @@ export function SidePanel({
       </nav>
       <div className="mt-auto grid gap-3 pt-6">
         <DonationBanner onDonate={() => onAction("donation")} />
-        <SignOutButton />
+        <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+          <Link className="hover:text-zinc-950" href="/privacy-policy">
+            Privacy
+          </Link>
+          <Link className="hover:text-zinc-950" href="/terms-of-service">
+            Terms
+          </Link>
+          <SignOutButton />
+        </div>
       </div>
     </aside>
   );
