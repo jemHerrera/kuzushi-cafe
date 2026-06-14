@@ -343,6 +343,7 @@ export function JournalEntryForm({
               value={trainedDate}
               onValueChange={setTrainedDate}
               disabled={isSubmitting || isDeleting}
+              disableFuture
               variant="property"
             />
           </PropertyField>

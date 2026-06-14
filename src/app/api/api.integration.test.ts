@@ -21,6 +21,7 @@ import * as journalRoute from "@/app/api/journal-entries/route";
 import * as notificationReadRoute from "@/app/api/notifications/[id]/read/route";
 import * as indicatorRoute from "@/app/api/notifications/indicators/route";
 import * as notificationRoute from "@/app/api/notifications/route";
+import * as statsRoute from "@/app/api/stats/route";
 import * as tagDetailRoute from "@/app/api/technique-tags/[id]/route";
 import * as tagRoute from "@/app/api/technique-tags/route";
 import * as blockRoute from "@/app/api/training-partners/[id]/block/route";
@@ -251,6 +252,161 @@ describe.skipIf(!hasLocalSupabase)("API route integration", () => {
         },
       ],
     });
+  });
+
+  it("aggregates dashboard stats by category, date, type, and normalized technique", async () => {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    const createdDate = `${today}T10:00:00.000Z`;
+    const previousYear = `${now.getUTCFullYear() - 1}-01-15T12:00:00.000Z`;
+    serverClient.current = users[0].client;
+
+    const { error } = await admin.from("journal_entries").insert([
+      {
+        account_id: users[0].accountId,
+        category: "leg-entry",
+        name: "  Saddle Entry  ",
+        journal_type: "success",
+        trained_date: `${today}T12:00:00.000Z`,
+        created_date: createdDate,
+      },
+      {
+        account_id: users[0].accountId,
+        category: "leg-entry",
+        name: "saddle entry",
+        journal_type: "attempt",
+        trained_date: `${today}T13:00:00.000Z`,
+        created_date: createdDate,
+      },
+      {
+        account_id: users[0].accountId,
+        category: "leg-entry",
+        name: "Inside Sankaku",
+        journal_type: "success",
+        trained_date: `${today}T14:00:00.000Z`,
+        created_date: createdDate,
+      },
+      {
+        account_id: users[0].accountId,
+        category: "leg-entry",
+        name: "Old entry",
+        journal_type: "success",
+        trained_date: previousYear,
+        created_date: createdDate,
+      },
+      {
+        account_id: users[0].accountId,
+        category: "leg-entry",
+        name: "Created fallback",
+        journal_type: "success",
+        trained_date: null,
+        created_date: `${today}T15:00:00.000Z`,
+      },
+      {
+        account_id: users[0].accountId,
+        category: "tap",
+        name: "Triangle",
+        journal_type: null,
+        trained_date: `${today}T16:00:00.000Z`,
+        created_date: createdDate,
+      },
+    ]);
+    expect(error).toBeNull();
+
+    const all = await statsRoute.GET(
+      new Request(
+        "http://localhost/api/stats?category=leg-entry&timeline=month&type=all",
+      ),
+    );
+    expect(all.status).toBe(200);
+    expect(await all.json()).toMatchObject({
+      category: "leg-entry",
+      timeline: "month",
+      type: "all",
+      items: [
+        {
+          label: "Saddle Entry",
+          attempts: 1,
+          successes: 1,
+          occurrences: 2,
+        },
+        {
+          label: "Created fallback",
+          attempts: 0,
+          successes: 1,
+          occurrences: 1,
+        },
+        {
+          label: "Inside Sankaku",
+          attempts: 0,
+          successes: 1,
+          occurrences: 1,
+        },
+      ],
+    });
+
+    const successes = await statsRoute.GET(
+      new Request(
+        "http://localhost/api/stats?category=leg-entry&timeline=month&type=success",
+      ),
+    );
+    expect(successes.status).toBe(200);
+    expect((await successes.json()).items).toEqual([
+      {
+        label: "Created fallback",
+        attempts: 0,
+        successes: 1,
+        occurrences: 1,
+      },
+      {
+        label: "Inside Sankaku",
+        attempts: 0,
+        successes: 1,
+        occurrences: 1,
+      },
+      {
+        label: "Saddle Entry",
+        attempts: 0,
+        successes: 1,
+        occurrences: 1,
+      },
+    ]);
+
+    const allTime = await statsRoute.GET(
+      new Request(
+        "http://localhost/api/stats?category=leg-entry&timeline=all&type=success",
+      ),
+    );
+    expect((await allTime.json()).items).toContainEqual({
+      label: "Old entry",
+      attempts: 0,
+      successes: 1,
+      occurrences: 1,
+    });
+
+    const taps = await statsRoute.GET(
+      new Request(
+        "http://localhost/api/stats?category=tap&timeline=month&type=success",
+      ),
+    );
+    expect(await taps.json()).toMatchObject({
+      type: "all",
+      items: [
+        {
+          label: "Triangle",
+          attempts: 0,
+          successes: 0,
+          occurrences: 1,
+        },
+      ],
+    });
+
+    const empty = await statsRoute.GET(
+      new Request(
+        "http://localhost/api/stats?category=off-balance&timeline=week&type=all",
+      ),
+    );
+    expect((await empty.json()).items).toEqual([]);
   });
 
   it("creates one notification atomically with a training partner request", async () => {

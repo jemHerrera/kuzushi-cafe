@@ -1,0 +1,413 @@
+"use client";
+
+import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  type BarShapeProps,
+} from "recharts";
+
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import type {
+  ApiErrorDetail,
+  Category,
+  StatsDetail,
+  StatsTimeline,
+  StatsTypeFilter,
+} from "@/lib/managers/types";
+import { EmptyState } from "./EmptyState";
+import { ErrorState } from "./ErrorState";
+import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
+
+const timelineOptions: Array<{ value: StatsTimeline; label: string }> = [
+  { value: "week", label: "This week" },
+  { value: "month", label: "This month" },
+  { value: "year", label: "This year" },
+  { value: "all", label: "All time" },
+];
+
+const typeOptions: Array<{ value: StatsTypeFilter; label: string }> = [
+  { value: "all", label: "All" },
+  { value: "success", label: "Successes only" },
+];
+
+const categoryChartColors: Record<Category, { light: string; strong: string }> =
+  {
+    submission: { light: "#fda4af", strong: "#be123c" },
+    takedown: { light: "#fdba74", strong: "#c2410c" },
+    sweep: { light: "#fcd34d", strong: "#b45309" },
+    "guard-pass": { light: "#6ee7b7", strong: "#047857" },
+    reversal: { light: "#7dd3fc", strong: "#0369a1" },
+    "back-take": { light: "#c4b5fd", strong: "#6d28d9" },
+    "leg-entry": { light: "#f0abfc", strong: "#a21caf" },
+    escape: { light: "#67e8f9", strong: "#0e7490" },
+    tap: { light: "#d4d4d8", strong: "#3f3f46" },
+    "off-balance": { light: "#bef264", strong: "#4d7c0f" },
+    position: { light: "#a5b4fc", strong: "#4338ca" },
+    "guard-retention": { light: "#5eead4", strong: "#0f766e" },
+    other: { light: "#d6d3d1", strong: "#57534e" },
+  };
+
+export function Stats({
+  onAddEntry,
+  refreshToken = 0,
+}: {
+  onAddEntry?: () => void;
+  refreshToken?: number;
+}) {
+  const [category, setCategory] = useState<Category>("submission");
+  const [timeline, setTimeline] = useState<StatsTimeline>("month");
+  const [typeFilter, setTypeFilter] = useState<StatsTypeFilter>("all");
+  const [stats, setStats] = useState<StatsDetail>();
+  const [error, setError] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [retryToken, setRetryToken] = useState(0);
+  const effectiveType = category === "tap" ? "all" : typeFilter;
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      category,
+      timeline,
+      type: effectiveType,
+    });
+
+    async function loadStats() {
+      setIsLoading(true);
+      setError(undefined);
+
+      try {
+        const response = await fetch(`/api/stats?${params}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          const detail = (await response.json()) as ApiErrorDetail;
+          throw new Error(detail.error.message);
+        }
+        setStats((await response.json()) as StatsDetail);
+      } catch (loadError) {
+        if (controller.signal.aborted) return;
+        setStats(undefined);
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "We could not load stats.",
+        );
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
+    }
+
+    void loadStats();
+    return () => controller.abort();
+  }, [category, effectiveType, refreshToken, retryToken, timeline]);
+
+  function changeCategory(nextCategory: Category) {
+    setCategory(nextCategory);
+    if (nextCategory === "tap") setTypeFilter("all");
+  }
+
+  return (
+    <section className="grid gap-3" aria-label="Stats">
+      <h2 className="mt-1 mb-2 text-2xl font-black tracking-tight">Stats</h2>
+      <div className="flex flex-wrap items-center gap-2">
+        <TechniqueCategoryPillSelect
+          value={category}
+          onValueChange={changeCategory}
+        />
+        <FilterSelect
+          ariaLabel="Stats date"
+          options={timelineOptions}
+          value={timeline}
+          onValueChange={(value) => setTimeline(value as StatsTimeline)}
+        />
+        <FilterSelect
+          ariaLabel="Stats type"
+          disabled={category === "tap"}
+          options={typeOptions}
+          value={effectiveType}
+          onValueChange={(value) => setTypeFilter(value as StatsTypeFilter)}
+        />
+      </div>
+      {error ? (
+        <ErrorState
+          message={error}
+          onRetry={() => setRetryToken((token) => token + 1)}
+        />
+      ) : null}
+      {isLoading ? (
+        <StatsLoadingState />
+      ) : stats?.items.length ? (
+        <StatsChart
+          category={category}
+          data={stats.items}
+          typeFilter={effectiveType}
+        />
+      ) : (
+        <EmptyState
+          className="border border-zinc-200"
+          body="Technique stats appear after journal entries matching these filters are created."
+          onAction={onAddEntry}
+          title="No stats yet"
+        />
+      )}
+    </section>
+  );
+}
+
+function StatsChart({
+  category,
+  data,
+  typeFilter,
+}: {
+  category: Category;
+  data: StatsDetail["items"];
+  typeFilter: StatsTypeFilter;
+}) {
+  const colors = categoryChartColors[category];
+  const config = {
+    attempts: { label: "Attempts", color: colors.light },
+    successes: { label: "Successes", color: colors.strong },
+    occurrences: { label: "Occurrences", color: colors.strong },
+  } satisfies ChartConfig;
+  const isTap = category === "tap";
+  const displayedData = withDisplayValues(data, isTap, typeFilter);
+  const chartHeight = Math.max(100, displayedData.length * 30 + 56);
+
+  return (
+    <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+      <ChartContainer
+        className="min-w-[28rem] aspect-auto"
+        config={config}
+        initialDimension={{ width: 640, height: chartHeight }}
+        style={{ height: chartHeight }}
+      >
+        <BarChart
+          accessibilityLayer
+          barCategoryGap={2}
+          barGap={0}
+          data={displayedData}
+          layout="vertical"
+          margin={{ top: 12, right: 16, bottom: 12, left: 8 }}
+        >
+          <CartesianGrid horizontal={false} />
+          <XAxis axisLine={false} hide tickLine={false} type="number" />
+          <YAxis
+            axisLine={false}
+            dataKey="label"
+            interval={0}
+            tickLine={false}
+            tickMargin={8}
+            type="category"
+            width={180}
+          />
+          <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+          {!isTap && typeFilter === "all" ? (
+            <Bar
+              dataKey="attempts"
+              fill="var(--color-attempts)"
+              isAnimationActive={false}
+              maxBarSize={18}
+              radius={[4, 0, 0, 4]}
+              shape={
+                <LabeledBarShape fillColor={colors.light} hideWhenSuccess />
+              }
+              stackId="outcome"
+            />
+          ) : null}
+          {!isTap ? (
+            <Bar
+              dataKey="successes"
+              fill="var(--color-successes)"
+              isAnimationActive={false}
+              maxBarSize={18}
+              radius={[0, 4, 4, 0]}
+              shape={<LabeledBarShape fillColor={colors.strong} />}
+              stackId={typeFilter === "all" ? "outcome" : undefined}
+            />
+          ) : (
+            <Bar
+              dataKey="occurrences"
+              fill="var(--color-occurrences)"
+              isAnimationActive={false}
+              maxBarSize={18}
+              radius={[0, 4, 4, 0]}
+              shape={<LabeledBarShape fillColor={colors.strong} />}
+            />
+          )}
+          {!isTap && typeFilter === "all" ? (
+            <ChartLegend content={<ChartLegendContent />} />
+          ) : null}
+        </BarChart>
+      </ChartContainer>
+    </div>
+  );
+}
+
+type DisplayedStatsItem = StatsDetail["items"][number] & {
+  displayLabel: string;
+};
+
+function withDisplayValues(
+  data: StatsDetail["items"],
+  isTap: boolean,
+  typeFilter: StatsTypeFilter,
+): DisplayedStatsItem[] {
+  const counts = data.map((item) =>
+    isTap
+      ? item.occurrences
+      : typeFilter === "success"
+        ? item.successes
+        : item.attempts + item.successes,
+  );
+  const total = counts.reduce((sum, count) => sum + count, 0);
+
+  return data.map((item, index) => {
+    const label = `${counts[index]} · ${total ? Math.round((counts[index] / total) * 100) : 0}%`;
+
+    return {
+      ...item,
+      displayLabel: label,
+    };
+  });
+}
+
+function LabeledBarShape({
+  fillColor,
+  height,
+  hideWhenSuccess = false,
+  payload,
+  width,
+  x,
+  y,
+}: Partial<BarShapeProps> & {
+  fillColor: string;
+  hideWhenSuccess?: boolean;
+  payload?: DisplayedStatsItem;
+}) {
+  if (
+    typeof height !== "number" ||
+    typeof width !== "number" ||
+    typeof x !== "number" ||
+    typeof y !== "number"
+  ) {
+    return null;
+  }
+
+  return (
+    <g>
+      <rect fill={fillColor} height={height} rx={4} width={width} x={x} y={y} />
+      {payload?.displayLabel &&
+      width > 0 &&
+      !(hideWhenSuccess && payload.successes > 0) ? (
+        <text
+          dominantBaseline="middle"
+          fill={contrastTextColor(fillColor)}
+          fontSize={11}
+          fontWeight={700}
+          textAnchor="end"
+          x={x + width - 5}
+          y={y + height / 2}
+        >
+          {payload.displayLabel}
+        </text>
+      ) : null}
+    </g>
+  );
+}
+
+function contrastTextColor(background: string) {
+  const [red, green, blue] = background
+    .slice(1)
+    .match(/.{2}/g)!
+    .map((value) => Number.parseInt(value, 16));
+  const luminance =
+    0.2126 * channelLuminance(red) +
+    0.7152 * channelLuminance(green) +
+    0.0722 * channelLuminance(blue);
+
+  return luminance > 0.42 ? "#18181b" : "#ffffff";
+}
+
+function channelLuminance(value: number) {
+  const channel = value / 255;
+  return channel <= 0.03928
+    ? channel / 12.92
+    : Math.pow((channel + 0.055) / 1.055, 2.4);
+}
+
+function FilterSelect({
+  ariaLabel,
+  disabled = false,
+  options,
+  value,
+  onValueChange,
+}: {
+  ariaLabel: string;
+  disabled?: boolean;
+  options: Array<{ value: string; label: string }>;
+  value: string;
+  onValueChange: (value: string) => void;
+}) {
+  return (
+    <Select disabled={disabled} value={value} onValueChange={onValueChange}>
+      <SelectTrigger
+        aria-label={ariaLabel}
+        className="h-8 w-fit min-w-32 rounded-full px-3 text-xs font-semibold shadow-none"
+      >
+        <SelectValue />
+        <ChevronDown className="size-3.5 shrink-0 text-zinc-500" />
+      </SelectTrigger>
+      <SelectContent align="start" position="popper">
+        {options.map((option) => (
+          <SelectItem
+            key={option.value}
+            className="cursor-pointer text-sm"
+            showIndicator={false}
+            value={option.value}
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function StatsLoadingState() {
+  return (
+    <div
+      aria-label="Loading stats"
+      className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4"
+    >
+      <Skeleton className="h-5 w-48 max-w-full" />
+      <div className="grid gap-3">
+        {[1, 2, 3, 4].map((item) => (
+          <div className="flex items-center gap-4" key={item}>
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-7 flex-1" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

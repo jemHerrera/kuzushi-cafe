@@ -20,6 +20,7 @@ type DateSelectorProps = {
   ariaLabel?: string;
   onValueChange?: (date: Date | undefined) => void;
   disabled?: boolean;
+  disableFuture?: boolean;
   variant?: "default" | "property" | "table";
 };
 
@@ -31,6 +32,7 @@ export function DateSelector({
   ariaLabel,
   onValueChange,
   disabled = false,
+  disableFuture = false,
   variant = "default",
 }: DateSelectorProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
@@ -87,7 +89,12 @@ export function DateSelector({
           defaultMonth={selectedDate}
           captionLayout="dropdown"
           startMonth={new Date(1900, 0)}
-          endMonth={new Date(new Date().getFullYear() + 1, 11)}
+          endMonth={
+            disableFuture
+              ? new Date()
+              : new Date(new Date().getFullYear() + 1, 11)
+          }
+          disabled={disableFuture ? { after: new Date() } : undefined}
           onSelect={selectDate}
         />
       </PopoverContent>

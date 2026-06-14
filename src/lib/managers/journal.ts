@@ -756,6 +756,15 @@ function validateDate(value: Date, label: string) {
   if (Number.isNaN(value.getTime())) {
     throw new ManagerError("invalid_date", `${label} is invalid.`, 422);
   }
+  if (
+    value.toISOString().slice(0, 10) > new Date().toISOString().slice(0, 10)
+  ) {
+    throw new ManagerError(
+      "future_date_not_allowed",
+      `${label} cannot be in the future.`,
+      422,
+    );
+  }
 }
 
 function cleanText(value?: string | null) {

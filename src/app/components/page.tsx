@@ -1,9 +1,6 @@
 "use client";
 
 import {
-  AggregateOverview,
-  AggregateView,
-  AggregateViewFilters,
   AlertBanner,
   Avatar,
   BrandWordmark,
@@ -38,11 +35,11 @@ import {
   SavedTechniqueUpsert,
   Search,
   SidePanel,
-  StatsChart,
   StatsRow,
   TechniqueCategoryPill,
   TechniqueCategoryPillSelect,
   TechniqueTagSelectMenu,
+  TrainingActivity,
   TrainingPartnerInput,
   TrainingPartnerSearch,
   TrainingPartnerSelectMenu,
@@ -54,7 +51,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import type { AccountDetail, PublicAccountSummary } from "@/lib/managers/types";
 import { sampleEntries } from "@/components/kuzushi-ui/shared";
-import { sampleAggregate } from "@/components/kuzushi-ui/AggregateOverview";
+import { sampleTrainingActivity } from "@/components/kuzushi-ui/TrainingActivity";
 
 const sampleAccount: AccountDetail = {
   id: "component-library-account",
@@ -245,19 +242,10 @@ const sections = [
     title: "Stats",
     items: [
       {
-        name: "StatsChart",
-        element: <StatsChart data={sampleAggregate.series} />,
+        name: "TrainingActivity",
+        element: <TrainingActivity data={sampleTrainingActivity} />,
       },
       { name: "StatsRow", element: <StatsRow /> },
-      { name: "AggregateViewFilters", element: <AggregateViewFilters /> },
-      {
-        name: "AggregateView",
-        element: <AggregateView data={sampleAggregate} />,
-      },
-      {
-        name: "AggregateOverview",
-        element: <AggregateOverview data={sampleAggregate} />,
-      },
     ],
   },
 ];

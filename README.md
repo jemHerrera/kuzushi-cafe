@@ -105,7 +105,7 @@ protocol-relative destinations are discarded.
 - [x] Build training-partner request, accepted training-partner list, reciprocal detach-and-snapshot remove-training-partner, block, and unblock manager flows.
 - [x] Build journal-entry managers with the documented invariants for tap success clearing, trained-date defaults, and mutually exclusive partner modes.
 - [x] Build technique-tag managers for public tags, user-created private tags, fuzzy search, create, update, delete, and merge.
-- [x] Build aggregate-stat managers for timelines, category filters, success filters, series data, and stats rows.
+- [x] Build daily training-activity manager data for the contribution calendar.
 - [x] Build notification managers for journal-entry partner assignment notifications, list pagination, mark-read, and mark-all-read.
 - [x] Build donation checkout managers with Stripe Checkout session creation and success, canceled, and retryable-failure status handling.
 - [x] Implement the API endpoints in `docs/api-endpoints.md` with validation, normalization, authorization, pagination, and URL-backed journal filters.
@@ -116,11 +116,11 @@ protocol-relative destinations are discarded.
 - [x] Build training-partner UI for profile search, potential training partners, inbound and outbound requests, relationship states, add, remove, block, and remove confirmation.
 - [x] Build journal-entry create and update modals with category, technique/setup tag inputs, attempt/success fields, intensity, gi/no-gi, partner selection, trained date, delete confirmation, and submit states.
 - [x] Build the journal-entry table with filters, sortable headings, pagination, horizontal mobile scrolling, edit/delete actions, and URL-persisted filters.
-- [x] Build aggregate overview and aggregate views with timeline filters, success filters, charts, category pills, loading states, empty states, and stats rows.
+- [x] Build the rolling 12-month training activity calendar with loading, empty, and retry states.
 - [x] Build saved-technique UI with search, add, edit, delete, category pills, and "create saved tag" flows from journal forms.
 - [x] Build notification UI with list pagination, deep links, mark-read, mark-all-read, empty state, loading state, error state, and retry.
 - [x] Build donation UI with preset amounts, custom amount, Stripe redirect, success, canceled, and retryable-failure return states.
-- [x] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and aggregate surfaces.
+- [x] Add loading, error, empty, retry, disabled-submit, and skeleton states across all list, table, form, and activity surfaces.
 - [x] Add /privacy-policy and /terms-of-service
 - [x] Create notification when sending training partner request
   - [x] Ensure notificationd dot

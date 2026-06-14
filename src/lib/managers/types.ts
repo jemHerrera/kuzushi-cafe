@@ -165,28 +165,35 @@ export type TechniqueTagDetail = {
   updatedAt: number;
 };
 
-export type AggregateTimeline = "week" | "month" | "year" | "all" | "custom";
-
-export type AggregateStatsDetail = {
-  object: "aggregate_stats";
+export type TrainingActivityDetail = {
+  object: "training_activity";
   accountId: string;
-  category?: Category;
-  timeline: AggregateTimeline;
-  startAt: number;
-  endAt: number;
-  journalTypes: JournalType[];
-  attempts: number;
-  successes: number;
-  series: {
+  startDate: string;
+  endDate: string;
+  totalEntries: number;
+  activeDays: number;
+  days: {
+    date: string;
+    count: number;
+  }[];
+};
+
+export type StatsTimeline = "week" | "month" | "year" | "all";
+export type StatsTypeFilter = "all" | "success";
+
+export type StatsDetail = {
+  object: "stats";
+  accountId: string;
+  category: Category;
+  timeline: StatsTimeline;
+  type: StatsTypeFilter;
+  startDate?: string;
+  endDate: string;
+  items: {
     label: string;
     attempts: number;
     successes: number;
     occurrences: number;
-  }[];
-  stats: {
-    label: string;
-    count: number;
-    percentage: number;
   }[];
 };
 
@@ -235,7 +242,7 @@ export type PublicJournalEntriesResponse =
     visibility: PrivacyType;
   };
 
-export type PublicAggregateResponse = AggregateStatsDetail & {
+export type PublicTrainingActivityResponse = TrainingActivityDetail & {
   visibility: PrivacyType;
 };
 

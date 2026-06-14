@@ -21,7 +21,6 @@ import type {
   PaginatedResponse,
   PublicAccountSummary,
 } from "@/lib/managers/types";
-import { AggregateOverview } from "./AggregateOverview";
 import { DonationModal } from "./DonationModal";
 import { Header } from "./Header";
 import { JournalEntryTable } from "./JournalEntryTable";
@@ -32,6 +31,8 @@ import { PrivacySettings } from "./PrivacySettings";
 import { PublicProfile } from "./PublicProfile";
 import { SavedTechniqueTagList } from "./SavedTechniqueTagList";
 import { SidePanel, type SidePanelAction } from "./SidePanel";
+import { Stats } from "./Stats";
+import { TrainingActivity } from "./TrainingActivity";
 import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
 
 type ShellModal =
@@ -190,7 +191,11 @@ export function AppShell({
               }
               refreshToken={journalRefreshToken}
             />
-            <AggregateOverview
+            <TrainingActivity
+              onAddEntry={() => setActiveModal("new-entry")}
+              refreshToken={journalRefreshToken}
+            />
+            <Stats
               onAddEntry={() => setActiveModal("new-entry")}
               refreshToken={journalRefreshToken}
             />

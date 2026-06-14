@@ -77,12 +77,12 @@ This file maps the UI in `docs/ui.md` to API endpoints. Endpoints use JSON reque
 - UI: `PublicProfile` page component.
 - Auth middleware: optional.
 - Input path: `id`.
-- Output: `PublicProfileDetail`, containing privacy-scoped public profile fields and `TrainingPartnerRelationshipStatus` for authenticated viewers. Aggregate and journal data are loaded from their dedicated endpoints.
+- Output: `PublicProfileDetail`, containing privacy-scoped public profile fields and `TrainingPartnerRelationshipStatus` for authenticated viewers. Training activity and journal data are loaded from their dedicated endpoints.
 - Manager methods:
   - `IAccountManager.getAccount`
   - `IAccountManager.getPrivacySettings`
   - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated
-  - Endpoint stitches visible profile fields, aggregate sections, and journal sections based on privacy.
+  - Endpoint stitches visible profile fields and relationship state based on privacy.
 
 ### `GET /api/account/privacy`
 
@@ -291,7 +291,7 @@ not part of the contract.
 - Output: `{ deleted: true }`.
 - Manager methods: `IJournalEntryManager.deleteJournalEntries({ id: [id] })`.
 
-## Public Journal And Aggregates
+## Public Journal And Training Activity
 
 ### `GET /api/accounts/:id/journal-entries`
 
@@ -305,35 +305,36 @@ not part of the contract.
   - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated
   - `IJournalEntryManager.getJournalEntries({ accountId: id, filter, sort, limit, offset })` after the endpoint determines the viewer can see entries.
 
-### `GET /api/aggregates`
+### `GET /api/training-activity`
 
-- UI: authenticated home `AggregateOverview`, `AggregateView`.
+- UI: authenticated home `TrainingActivity`.
+- Auth middleware: yes.
+- Input: none.
+- Output: `TrainingActivityDetail`, containing the rolling 12-month date range, total journal entries, active-day count, and daily entry counts.
+- Manager methods: `ITrainingActivityManager.getTrainingActivity({ accountId: session.account.id })`.
+
+### `GET /api/stats`
+
+- UI: authenticated home `Stats`.
 - Auth middleware: yes.
 - Input query:
-  - `category?: Category`
-  - `timeline: "week" | "month" | "year" | "all" | "custom"`
-  - `startDate?: string` ISO date
-  - `endDate?: string` ISO date
-  - `journalTypes?: JournalType[]`
-- Output:
-  - `category?: Category`
-  - `attempts: number`
-  - `successes: number`
-  - `series: { label: string; attempts: number; successes: number; occurrences: number }[]`
-  - `stats: { label: string; count: number; percentage: number }[]`
-- Manager methods: `IAggregateManager.getAggregateStats({ accountId: session.account.id, category, timeline, startDate, endDate, journalTypes })`.
+  - `category: Category`, default `submission`
+  - `timeline: "week" | "month" | "year" | "all"`, default `month`
+  - `type: "all" | "success"`, default `all`
+- Output: `StatsDetail`, containing technique-level attempt, success, and occurrence counts sorted by displayed count.
+- Manager methods: `IStatsManager.getStats({ accountId: session.account.id, category, timeline, type })`.
 
-### `GET /api/accounts/:id/aggregates`
+### `GET /api/accounts/:id/training-activity`
 
-- UI: `PublicProfile` aggregate views.
+- UI: `PublicProfile` training activity calendar.
 - Auth middleware: optional.
 - Input path: `id`.
-- Input query: same as `GET /api/aggregates`.
-- Output: same aggregate response plus `visibility: PrivacyType`.
+- Input query: none.
+- Output: `TrainingActivityDetail` plus `visibility: PrivacyType`.
 - Manager methods:
   - `IAccountManager.getPrivacySettings`
   - `IAccountManager.getTrainingPartnerRelationshipStatus` when authenticated
-  - `IAggregateManager.getAggregateStats({ accountId: id, category, timeline, startDate, endDate, journalTypes })` after the endpoint determines the viewer can see aggregates.
+  - `ITrainingActivityManager.getTrainingActivity({ accountId: id })`; journal-entry RLS scopes visible activity.
 
 ## Technique Tags
 

@@ -26,7 +26,8 @@
 - `AlertBanner`
 - `DateSelector`
 - `PropertyField` - Notion-style icon, label, and value row for compact forms.
-- `StatsChart`
+- `TrainingActivity` - Rolling 12-month journal-entry contribution calendar.
+- `Stats` - Filtered horizontal technique bar chart for the authenticated dashboard.
 - `StatsRow` - Label, progress line, count, and percentage.
 
 ## Components
@@ -106,7 +107,7 @@
   - Compact profile photo and name only.
   - Bio below the name when present.
   - Add training partner, training partner request pending, already training partners, and remove training partner states.
-  - Aggregate views, scoped by privacy settings.
+  - Training activity calendar, scoped by privacy settings.
   - Read-only journal entries, scoped by privacy settings.
 - `NotificationList` (Side Panel)
   - Title.
@@ -142,33 +143,29 @@
   - `JournalEntryHeading`
   - `JournalEntryRow`
   - `JournalEntryPagination`
-- `AggregateViewFilters`
-  - One category pill select.
-  - Timeline: this week, this month, this year, or all time.
-  - Type: Attempts Only, Success Only, or All.
-  - Tap forces and disables All because tap entries have no journal type.
-- `AggregateView`
-  - Stacked Attempt and Success timeline chart when Type is All.
-  - Single-series bars for Attempts Only, Success Only, and taps.
-  - Technique list with count, share percentage, and progress bar.
-- `AggregateOverview`
-  - Owns category, timeline, and type filter state.
-  - Loads owner or privacy-scoped public aggregate API data.
+- `TrainingActivity`
+  - Displays daily journal-entry counts in a rolling 12-month contribution calendar.
+  - Loads owner or privacy-scoped public training activity API data.
   - Supports loading, retryable error, and owner/read-only empty states.
+- `Stats`
+  - Dashboard-only horizontal technique bars filtered by category, date period, and All or Successes only.
+  - Stacks attempts and successes for All; taps show occurrence counts and disable the type filter.
+  - Renders all matching techniques with loading, retryable error, and empty states.
 
 ## Pages
 
 - Unauthenticated marketing and landing page with sign-in split.
 - Complete-profile page for authenticated users with missing required profile fields.
 - Authenticated home page.
-  - `AggregateOverview`
+  - `TrainingActivity`
+  - `Stats`
   - `JournalEntryTable`
 
 ## Decisions
 
-- Use account-level and category-level privacy settings for scoped profile, journal, and aggregate views.
+- Use journal-entry privacy settings and RLS for scoped profile, journal, and training activity views.
 - Technique and setup inputs should support saved tags. Use fuzzy-searchable select fields with a `Create saved tag "{searchString}"` option that opens tag creation and uses the selected journal category as the tag category.
-- Category-specific privacy settings currently cover `AggregateView` visibility for submissions, sweeps, reversals, back takes, guard passes, and taps. Add more category privacy controls later as the product needs them.
+- Category-specific privacy settings scope which entries contribute to public training activity.
 - Training-partner/profile UI must handle these relationship states: add training partner, pending inbound, pending outbound, accepted, blocked or removed, and remove training partner confirmation.
 - Removing an account-backed training partner should keep historical/custom partner details visible by using the stored first name, last name, age, weight, and belt snapshot after the account link is cleared.
 - `TrainingPartnerInput` is optional and opens account-backed or custom partner selection from one "Partner" field.
@@ -183,21 +180,21 @@
   - `SavedTechniqueSearch`: tag label and category.
 - If category is `tap`, hide type UI. `journalType` should be `null` for tap entries.
 - `JournalEntryCreate` and `JournalEntryUpdate` use one optional outcome radio field. "Attempt" and "Successful" are presentation labels only and map to persisted `journalType` values `attempt` and `success`.
-- Intensity is optional and does not affect aggregate views for now.
+- Intensity is optional and does not affect training activity counts.
 - Use horizontal scrolling for `JournalEntryTable` on mobile.
 - Empty states:
   - No journal entries: explain that entries track training patterns; primary action is "Add journal entry".
   - No saved techniques: explain that saved techniques make entry creation faster; primary action is "Add technique".
   - No training partners: explain that training partners can be tagged in journal entries; primary action is "Find training partners".
   - No notifications: show a quiet empty state with no primary action.
-  - No aggregate data: explain that charts appear after journal entries are created; primary action is "Add journal entry".
-- Loading states should use skeleton rows for tables and lists, skeleton summary blocks for aggregate views, and disabled submit buttons during form submission.
+  - No training activity: explain that the calendar fills after journal entries are created; primary action is "Add journal entry".
+- Loading states should use skeleton rows for tables and lists, a skeleton calendar for training activity, and disabled submit buttons during form submission.
 - Journal-entry rows auto-save edits locally and include Edit and Delete actions in an ellipsis menu. Delete requires confirmation.
 - `JournalEntryUpdate` includes a delete button with confirmation.
 - Authentication UI should cover Google SSO, magic-link email entry, OTP or magic-link confirmation, expired-link handling, auth errors, loading states, and post-auth onboarding.
 - Authenticated users with incomplete required profile fields should be redirected to `CompleteProfile`.
 - Users can see their own saved technique tags and public tags. Admins may later mark user-created tags as public. There is no pending tag state, and public/private tag status is not visible to normal users.
-- Public profiles always show profile picture, first name, last name, and training partner status. Depending on privacy settings, additional profile, aggregate, and journal sections stack below.
+- Public profiles always show profile picture, first name, last name, and training partner status. Depending on privacy settings, additional profile, training activity, and journal sections stack below.
 - Journal-entry default sort is trained date descending.
 - Journal-entry filters should persist in the URL.
 - The unauthenticated split page should be simple and make login immediately accessible.

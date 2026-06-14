@@ -9,7 +9,6 @@ import type {
   PublicAccountSummary,
   TrainingPartnerRelationshipStatus,
 } from "@/lib/managers/types";
-import { AggregateOverview } from "./AggregateOverview";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
@@ -17,6 +16,7 @@ import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
 import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
+import { TrainingActivity } from "./TrainingActivity";
 import { beltBorderStyles, cx, formatBelt } from "./shared";
 
 type DestructiveAction = "remove" | "block";
@@ -219,10 +219,10 @@ export function PublicProfile({
                 Training activity
               </h3>
               <p className="text-sm text-zinc-500">
-                Aggregate statistics visible to you.
+                Journal activity visible to you over the last 12 months.
               </p>
             </div>
-            <AggregateOverview accountId={accountId} />
+            <TrainingActivity accountId={accountId} showHeading={false} />
           </section>
         </section>
       ) : null}

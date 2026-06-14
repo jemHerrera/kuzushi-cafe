@@ -236,19 +236,11 @@ export const journalUpdateSchema = z
     "Choose either an accepted training partner or custom partner details.",
   );
 
-export const aggregateQuerySchema = z
-  .object({
-    category: z.enum(categories).optional(),
-    timeline: z.enum(["week", "month", "year", "all", "custom"]),
-    startDate: dateOnlyToDate.optional(),
-    endDate: dateOnlyToDate.optional(),
-    journalTypes: z.array(z.enum(journalTypes)).optional(),
-  })
-  .refine(
-    (value) =>
-      value.timeline !== "custom" || (value.startDate && value.endDate),
-    "Custom timelines require startDate and endDate.",
-  );
+export const statsQuerySchema = z.object({
+  category: z.enum(categories).default("submission"),
+  timeline: z.enum(["week", "month", "year", "all"]).default("month"),
+  type: z.enum(["all", "success"]).default("all"),
+});
 
 export const tagCreateSchema = z.object({
   label: requiredText,
