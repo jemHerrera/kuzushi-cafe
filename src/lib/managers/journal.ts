@@ -66,7 +66,7 @@ export class JournalEntryManager {
     let trainingPartnerId = params.trainingPartnerId;
 
     if (trainingPartnerId) {
-      await this.assertAcceptedPartner(params.accountId, trainingPartnerId);
+      await this.assertOwnedPartner(params.accountId, trainingPartnerId);
     }
 
     if (hasCustomPartner(params)) {
@@ -132,7 +132,7 @@ export class JournalEntryManager {
 
     let trainingPartnerId: string | null | undefined;
     if (options.trainingPartnerId) {
-      await this.assertAcceptedPartner(
+      await this.assertOwnedPartner(
         existing.account_id,
         options.trainingPartnerId,
       );
@@ -341,6 +341,27 @@ export class JournalEntryManager {
       );
     }
     return this.withPartner(data);
+  }
+
+  async isAcceptedTrainingPartner(params: {
+    accountId: string;
+    trainingPartnerId: string;
+  }) {
+    const { data, error } = await this.supabase
+      .from("training_partners")
+      .select("id")
+      .eq("id", params.trainingPartnerId)
+      .eq("owner_account_id", params.accountId)
+      .not("partner_account_id", "is", null)
+      .maybeSingle();
+    if (error) {
+      throw new ManagerError(
+        "training_partner_lookup_failed",
+        error.message,
+        500,
+      );
+    }
+    return Boolean(data);
   }
 
   async createTag(params: {
@@ -640,18 +661,17 @@ export class JournalEntryManager {
     return data.id;
   }
 
-  private async assertAcceptedPartner(accountId: string, partnerId: string) {
+  private async assertOwnedPartner(accountId: string, partnerId: string) {
     const { data, error } = await this.supabase
       .from("training_partners")
       .select("id")
       .eq("id", partnerId)
       .eq("owner_account_id", accountId)
-      .not("partner_account_id", "is", null)
       .single();
     if (error || !data) {
       throw new ManagerError(
-        "accepted_partner_required",
-        "Account-backed assignments require an accepted training partner.",
+        "training_partner_not_found",
+        "Training partner not found.",
         422,
       );
     }
@@ -662,7 +682,7 @@ function validatePartnerMode(input: PartnerInput) {
   if (input.trainingPartnerId && hasCustomPartner(input)) {
     throw new ManagerError(
       "partner_mode_conflict",
-      "Choose either an accepted training partner or custom partner details.",
+      "Choose either a saved training partner or custom partner details.",
       422,
     );
   }

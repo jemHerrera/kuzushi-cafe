@@ -24,6 +24,8 @@ export function JournalEntryPagination({
   const currentPage = Math.max(page ?? internalPage, 1);
   const hasPrevious = currentPage > 1;
 
+  if (!hasPrevious && !hasNext) return null;
+
   function changePage(event: MouseEvent<HTMLAnchorElement>, nextPage: number) {
     event.preventDefault();
     if (nextPage < 1 || nextPage === currentPage) return;
@@ -35,7 +37,7 @@ export function JournalEntryPagination({
   }
 
   return (
-    <div className="border-t border-zinc-200 bg-white px-3 py-2">
+    <div className="px-3 py-2">
       <Pagination className="items-center justify-between">
         <span className="text-sm text-zinc-600">Page {currentPage}</span>
         <PaginationContent>

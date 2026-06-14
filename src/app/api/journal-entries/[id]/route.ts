@@ -34,7 +34,13 @@ export async function PATCH(
     const { manager, supabase, accountId, id } = await routeContext(params);
     const options = journalUpdateSchema.parse(await readJson(request));
     const entry = await manager.updateJournalEntry({ accountId, id, options });
-    if (options.trainingPartnerId) {
+    if (
+      options.trainingPartnerId &&
+      (await manager.isAcceptedTrainingPartner({
+        accountId,
+        trainingPartnerId: options.trainingPartnerId,
+      }))
+    ) {
       await new NotificationManager(
         supabase,
       ).sendJournalEntryAssignmentNotification({

@@ -200,7 +200,7 @@ export function AppShell({
 
       <Sheet open={isNavigationOpen} onOpenChange={setIsNavigationOpen}>
         <SheetContent
-          className="w-[min(22rem,calc(100vw-2rem))] p-0"
+          className="p-0 data-[side=left]:w-[calc(100vw-1rem)] data-[side=left]:max-w-none data-[side=left]:sm:w-[min(24rem,calc(100vw-2rem))]"
           side="left"
         >
           <SheetTitle className="sr-only">Navigation</SheetTitle>
@@ -238,7 +238,7 @@ export function AppShell({
         onOpenChange={setIsSavedTechniquesOpen}
       >
         <SheetContent
-          className="w-full p-0 sm:max-w-md"
+          className="p-0 data-[side=left]:w-[calc(100vw-1rem)] data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
           side="left"
           showCloseButton={false}
         >
@@ -259,7 +259,7 @@ export function AppShell({
         onOpenChange={setIsTrainingPartnersOpen}
       >
         <SheetContent
-          className="w-full p-0 sm:max-w-md"
+          className="p-0 data-[side=left]:w-[calc(100vw-1rem)] data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
           side="left"
           showCloseButton={false}
         >

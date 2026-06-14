@@ -21,6 +21,7 @@ type JournalFormOptionsContextValue = {
   partners: TrainingPartnerDetail[];
   isLoading: boolean;
   error?: string;
+  refresh: () => void;
   retry: () => void;
   upsertTag: (tag: TechniqueTagDetail) => void;
   removeTag: (id: string) => void;
@@ -58,15 +59,22 @@ export function JournalFormOptionsProvider({
         );
       })
       .finally(() => {
+        if (requestRef.current === request) {
+          requestRef.current = null;
+        }
         setIsLoading(false);
       });
     requestRef.current = request;
     return request;
   }, []);
 
-  useEffect(() => {
+  const refresh = useCallback(() => {
     void loadOptions();
   }, [loadOptions]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   return (
     <JournalFormOptionsContext.Provider
@@ -75,6 +83,7 @@ export function JournalFormOptionsProvider({
         partners,
         isLoading,
         error,
+        refresh,
         retry: () => {
           requestRef.current = null;
           void loadOptions(true);
@@ -101,6 +110,7 @@ const emptyJournalFormOptions: JournalFormOptionsContextValue = {
   tags: [],
   partners: [],
   isLoading: false,
+  refresh: () => undefined,
   retry: () => undefined,
   upsertTag: () => undefined,
   removeTag: () => undefined,

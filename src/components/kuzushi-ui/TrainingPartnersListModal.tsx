@@ -310,7 +310,7 @@ export function TrainingPartnersListModal({
                           <ButtonPrimary
                             type="button"
                             disabled={isSubmitting}
-                            className="h-8 px-2"
+                            className="h-8 pl-1 py-2 text-xs"
                             onClick={() =>
                               runAction(
                                 "Training partner request accepted.",
@@ -334,7 +334,7 @@ export function TrainingPartnersListModal({
                           <ButtonSecondary
                             type="button"
                             disabled={isSubmitting}
-                            className="h-8 px-2"
+                            className="h-8 pl-1 py-2 text-xs"
                             onClick={() =>
                               setConfirming({ type: "block", account })
                             }

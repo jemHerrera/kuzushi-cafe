@@ -13,7 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -87,6 +87,7 @@ export function JournalEntryForm({
     partners: loadedPartners,
     isLoading: isOptionsLoading,
     error: optionsError,
+    refresh: refreshOptions,
     retry: retryOptions,
     upsertTag,
   } = useJournalFormOptions();
@@ -108,12 +109,13 @@ export function JournalEntryForm({
     [tags],
   );
   const partners = useMemo(
-    () =>
-      loadedPartners
-        .filter((partner) => partner.object === "training_partner")
-        .map(toPartner),
+    () => loadedPartners.map(toPartner),
     [loadedPartners],
   );
+
+  useEffect(() => {
+    refreshOptions();
+  }, [refreshOptions]);
 
   const selectedTechnique = useMemo(
     () =>
@@ -151,7 +153,7 @@ export function JournalEntryForm({
         : { journalType }),
     };
 
-    if (selectedPartner?.id && selectedPartner.accountId) {
+    if (selectedPartner?.id) {
       body.trainingPartnerId = selectedPartner.id;
     } else if (mode === "update" && isPartnerTouched) {
       body.trainingPartnerId = null;

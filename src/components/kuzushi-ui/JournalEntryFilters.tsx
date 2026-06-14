@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown, ListFilter, Plus } from "lucide-react";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,9 +50,16 @@ export function JournalEntryFilters({
   const [internalQuery, setInternalQuery] = useState("");
   const [internalCategories, setInternalCategories] = useState<Category[]>([]);
   const [internalTypes, setInternalTypes] = useState<JournalType[]>([]);
+  const [areFiltersOpen, setAreFiltersOpen] = useState(
+    Boolean(query || selectedCategories?.length || selectedTypes?.length),
+  );
   const currentQuery = query ?? internalQuery;
   const currentCategories = selectedCategories ?? internalCategories;
   const currentTypes = selectedTypes ?? internalTypes;
+  const activeFilterCount =
+    Number(Boolean(currentQuery.trim())) +
+    currentCategories.length +
+    currentTypes.length;
 
   function changeQuery(nextQuery: string) {
     if (query === undefined) setInternalQuery(nextQuery);
@@ -75,30 +82,49 @@ export function JournalEntryFilters({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="order-3 min-w-40 flex-1 md:order-1">
-        <JournalEntrySearch value={currentQuery} onValueChange={changeQuery} />
-      </div>
-      <div className="order-2">
-        <CheckboxFilterPill
-          label="Category"
-          options={categories.map((category) => ({
-            value: category,
-            label: formatCategoryLabel(category),
-          }))}
-          selected={currentCategories}
-          onSelectedChange={changeCategories}
-        />
-      </div>
-      <div className="order-2 md:order-3">
-        <CheckboxFilterPill
-          label="Type"
-          options={typeOptions}
-          selected={currentTypes}
-          onSelectedChange={changeTypes}
-        />
-      </div>
+      <Button
+        aria-expanded={areFiltersOpen}
+        aria-label={`Toggle journal filters${activeFilterCount ? `, ${activeFilterCount} active` : ""}`}
+        className="relative size-8 rounded-md"
+        onClick={() => setAreFiltersOpen((isOpen) => !isOpen)}
+        size="icon-lg"
+        type="button"
+        variant="ghost"
+      >
+        <ListFilter className="size-4" />
+        {activeFilterCount ? (
+          <span className="absolute -right-1 -top-1 inline-flex size-5 items-center justify-center rounded-full bg-zinc-950 text-[11px] text-white">
+            {activeFilterCount}
+          </span>
+        ) : null}
+      </Button>
+      {areFiltersOpen ? (
+        <div className="order-3 flex w-full flex-col gap-2 md:order-none md:min-w-0 md:flex-1 md:flex-row">
+          <div className="min-w-40 flex-1 md:max-w-md">
+            <JournalEntrySearch
+              value={currentQuery}
+              onValueChange={changeQuery}
+            />
+          </div>
+          <CheckboxFilterPill
+            label="Category"
+            options={categories.map((category) => ({
+              value: category,
+              label: formatCategoryLabel(category),
+            }))}
+            selected={currentCategories}
+            onSelectedChange={changeCategories}
+          />
+          <CheckboxFilterPill
+            label="Type"
+            options={typeOptions}
+            selected={currentTypes}
+            onSelectedChange={changeTypes}
+          />
+        </div>
+      ) : null}
       {showAddEntry ? (
-        <div className="order-1 flex w-full justify-end md:order-4 md:w-auto">
+        <div className="ml-auto">
           <ButtonPrimary onClick={onAddEntry} type="button">
             <Plus className="size-4" />
             Add entry

@@ -41,7 +41,13 @@ export async function POST(request: Request) {
       });
     }
     const entry = await manager.createJournalEntry({ accountId, ...values });
-    if (values.trainingPartnerId) {
+    if (
+      values.trainingPartnerId &&
+      (await manager.isAcceptedTrainingPartner({
+        accountId,
+        trainingPartnerId: values.trainingPartnerId,
+      }))
+    ) {
       await new NotificationManager(
         supabase,
       ).sendJournalEntryAssignmentNotification({
