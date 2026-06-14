@@ -33,6 +33,7 @@ export type Partner = {
   firstName?: string;
   lastName?: string;
   bio?: string;
+  profilePhoto?: string;
   belt?: Belt;
   weight?: WeightClass;
   age?: AgeClass;

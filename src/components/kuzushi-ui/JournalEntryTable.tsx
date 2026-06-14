@@ -298,6 +298,7 @@ function toJournalEntry(entry: JournalEntryDetail): JournalEntry {
           accountId: entry.trainingPartner.accountId ?? "",
           firstName: entry.trainingPartner.firstName,
           lastName: entry.trainingPartner.lastName,
+          profilePhoto: entry.trainingPartner.profilePhoto,
           belt: entry.trainingPartner.belt ?? "unknown",
           weight: entry.trainingPartner.weight ?? "unknown",
           age: entry.trainingPartner.age,
@@ -316,6 +317,8 @@ function toPartner(partner: TrainingPartnerDetail): Partner {
       partner.object === "training_partner" ? partner.accountId : undefined,
     firstName: partner.firstName,
     lastName: partner.lastName,
+    profilePhoto:
+      partner.object === "training_partner" ? partner.profilePhoto : undefined,
     belt: partner.belt,
     weight: partner.weight,
     age: partner.object === "custom_training_partner" ? partner.age : undefined,

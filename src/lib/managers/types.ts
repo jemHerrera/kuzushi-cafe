@@ -132,6 +132,7 @@ export type JournalEntryDetail = {
     accountId?: string;
     firstName?: string;
     lastName?: string;
+    profilePhoto?: string;
     weight?: WeightClass;
     age?: AgeClass;
     belt?: Belt;

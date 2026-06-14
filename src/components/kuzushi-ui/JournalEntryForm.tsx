@@ -430,6 +430,8 @@ function toPartner(partner: TrainingPartnerDetail): Partner {
       partner.object === "training_partner" ? partner.accountId : undefined,
     firstName: partner.firstName,
     lastName: partner.lastName,
+    profilePhoto:
+      partner.object === "training_partner" ? partner.profilePhoto : undefined,
     belt: partner.belt,
     weight: partner.weight,
     age: partner.object === "custom_training_partner" ? partner.age : undefined,

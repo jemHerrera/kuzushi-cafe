@@ -32,6 +32,7 @@ export function toPrivacySettings(row: PrivacyRow): AccountPrivacySettings {
 export function toJournalEntry(
   row: JournalRow,
   partner?: PartnerRow | null,
+  partnerProfilePhoto?: string | null,
 ): JournalEntryDetail {
   return {
     id: row.id,
@@ -53,6 +54,7 @@ export function toJournalEntry(
             undefined,
           firstName: partner.first_name ?? undefined,
           lastName: partner.last_name ?? undefined,
+          profilePhoto: partnerProfilePhoto ?? undefined,
           weight: partner.partner_weight ?? undefined,
           age: partner.partner_age ?? undefined,
           belt: partner.partner_belt ?? undefined,

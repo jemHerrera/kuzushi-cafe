@@ -255,7 +255,11 @@ function PartnerAvatar({
         beltBorderStyles[partner.belt ?? "unknown"],
       )}
     >
-      <Avatar initials={partner.initials} size="xs" />
+      <Avatar
+        initials={partner.initials}
+        src={partner.profilePhoto}
+        size="xs"
+      />
     </span>
   );
 }

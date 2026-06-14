@@ -517,6 +517,13 @@ export type Database = {
           relationship_status: string
         }[]
       }
+      get_training_partner_profile_photos: {
+        Args: { account_id: string; training_partner_ids: string[] }
+        Returns: {
+          id: string
+          profile_photo: string | null
+        }[]
+      }
       list_training_partner_requests: {
         Args: {
           account_id: string
@@ -841,4 +848,3 @@ export const Constants = {
     },
   },
 } as const
-

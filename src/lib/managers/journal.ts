@@ -601,7 +601,12 @@ export class JournalEntryManager {
       .select("*")
       .eq("id", row.training_partner_id)
       .maybeSingle();
-    return toJournalEntry(row, data);
+    if (!data?.partner_account_id) return toJournalEntry(row, data);
+
+    const profilePhotos = await this.getPartnerProfilePhotos(row.account_id, [
+      data.id,
+    ]);
+    return toJournalEntry(row, data, profilePhotos.get(data.id));
   }
 
   private async withPartners(rows: JournalRow[]) {
@@ -625,14 +630,51 @@ export class JournalEntryManager {
     const partners = new Map(
       (data ?? []).map((partner) => [partner.id, partner]),
     );
-    return rows.map((row) =>
-      toJournalEntry(
-        row,
-        row.training_partner_id
-          ? partners.get(row.training_partner_id)
-          : undefined,
-      ),
+    const accountBackedPartnerIds = (data ?? [])
+      .filter((partner) => Boolean(partner.partner_account_id))
+      .map((partner) => partner.id);
+    const profilePhotos = await this.getPartnerProfilePhotos(
+      rows[0]?.account_id,
+      accountBackedPartnerIds,
     );
+
+    return rows.map((row) => {
+      const partner = row.training_partner_id
+        ? partners.get(row.training_partner_id)
+        : undefined;
+      return toJournalEntry(
+        row,
+        partner,
+        partner ? profilePhotos.get(partner.id) : undefined,
+      );
+    });
+  }
+
+  private async getPartnerProfilePhotos(
+    accountId: string | undefined,
+    partnerIds: string[],
+  ) {
+    const profilePhotos = new Map<string, string | null>();
+    if (!accountId || !partnerIds.length) return profilePhotos;
+
+    const { data, error } = await this.supabase.rpc(
+      "get_training_partner_profile_photos",
+      {
+        account_id: accountId,
+        training_partner_ids: partnerIds,
+      },
+    );
+    if (error) {
+      throw new ManagerError(
+        "training_partner_profiles_failed",
+        error.message,
+        500,
+      );
+    }
+    for (const partner of data ?? []) {
+      profilePhotos.set(partner.id, partner.profile_photo);
+    }
+    return profilePhotos;
   }
 
   private async createCustomPartner(
