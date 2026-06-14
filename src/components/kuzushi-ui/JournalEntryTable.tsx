@@ -306,7 +306,10 @@ function toJournalEntry(entry: JournalEntryDetail): JournalEntry {
           updatedAt: 0,
         } as TrainingPartnerDetail)
       : undefined,
-    trainedDate: new Date(entry.trainedAt).toISOString().slice(0, 10),
+    trainedDate:
+      entry.trainedAt !== undefined
+        ? new Date(entry.trainedAt).toISOString().slice(0, 10)
+        : undefined,
   };
 }
 
@@ -353,7 +356,7 @@ function matchesSearch(entry: JournalEntry, search: string) {
     entry.category,
     entry.journalType ?? "",
     partnerName,
-    entry.trainedDate,
+    entry.trainedDate ?? "",
   ].some((value) => normalize(value).includes(normalizedSearch));
 }
 
@@ -386,7 +389,7 @@ function compareEntries(
 }
 
 function sortValue(entry: JournalEntry, field: JournalQuery["sort"]["field"]) {
-  if (field === "trainedAt") return entry.trainedDate;
+  if (field === "trainedAt") return entry.trainedDate ?? "";
   if (field === "category") return entry.category;
   if (field === "name") return entry.technique;
   if (field === "journalType") return entry.journalType ?? "";

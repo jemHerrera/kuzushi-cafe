@@ -52,7 +52,9 @@ export class AggregateManager {
     const effectiveInterval =
       interval ??
       allTimeInterval(
-        entries.map((entry) => new Date(entry.trained_date)),
+        entries.flatMap((entry) =>
+          entry.trained_date ? [new Date(entry.trained_date)] : [],
+        ),
         today,
       );
     const filtered = filterByJournalType(
@@ -122,7 +124,9 @@ export class AggregateManager {
     const effectiveInterval =
       interval ??
       allTimeInterval(
-        loadedEntries.map((entry) => new Date(entry.trained_date)),
+        loadedEntries.flatMap((entry) =>
+          entry.trained_date ? [new Date(entry.trained_date)] : [],
+        ),
         today,
       );
     const counts = new Map<Category, { attempts: number; successes: number }>();
@@ -279,11 +283,12 @@ function createSeries(
     : eachDayOfInterval({ start, end });
 
   return buckets.map((bucket) => {
-    const matching = entries.filter((entry) =>
-      useMonths
+    const matching = entries.filter((entry) => {
+      if (!entry.trained_date) return false;
+      return useMonths
         ? isSameMonth(new Date(entry.trained_date), bucket)
-        : isSameDay(new Date(entry.trained_date), bucket),
-    );
+        : isSameDay(new Date(entry.trained_date), bucket);
+    });
     return {
       label: format(
         bucket,

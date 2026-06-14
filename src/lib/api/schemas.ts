@@ -68,6 +68,10 @@ const optionalText = z.preprocess(
   (value) => (typeof value === "string" ? value.trim() || undefined : value),
   z.string().optional(),
 );
+const nullableOptionalText = z.preprocess(
+  (value) => (typeof value === "string" ? value.trim() || null : value),
+  z.string().nullable().optional(),
+);
 const requiredText = z.string().trim().min(1);
 const uuid = z.string().uuid();
 
@@ -195,7 +199,7 @@ export const journalCreateSchema = z
   .object({
     name: requiredText,
     category: z.enum(categories),
-    setup: requiredText,
+    setup: optionalText,
     journalType: z.enum(journalTypes).optional(),
     notes: optionalText,
     intensity: z.enum(intensities).optional(),
@@ -214,14 +218,14 @@ export const journalUpdateSchema = z
   .object({
     name: requiredText.optional(),
     category: z.enum(categories).optional(),
-    setup: requiredText.optional(),
+    setup: nullableOptionalText,
     journalType: z.enum(journalTypes).nullable().optional(),
-    notes: optionalText,
+    notes: nullableOptionalText,
     intensity: z.enum(intensities).nullable().optional(),
     isNoGi: z.boolean().nullable().optional(),
     ...partnerFields,
     trainingPartnerId: uuid.nullable().optional(),
-    trainedDate: dateOnlyToDate.optional(),
+    trainedDate: dateOnlyToDate.nullable().optional(),
   })
   .refine(
     (value) => Object.values(value).some((item) => item !== undefined),

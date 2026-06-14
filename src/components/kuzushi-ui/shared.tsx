@@ -55,7 +55,7 @@ export type JournalEntry = {
   intensity?: Intensity;
   isNoGi?: boolean;
   partner?: Partner;
-  trainedDate: string;
+  trainedDate?: string;
 };
 
 export const categoryStyles: Record<Category, string> = {

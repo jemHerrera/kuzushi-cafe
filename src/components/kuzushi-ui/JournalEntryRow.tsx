@@ -125,7 +125,9 @@ export function JournalEntryRow({
         <td className="overflow-hidden whitespace-nowrap px-2 py-3">
           <div className="grid gap-0.5">
             <span className="text-sm font-medium text-zinc-900">
-              {format(parseISO(entry.trainedDate), "MMMM dd, yyyy")}
+              {entry.trainedDate
+                ? format(parseISO(entry.trainedDate), "MMMM dd, yyyy")
+                : "Not collected"}
             </span>
             {entry.intensity ? (
               <span className="text-xs text-zinc-500">

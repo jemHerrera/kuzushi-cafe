@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         label: values.name,
       });
     }
-    if (createSetupTag) {
+    if (createSetupTag && values.setup) {
       await manager.createTag({
         category: values.category,
         generatedBy: accountId,

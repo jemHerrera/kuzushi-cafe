@@ -217,8 +217,8 @@ export type Database = {
           journal_type: Database["public"]["Enums"]["journal_type"] | null
           name: string
           notes: string | null
-          setup: string
-          trained_date: string
+          setup: string | null
+          trained_date: string | null
           training_partner_id: string | null
           updated_date: string
         }
@@ -232,8 +232,8 @@ export type Database = {
           journal_type?: Database["public"]["Enums"]["journal_type"] | null
           name: string
           notes?: string | null
-          setup: string
-          trained_date?: string
+          setup?: string | null
+          trained_date?: string | null
           training_partner_id?: string | null
           updated_date?: string
         }
@@ -247,8 +247,8 @@ export type Database = {
           journal_type?: Database["public"]["Enums"]["journal_type"] | null
           name?: string
           notes?: string | null
-          setup?: string
-          trained_date?: string
+          setup?: string | null
+          trained_date?: string | null
           training_partner_id?: string | null
           updated_date?: string
         }

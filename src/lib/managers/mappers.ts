@@ -40,7 +40,7 @@ export function toJournalEntry(
     accountId: row.account_id,
     name: row.name,
     category: row.category,
-    setup: row.setup,
+    setup: row.setup ?? undefined,
     journalType: row.journal_type ?? undefined,
     notes: row.notes ?? undefined,
     intensity: row.intensity ?? undefined,
@@ -60,7 +60,9 @@ export function toJournalEntry(
           belt: partner.partner_belt ?? undefined,
         }
       : undefined,
-    trainedAt: new Date(row.trained_date).getTime(),
+    trainedAt: row.trained_date
+      ? new Date(row.trained_date).getTime()
+      : undefined,
     createdAt: new Date(row.created_date).getTime(),
     updatedAt: new Date(row.updated_date).getTime(),
   };

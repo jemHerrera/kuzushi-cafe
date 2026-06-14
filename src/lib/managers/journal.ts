@@ -30,7 +30,7 @@ type PartnerInput = {
 type JournalValues = PartnerInput & {
   name: string;
   category: Category;
-  setup: string;
+  setup?: string;
   journalType?: JournalType;
   notes?: string;
   intensity?: Intensity;
@@ -42,12 +42,21 @@ type JournalUpdate = PartnerInput &
   Partial<
     Omit<
       JournalValues,
-      keyof PartnerInput | "journalType" | "intensity" | "isNoGi"
+      | keyof PartnerInput
+      | "setup"
+      | "journalType"
+      | "notes"
+      | "intensity"
+      | "isNoGi"
+      | "trainedDate"
     >
   > & {
+    setup?: string | null;
     journalType?: JournalType | null;
+    notes?: string | null;
     intensity?: Intensity | null;
     isNoGi?: boolean | null;
+    trainedDate?: Date | null;
   };
 
 type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];
@@ -59,7 +68,6 @@ export class JournalEntryManager {
     params: JournalValues & { accountId: string },
   ): Promise<JournalEntryDetail> {
     validateText(params.name, "Technique");
-    validateText(params.setup, "Setup");
     validatePartnerMode(params);
 
     let createdCustomPartnerId: string | undefined;
@@ -78,8 +86,7 @@ export class JournalEntryManager {
     }
 
     const now = new Date();
-    const trainedDate = params.trainedDate ?? now;
-    validateDate(trainedDate, "Trained date");
+    if (params.trainedDate) validateDate(params.trainedDate, "Trained date");
 
     const { data, error } = await this.supabase
       .from("journal_entries")
@@ -87,14 +94,14 @@ export class JournalEntryManager {
         account_id: params.accountId,
         name: params.name.trim(),
         category: params.category,
-        setup: params.setup.trim(),
+        setup: cleanText(params.setup),
         journal_type:
           params.category === "tap" ? null : (params.journalType ?? null),
         notes: cleanText(params.notes),
         intensity: params.intensity ?? null,
         is_no_gi: params.isNoGi ?? null,
         training_partner_id: trainingPartnerId ?? null,
-        trained_date: trainedDate.toISOString(),
+        trained_date: params.trainedDate?.toISOString() ?? null,
         created_date: now.toISOString(),
       })
       .select("*")
@@ -127,7 +134,6 @@ export class JournalEntryManager {
     const category = options.category ?? existing.category;
 
     if (options.name !== undefined) validateText(options.name, "Technique");
-    if (options.setup !== undefined) validateText(options.setup, "Setup");
     validatePartnerMode(options);
 
     let trainingPartnerId: string | null | undefined;
@@ -155,7 +161,7 @@ export class JournalEntryManager {
       .update({
         ...(options.name !== undefined && { name: options.name.trim() }),
         ...(options.category !== undefined && { category: options.category }),
-        ...(options.setup !== undefined && { setup: options.setup.trim() }),
+        ...(options.setup !== undefined && { setup: cleanText(options.setup) }),
         ...(category === "tap"
           ? { journal_type: null }
           : options.journalType !== undefined
@@ -172,7 +178,7 @@ export class JournalEntryManager {
           training_partner_id: trainingPartnerId,
         }),
         ...(options.trainedDate !== undefined && {
-          trained_date: options.trainedDate.toISOString(),
+          trained_date: options.trainedDate?.toISOString() ?? null,
         }),
       })
       .eq("id", params.id)
@@ -752,7 +758,7 @@ function validateDate(value: Date, label: string) {
   }
 }
 
-function cleanText(value?: string) {
+function cleanText(value?: string | null) {
   return value?.trim() || null;
 }
 

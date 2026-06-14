@@ -69,11 +69,11 @@ export function JournalEntryForm({
   const [intensity, setIntensity] = useState<Intensity | "">(
     entry?.intensity ?? "",
   );
-  const [journalType, setJournalType] = useState<JournalType>(
-    entry?.journalType ?? "attempt",
+  const [journalType, setJournalType] = useState<JournalType | "not-specified">(
+    entry?.journalType ?? "not-specified",
   );
   const [trainedDate, setTrainedDate] = useState(() =>
-    entry?.trainedDate ? parseISO(entry.trainedDate) : new Date(),
+    entry?.trainedDate ? parseISO(entry.trainedDate) : undefined,
   );
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(
     entry?.partner ?? null,
@@ -131,7 +131,7 @@ export function JournalEntryForm({
     setCategory(nextCategory);
     setTechniqueName("");
     if (nextCategory === "tap") {
-      setJournalType("attempt");
+      setJournalType("not-specified");
     }
   }
 
@@ -142,15 +142,27 @@ export function JournalEntryForm({
     const body: Record<string, unknown> = {
       name: techniqueName,
       category,
-      setup: setupName,
-      notes: notes || undefined,
-      intensity: intensity || undefined,
-      trainedDate: format(trainedDate, "yyyy-MM-dd"),
+      notes: notes || (mode === "update" ? null : undefined),
+      intensity: intensity || (mode === "update" ? null : undefined),
+      ...(trainedDate
+        ? { trainedDate: format(trainedDate, "yyyy-MM-dd") }
+        : mode === "update"
+          ? { trainedDate: null }
+          : {}),
+      ...(setupName
+        ? { setup: setupName }
+        : mode === "update"
+          ? { setup: null }
+          : {}),
       ...(category === "tap"
         ? mode === "update"
           ? { journalType: null }
           : {}
-        : { journalType }),
+        : journalType !== "not-specified"
+          ? { journalType }
+          : mode === "update"
+            ? { journalType: null }
+            : {}),
     };
 
     if (selectedPartner?.id) {
@@ -329,9 +341,7 @@ export function JournalEntryForm({
             <DateSelector
               ariaLabel="Trained date"
               value={trainedDate}
-              onValueChange={(date) => {
-                if (date) setTrainedDate(date);
-              }}
+              onValueChange={setTrainedDate}
               disabled={isSubmitting || isDeleting}
               variant="property"
             />
@@ -355,13 +365,15 @@ export function JournalEntryForm({
             />
           </PropertyField>
           {category !== "tap" ? (
-            <PropertyField icon={CircleCheck} label="Outcome">
+            <PropertyField icon={CircleCheck} label="Type">
               <RadioGroup
-                aria-label="Outcome"
+                aria-label="Type"
                 className="flex min-h-8 flex-wrap items-center gap-1"
-                name="outcome"
+                name="type"
                 value={journalType}
-                onValueChange={(value) => setJournalType(value as JournalType)}
+                onValueChange={(value) =>
+                  setJournalType(value as JournalType | "not-specified")
+                }
                 disabled={isSubmitting || isDeleting}
               >
                 <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">

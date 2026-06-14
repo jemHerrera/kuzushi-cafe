@@ -122,7 +122,7 @@ export type JournalEntryDetail = {
   accountId: string;
   name: string;
   category: Category;
-  setup: string;
+  setup?: string;
   journalType?: JournalType;
   notes?: string;
   intensity?: Intensity;
@@ -137,7 +137,7 @@ export type JournalEntryDetail = {
     age?: AgeClass;
     belt?: Belt;
   };
-  trainedAt: number;
+  trainedAt?: number;
   createdAt: number;
   updatedAt: number;
 };
