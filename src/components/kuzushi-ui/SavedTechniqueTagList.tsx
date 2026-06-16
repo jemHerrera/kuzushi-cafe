@@ -193,8 +193,6 @@ export function SavedTechniqueTagList({
                   : "Add techniques you want to reuse in journal entries."
               }
               className="mx-1"
-              onAction={debouncedQuery ? undefined : () => setIsAddOpen(true)}
-              actionLabel="Add saved technique"
               title={
                 debouncedQuery
                   ? "No saved techniques found"

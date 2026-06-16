@@ -85,7 +85,15 @@ const sections = [
     title: "Actions",
     items: [
       { name: "ButtonPrimary", element: <ButtonPrimary /> },
+      {
+        name: "ButtonPrimary small",
+        element: <ButtonPrimary variant="small">Add entry</ButtonPrimary>,
+      },
       { name: "ButtonSecondary", element: <ButtonSecondary /> },
+      {
+        name: "ButtonSecondary small",
+        element: <ButtonSecondary variant="small">Cancel</ButtonSecondary>,
+      },
       {
         name: "IconButton",
         element: (

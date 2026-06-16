@@ -222,7 +222,7 @@ export function JournalEntryTable({
                   className="px-3 py-10 text-center text-sm text-zinc-500"
                   colSpan={readOnly ? 5 : 6}
                 >
-                  Add a new journal entry to get started.
+                  No entries yet
                 </td>
               </tr>
             ) : null}

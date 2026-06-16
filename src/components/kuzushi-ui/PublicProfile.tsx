@@ -137,17 +137,6 @@ export function PublicProfile({
 
   return (
     <section className="grid gap-8">
-      {onClose ? (
-        <Button
-          className="w-fit gap-2 text-zinc-600"
-          type="button"
-          variant="ghost"
-          onClick={onClose}
-        >
-          <ArrowLeft className="size-4" />
-          Back to dashboard
-        </Button>
-      ) : null}
       {isLoading ? (
         <LoadingState label="Loading public profile" variant="profile" />
       ) : null}
@@ -161,10 +150,10 @@ export function PublicProfile({
       ) : null}
       {profile ? (
         <>
-          <header className="flex flex-col gap-5 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm sm:flex-row sm:items-start sm:p-6">
+          <header className="flex gap-5 sm:items-start sm:p-6">
             <span
               className={cx(
-                "inline-flex w-fit shrink-0 rounded-full border-4 p-0",
+                "inline-flex w-fit h-fit shrink-0 rounded-full border-4 p-0",
                 beltBorderStyles[profile.belt ?? "unknown"],
               )}
             >
@@ -176,13 +165,11 @@ export function PublicProfile({
             </span>
             <div className="grid min-w-0 flex-1 gap-5">
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-zinc-950">
+                <h1 className="text-xl font-black tracking-tight text-zinc-950">
                   {name}
                 </h1>
-                <p className="mt-1 text-sm font-semibold text-zinc-500">
+                <p className="mt-1 text-sm text-zinc-500">
                   {profile.belt ? formatBelt(profile.belt) : "Unknown"} belt
-                  <span aria-hidden="true"> · </span>
-                  {relationshipLabel(status)}
                 </p>
                 {profile.bio ? (
                   <p className="mt-4 max-w-3xl text-sm leading-6 text-zinc-600">
@@ -240,12 +227,6 @@ export function PublicProfile({
           </header>
           {profile.visibility.journalEntries ? (
             <section className="grid gap-3" aria-labelledby="profile-journal">
-              <h2
-                className="text-2xl font-black tracking-tight"
-                id="profile-journal"
-              >
-                Journal Entries
-              </h2>
               <JournalEntryTable accountId={accountId} readOnly />
             </section>
           ) : null}
@@ -254,7 +235,7 @@ export function PublicProfile({
           ) : null}
           {profile.visibility.stats ? <Stats accountId={accountId} /> : null}
           {!hasVisibleContent ? (
-            <div className="grid justify-items-center gap-3 rounded-lg border border-zinc-200 bg-white px-5 py-12 text-center">
+            <div className="grid justify-items-center gap-3 px-5 py-12 text-center">
               <span className="inline-flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-600">
                 <LockKeyhole className="size-5" />
               </span>
@@ -332,7 +313,12 @@ function RelationshipActions({
   if (status === "accepted") {
     return (
       <div className="flex flex-wrap gap-2">
-        <ButtonSecondary type="button" onClick={onRemove} disabled={disabled}>
+        <ButtonSecondary
+          type="button"
+          variant="small"
+          onClick={onRemove}
+          disabled={disabled}
+        >
           <UserMinus className="size-4" />
           Remove
         </ButtonSecondary>
@@ -343,11 +329,21 @@ function RelationshipActions({
   if (status === "pending-inbound") {
     return (
       <div className="flex flex-wrap gap-2">
-        <ButtonPrimary type="button" onClick={onAccept} disabled={disabled}>
+        <ButtonPrimary
+          variant="small"
+          type="button"
+          onClick={onAccept}
+          disabled={disabled}
+        >
           <Check className="size-4" />
           Accept request
         </ButtonPrimary>
-        <ButtonSecondary type="button" onClick={onBlock} disabled={disabled}>
+        <ButtonSecondary
+          variant="small"
+          type="button"
+          onClick={onBlock}
+          disabled={disabled}
+        >
           <Ban className="size-4" />
           Block
         </ButtonSecondary>
@@ -358,7 +354,12 @@ function RelationshipActions({
   if (status === "pending-outbound") {
     return (
       <div className="flex flex-wrap gap-2">
-        <ButtonSecondary type="button" onClick={onCancel} disabled={disabled}>
+        <ButtonSecondary
+          variant="small"
+          type="button"
+          onClick={onCancel}
+          disabled={disabled}
+        >
           <X className="size-4" />
           Cancel request
         </ButtonSecondary>
@@ -369,7 +370,12 @@ function RelationshipActions({
   if (status === "blocked") {
     return (
       <div className="flex flex-wrap gap-2">
-        <ButtonSecondary type="button" onClick={onUnblock} disabled={disabled}>
+        <ButtonSecondary
+          variant="small"
+          type="button"
+          onClick={onUnblock}
+          disabled={disabled}
+        >
           Unblock
         </ButtonSecondary>
       </div>
@@ -378,11 +384,21 @@ function RelationshipActions({
 
   return (
     <div className="flex flex-wrap gap-2">
-      <ButtonPrimary type="button" onClick={onAdd} disabled={disabled}>
+      <ButtonPrimary
+        type="button"
+        variant="small"
+        onClick={onAdd}
+        disabled={disabled}
+      >
         <UserPlus className="size-4" />
         Add as Training Partner
       </ButtonPrimary>
-      <ButtonSecondary type="button" onClick={onBlock} disabled={disabled}>
+      <ButtonSecondary
+        type="button"
+        variant="small"
+        onClick={onBlock}
+        disabled={disabled}
+      >
         <Ban className="size-4" />
         Block
       </ButtonSecondary>
@@ -406,32 +422,31 @@ function initialsForProfile(profile: PublicProfileDetail) {
   );
 }
 
-function relationshipLabel(status: PublicProfileDetail["relationshipStatus"]) {
-  const labels: Record<TrainingPartnerRelationshipStatus, string> = {
-    none: "Not connected",
-    "pending-inbound": "Request received",
-    "pending-outbound": "Request sent",
-    accepted: "Training partner",
-    blocked: "Blocked",
-    removed: "Removed",
-  };
-
-  return status ? labels[status] : "Public profile";
-}
-
 async function removeAcceptedPartner(accountId: string) {
-  const params = new URLSearchParams({ limit: "100", offset: "0" });
-  const listResponse = await fetch(`/api/training-partners?${params}`);
+  const limit = 100;
+  let offset = 0;
+  let partner: { id: string } | undefined;
+  let listResponse: Response | undefined;
 
-  if (!listResponse.ok) return listResponse;
+  while (!partner) {
+    const params = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    listResponse = await fetch(`/api/training-partners?${params}`);
 
-  const result = (await listResponse.json()) as {
-    items: Array<{ id: string; object: string; accountId?: string }>;
-  };
-  const partner = result.items.find(
-    (item) =>
-      item.object === "training_partner" && item.accountId === accountId,
-  );
+    if (!listResponse.ok) return listResponse;
+
+    const result = (await listResponse.json()) as {
+      items: Array<{ id: string; object: string; accountId?: string }>;
+    };
+    partner = result.items.find(
+      (item) =>
+        item.object === "training_partner" && item.accountId === accountId,
+    );
+    if (partner || result.items.length < limit) break;
+    offset += limit;
+  }
 
   if (!partner) {
     return new Response(

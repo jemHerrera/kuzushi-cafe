@@ -2,6 +2,7 @@
 
 import {
   BookOpenText,
+  House,
   LockKeyhole,
   Plus,
   Settings,
@@ -91,6 +92,13 @@ export function SidePanel({
         aria-label="Workspace navigation"
         className="mt-4 grid gap-1 text-sm font-semibold text-zinc-800"
       >
+        <Link
+          className="flex items-center gap-2 rounded-md px-3 py-2 text-left transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          href="/app"
+        >
+          <House className="size-4" />
+          Home
+        </Link>
         {navItems.map((item) => {
           const Icon = item.icon;
 
