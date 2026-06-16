@@ -185,7 +185,7 @@ export function JournalEntryTable({
           onRetry={() => setRefreshKey((key) => key + 1)}
         />
       ) : null}
-      <div className="overflow-x-auto rounded-lg border-x border-b md:border border-zinc-200">
+      <div className="overflow-x-auto">
         <table
           className={`w-full border-collapse md:table-fixed ${
             readOnly ? "md:min-w-[736px]" : "md:min-w-[776px]"
@@ -222,7 +222,7 @@ export function JournalEntryTable({
                   className="px-3 py-10 text-center text-sm text-zinc-500"
                   colSpan={readOnly ? 5 : 6}
                 >
-                  No journal entries found.
+                  Add a new journal entry to get started.
                 </td>
               </tr>
             ) : null}

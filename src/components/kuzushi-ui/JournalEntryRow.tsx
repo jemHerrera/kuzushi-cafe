@@ -3,7 +3,7 @@
 import { format, parseISO } from "date-fns";
 import { Ellipsis, Pencil, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { type KeyboardEvent, type MouseEvent, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,6 @@ import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import {
   beltBorderStyles,
   cx,
-  formatIntensity,
   type JournalEntry,
   type Partner,
 } from "./shared";
@@ -44,6 +43,23 @@ export function JournalEntryRow({
 }: JournalEntryRowProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const canEdit = !readOnly;
+
+  function openEdit() {
+    if (canEdit) setIsEditOpen(true);
+  }
+
+  function handleRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>) {
+    if (!canEdit) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    openEdit();
+  }
+
+  function stopRowClick(event: MouseEvent) {
+    event.stopPropagation();
+  }
 
   async function deleteEntry() {
     const response = await fetch(`/api/journal-entries/${entry.id}`, {
@@ -60,12 +76,12 @@ export function JournalEntryRow({
 
   return (
     <>
-      <tr className="border-t border-zinc-200 bg-white md:hidden">
+      <tr className="border-t border-zinc-200 md:hidden">
         <td colSpan={readOnly ? 5 : 6} className="p-0">
           <div
-            className="relative grid min-h-16 w-full items-center gap-2 px-3 py-3 text-left transition hover:bg-zinc-50"
+            className="relative grid min-h-16 w-full items-center gap-2 px-0 md:px-2 py-2 text-left transition hover:bg-zinc-50"
             style={{
-              gridTemplateColumns: "2fr 5fr 2fr 1fr",
+              gridTemplateColumns: "2fr 6fr 1fr",
             }}
           >
             {!readOnly ? (
@@ -73,7 +89,7 @@ export function JournalEntryRow({
                 aria-label={`Edit ${entry.technique}`}
                 className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 type="button"
-                onClick={() => setIsEditOpen(true)}
+                onClick={openEdit}
               />
             ) : null}
             <span className="pointer-events-none min-w-0 justify-self-start">
@@ -89,7 +105,7 @@ export function JournalEntryRow({
                 </span>
               ) : null}
             </span>
-            <span className="pointer-events-none justify-self-center self-center">
+            {/* <span className="pointer-events-none justify-self-center self-center">
               {entry.journalType ? (
                 <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold capitalize text-zinc-700">
                   {entry.journalType}
@@ -97,7 +113,7 @@ export function JournalEntryRow({
               ) : (
                 <span className="text-xs text-zinc-400">—</span>
               )}
-            </span>
+            </span> */}
             <span
               className={cx(
                 "justify-self-end",
@@ -111,9 +127,22 @@ export function JournalEntryRow({
           </div>
         </td>
       </tr>
-      <tr className="border-t border-zinc-200 bg-white max-md:hidden">
+      <tr
+        aria-label={
+          canEdit ? `Edit ${entry.technique} journal entry` : undefined
+        }
+        className={cx(
+          "border-t border-zinc-200 max-md:hidden",
+          canEdit &&
+            "cursor-pointer transition hover:bg-zinc-50 focus-visible:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+        )}
+        role={canEdit ? "button" : undefined}
+        tabIndex={canEdit ? 0 : undefined}
+        onClick={openEdit}
+        onKeyDown={handleRowKeyDown}
+      >
         <td className="overflow-hidden whitespace-nowrap px-2 py-3">
-          <TechniqueCategoryPill category={entry.category} />
+          <TechniqueCategoryPill category={entry.category} variant="small" />
         </td>
         <td className="overflow-hidden px-2 py-3">
           <p className="truncate text-sm font-medium text-zinc-950">
@@ -132,7 +161,10 @@ export function JournalEntryRow({
             <span className="text-xs text-zinc-500">Not collected</span>
           )}
         </td>
-        <td className="overflow-hidden whitespace-nowrap px-2 py-3">
+        <td
+          className="overflow-hidden whitespace-nowrap px-2 py-3"
+          onClick={stopRowClick}
+        >
           <PartnerCell partner={entry.partner} />
         </td>
         <td className="overflow-hidden whitespace-nowrap px-2 py-3">
@@ -142,15 +174,13 @@ export function JournalEntryRow({
                 ? format(parseISO(entry.trainedDate), "MMMM dd, yyyy")
                 : "Not collected"}
             </span>
-            {entry.intensity ? (
-              <span className="text-xs text-zinc-500">
-                {formatIntensity(entry.intensity)}
-              </span>
-            ) : null}
           </div>
         </td>
         {!readOnly ? (
-          <td className="w-10 whitespace-nowrap px-1 py-2 text-right">
+          <td
+            className="w-10 whitespace-nowrap px-1 py-2 text-right"
+            onClick={stopRowClick}
+          >
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button

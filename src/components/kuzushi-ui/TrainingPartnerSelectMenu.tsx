@@ -25,7 +25,7 @@ type TrainingPartnerSelectMenuProps = {
 export function TrainingPartnerSelectMenu({
   partners = samplePartners,
   value,
-  placeholder = "Select training partner",
+  placeholder = "Add training partner (optional)",
   ariaLabel,
   onSelectPartner,
   onSelectUnknownPartner,
@@ -122,6 +122,7 @@ export function TrainingPartnerSelectMenu({
     : selectedPartner
       ? getPartnerLabel(selectedPartner)
       : placeholder;
+  const isPlaceholderVisible = !isUnknownSelected && !selectedPartner;
 
   return (
     <SearchSelectPopover
@@ -155,7 +156,14 @@ export function TrainingPartnerSelectMenu({
           {selectedPartner && variant === "table" ? (
             <PartnerAvatar partner={selectedPartner} compact />
           ) : null}
-          <span className="min-w-0 flex-1 truncate">{selectedLabel}</span>
+          <span
+            className={cn(
+              "min-w-0 flex-1 truncate",
+              isPlaceholderVisible && "text-muted-foreground",
+            )}
+          >
+            {selectedLabel}
+          </span>
           {selectedPartner && variant !== "table" ? (
             <PartnerAvatar partner={selectedPartner} />
           ) : null}

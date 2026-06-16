@@ -24,7 +24,7 @@ export function JournalEntryHeading({
   onSortChange?: (sort: JournalEntrySort) => void;
 } = {}) {
   return (
-    <thead className="bg-zinc-100 text-left text-xs uppercase text-zinc-600 max-md:hidden">
+    <thead className="text-left text-xs text-zinc-600 max-md:hidden">
       <tr>
         {headings.map((heading) => (
           <th key={heading.field} className="whitespace-nowrap px-2 py-2">
@@ -65,7 +65,7 @@ function SortButton({
 
   return (
     <Button
-      className="-ml-2 h-8 gap-1 px-2 text-xs font-bold uppercase text-zinc-600 hover:text-zinc-950"
+      className="-ml-2 h-8 gap-1 px-2 text-xs font-bold text-zinc-600 hover:text-zinc-950"
       type="button"
       variant="ghost"
       onClick={() => {

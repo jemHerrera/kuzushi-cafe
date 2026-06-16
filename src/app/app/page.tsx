@@ -47,11 +47,20 @@ export default async function AppPage({
     ...query,
     limit: query.limit + 1,
   });
+  const journalPresence = await new JournalEntryManager(
+    supabase,
+  ).getJournalEntries({
+    accountId: session.account.id,
+    filter: {},
+    limit: 1,
+    offset: 0,
+  });
 
   return (
     <JournalFormOptionsProvider>
       <AppShell
         account={session.account}
+        initialHasJournalEntries={journalPresence.items.length > 0}
         initialJournal={initialJournal}
         initialJournalQueryKey={serializeJournalQuery(query).toString()}
       />

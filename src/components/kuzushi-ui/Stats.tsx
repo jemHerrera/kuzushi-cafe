@@ -133,11 +133,12 @@ export function Stats({
 
   return (
     <section className="grid gap-3" aria-label="Stats">
-      <h2 className="mt-1 mb-2 text-2xl font-black tracking-tight">Stats</h2>
+      <h2 className="mt-1 mb-2 text-md font-black tracking-tight">Stats</h2>
       <div className="flex flex-wrap items-center gap-2">
         <TechniqueCategoryPillSelect
           value={category}
           onValueChange={changeCategory}
+          variant="small"
         />
         <FilterSelect
           ariaLabel="Stats date"
@@ -199,7 +200,7 @@ function StatsChart({
   const chartHeight = Math.max(100, displayedData.length * 30 + 56);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+    <div className="overflow-x-auto">
       <ChartContainer
         className="min-w-[28rem] aspect-auto"
         config={config}
@@ -221,9 +222,10 @@ function StatsChart({
             dataKey="label"
             interval={0}
             tickLine={false}
-            tickMargin={8}
+            tickFormatter={formatYAxisLabel}
+            tickMargin={6}
             type="category"
-            width={180}
+            width={124}
           />
           <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
           {!isTap && typeFilter === "all" ? (
@@ -294,6 +296,11 @@ function withDisplayValues(
       displayLabel: label,
     };
   });
+}
+
+function formatYAxisLabel(value: string) {
+  const maxLength = 18;
+  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
 }
 
 function LabeledBarShape({
@@ -377,7 +384,7 @@ function FilterSelect({
     <Select disabled={disabled} value={value} onValueChange={onValueChange}>
       <SelectTrigger
         aria-label={ariaLabel}
-        className="h-8 w-fit min-w-32 rounded-full px-3 text-xs font-semibold shadow-none"
+        className="px-2 max-h-7 py-0 text-[11px] w-fit min-w-28 rounded-full text-xs font-semibold shadow-none"
       >
         <SelectValue />
         <ChevronDown className="size-3.5 shrink-0 text-zinc-500" />

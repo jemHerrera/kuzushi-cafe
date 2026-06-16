@@ -40,9 +40,13 @@ export function PublicProfileSearch({
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
+  const searchTerm = query.trim();
 
   useEffect(() => {
     if (!isOpen) return;
+    if (!searchTerm) {
+      return;
+    }
 
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
@@ -50,7 +54,7 @@ export function PublicProfileSearch({
       setError(undefined);
       try {
         const params = new URLSearchParams({ limit: "20", offset: "0" });
-        if (query.trim()) params.set("search", query.trim());
+        params.set("search", searchTerm);
         const response = await fetch(`/api/accounts/search?${params}`, {
           signal: controller.signal,
         });
@@ -79,11 +83,20 @@ export function PublicProfileSearch({
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [isOpen, query, retryToken]);
+  }, [isOpen, retryToken, searchTerm]);
 
   function selectProfile(profile: PublicAccountSummary) {
     onSelectProfile?.(profile);
     setIsOpen(false);
+  }
+
+  function handleQueryChange(value: string) {
+    setQuery(value);
+    if (value.trim()) return;
+
+    setProfiles([]);
+    setError(undefined);
+    setIsLoading(false);
   }
 
   return (
@@ -124,7 +137,7 @@ export function PublicProfileSearch({
           <CommandInput
             placeholder="Search training partners"
             value={query}
-            onValueChange={setQuery}
+            onValueChange={handleQueryChange}
           />
           <CommandList className="max-h-96">
             {error ? (
@@ -141,14 +154,14 @@ export function PublicProfileSearch({
                 rows={4}
               />
             ) : null}
-            {!isLoading && !error && profiles.length === 0 ? (
+            {!isLoading && !error && searchTerm && profiles.length === 0 ? (
               <EmptyState
                 body="Try a different name or search term."
                 className="m-3 py-8"
                 title="No profiles found"
               />
             ) : null}
-            {!isLoading && !error ? (
+            {!isLoading && !error && profiles.length > 0 ? (
               <CommandGroup heading="">
                 {profiles.map((profile) => (
                   <CommandItem

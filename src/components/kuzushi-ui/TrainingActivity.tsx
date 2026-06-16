@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { cloneElement, useEffect, useState } from "react";
 import { ActivityCalendar, type Activity } from "react-activity-calendar";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -93,8 +93,8 @@ export function TrainingActivity({
   return (
     <section className="grid gap-3" aria-label="Training activity">
       {showHeading ? (
-        <h2 className="mt-1 mb-2 text-2xl font-black tracking-tight">
-          Training Activity
+        <h2 className="mt-1 mb-2 text-md font-black tracking-tight">
+          Activity
         </h2>
       ) : null}
       {error ? (
@@ -146,16 +146,7 @@ function TrainingActivityCalendar({
   }));
 
   return (
-    <div className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-sm text-zinc-600">
-          <span className="font-bold text-zinc-950">{data.totalEntries}</span>{" "}
-          journal entries across{" "}
-          <span className="font-bold text-zinc-950">{data.activeDays}</span>{" "}
-          active days.
-        </p>
-        <p className="text-xs text-zinc-500">Last 12 months</p>
-      </div>
+    <div className="grid gap-4">
       <div className="overflow-x-auto pb-1">
         <ActivityCalendar
           blockMargin={4}
@@ -170,8 +161,26 @@ function TrainingActivityCalendar({
           }}
           showWeekdayLabels={["mon", "wed", "fri"]}
           theme={{
-            light: ["#f4f4f5", "#fecdd3", "#fda4af", "#fb7185", "#be123c"],
+            light: ["#ffffff", "#d4d4d8", "#71717a", "#3f3f46", "#000000"],
           }}
+          renderBlock={(block) =>
+            cloneElement(block, {
+              style: {
+                ...block.props.style,
+                stroke: "#d4d4d8",
+                strokeWidth: 1,
+              },
+            })
+          }
+          renderColorLegend={(block) =>
+            cloneElement(block, {
+              style: {
+                ...block.props.style,
+                stroke: "#d4d4d8",
+                strokeWidth: 1,
+              },
+            })
+          }
           tooltips={{
             activity: {
               text: (day) =>

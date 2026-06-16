@@ -13,6 +13,7 @@ const sortFields = [
   "journalType",
   "trainingPartner",
 ] as const;
+const defaultJournalLimit = 7;
 const querySchema = paginationSchema.extend({
   search: z.string().trim().min(1).optional(),
   category: z.array(z.enum(categories)).optional(),
@@ -20,6 +21,7 @@ const querySchema = paginationSchema.extend({
   isNoGi: z.boolean().optional(),
   sortField: z.enum(sortFields).default("trainedAt"),
   sortDirection: z.enum(["asc", "desc"]).default("desc"),
+  limit: paginationSchema.shape.limit.default(defaultJournalLimit),
 });
 
 export type JournalQuery = {
@@ -89,7 +91,8 @@ export function serializeJournalQuery(query: JournalQuery) {
     params.set("sortField", query.sort.field);
   if (query.sort.direction !== "desc")
     params.set("sortDirection", query.sort.direction);
-  if (query.limit !== 25) params.set("limit", String(query.limit));
+  if (query.limit !== defaultJournalLimit)
+    params.set("limit", String(query.limit));
   if (query.offset) params.set("offset", String(query.offset));
   return params;
 }

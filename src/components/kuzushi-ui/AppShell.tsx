@@ -52,11 +52,13 @@ const modalDescriptions: Record<ShellModal, string> = {
 
 type AppShellProps = { account: AccountDetail } & (
   | {
+      initialHasJournalEntries: boolean;
       initialJournal: PaginatedResponse<JournalEntryDetail>;
       initialJournalQueryKey: string;
       profileAccountId?: never;
     }
   | {
+      initialHasJournalEntries?: never;
       initialJournal?: never;
       initialJournalQueryKey?: never;
       profileAccountId: string;
@@ -69,6 +71,11 @@ export function AppShell(props: AppShellProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [currentAccount, setCurrentAccount] = useState(account);
+  const [hasJournalEntries, setHasJournalEntries] = useState(
+    props.profileAccountId === undefined
+      ? props.initialHasJournalEntries
+      : false,
+  );
   const [activeModal, setActiveModal] = useState<ShellModal | null>(null);
   const [journalRefreshToken, setJournalRefreshToken] = useState(0);
   const [isNavigationOpen, setIsNavigationOpen] = useState(false);
@@ -96,6 +103,28 @@ export function AppShell(props: AppShellProps) {
       // Indicators are supplemental and will retry on the next focus or action.
     }
   }, []);
+
+  const refreshJournalPresence = useCallback(async () => {
+    try {
+      const response = await fetch("/api/journal-entries?limit=1");
+      if (!response.ok) return;
+
+      const data =
+        (await response.json()) as PaginatedResponse<JournalEntryDetail>;
+      setHasJournalEntries(data.items.length > 0);
+    } catch {
+      // Presence is only used to hide empty dashboard sections; keep the last known state.
+    }
+  }, []);
+
+  function handleJournalEntriesChange(options?: { hasEntries?: boolean }) {
+    setJournalRefreshToken((token) => token + 1);
+    if (options?.hasEntries !== undefined) {
+      setHasJournalEntries(options.hasEntries);
+      return;
+    }
+    void refreshJournalPresence();
+  }
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -179,26 +208,28 @@ export function AppShell(props: AppShellProps) {
             ) : (
               <>
                 <div>
-                  <h2 className="mt-1 text-3xl font-black tracking-tight">
-                    My Journal Entries
+                  <h2 className="mt-1 text-xl font-black tracking-tight">
+                    Home
                   </h2>
                 </div>
                 <JournalEntryTable
                   initialEntries={props.initialJournal.items}
                   initialQueryKey={props.initialJournalQueryKey}
-                  onEntriesChange={() =>
-                    setJournalRefreshToken((token) => token + 1)
-                  }
+                  onEntriesChange={handleJournalEntriesChange}
                   refreshToken={journalRefreshToken}
                 />
-                <TrainingActivity
-                  onAddEntry={() => setActiveModal("new-entry")}
-                  refreshToken={journalRefreshToken}
-                />
-                <Stats
-                  onAddEntry={() => setActiveModal("new-entry")}
-                  refreshToken={journalRefreshToken}
-                />
+                {hasJournalEntries ? (
+                  <>
+                    <TrainingActivity
+                      onAddEntry={() => setActiveModal("new-entry")}
+                      refreshToken={journalRefreshToken}
+                    />
+                    <Stats
+                      onAddEntry={() => setActiveModal("new-entry")}
+                      refreshToken={journalRefreshToken}
+                    />
+                  </>
+                ) : null}
               </>
             )}
           </section>
@@ -323,7 +354,7 @@ export function AppShell(props: AppShellProps) {
           {displayedModal === "new-entry" ? (
             <JournalEntryCreate
               onClose={closeModal}
-              onSaved={() => setJournalRefreshToken((token) => token + 1)}
+              onSaved={() => handleJournalEntriesChange({ hasEntries: true })}
               withinDialog
             />
           ) : null}

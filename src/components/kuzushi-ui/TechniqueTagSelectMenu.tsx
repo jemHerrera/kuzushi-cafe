@@ -146,7 +146,12 @@ export function TechniqueTagSelectMenu({
             )}
             onClick={openMenu}
           >
-            <span className="min-w-0 flex-1 truncate font-medium">
+            <span
+              className={cn(
+                "min-w-0 flex-1 truncate font-medium",
+                !selectedTechnique && "text-muted-foreground",
+              )}
+            >
               {selectedTechnique?.name ?? placeholder}
             </span>
           </button>

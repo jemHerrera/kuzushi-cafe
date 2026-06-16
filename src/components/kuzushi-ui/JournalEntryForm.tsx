@@ -3,7 +3,6 @@
 import {
   CalendarDays,
   CircleCheck,
-  Gauge,
   NotebookPen,
   Plus,
   Route,
@@ -31,11 +30,7 @@ import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
 import { TechniqueTagSelectMenu } from "./TechniqueTagSelectMenu";
 import { TrainingPartnerInput } from "./TrainingPartnerInput";
 import {
-  SelectInput,
-  formatIntensity,
-  intensities,
   type Category,
-  type Intensity,
   type JournalEntry,
   type JournalType,
   type Partner,
@@ -59,21 +54,17 @@ export function JournalEntryForm({
   withinDialog?: boolean;
 }) {
   const notesId = useId();
-  const intensityId = useId();
   const [category, setCategory] = useState<Category>(
     entry?.category ?? "submission",
   );
   const [techniqueName, setTechniqueName] = useState(entry?.technique ?? "");
   const [setupName, setSetupName] = useState(entry?.setup ?? "");
   const [notes, setNotes] = useState(entry?.notes ?? "");
-  const [intensity, setIntensity] = useState<Intensity | "">(
-    entry?.intensity ?? "",
-  );
   const [journalType, setJournalType] = useState<JournalType | "not-specified">(
     entry?.journalType ?? (mode === "create" ? "success" : "not-specified"),
   );
-  const [trainedDate, setTrainedDate] = useState(() =>
-    entry?.trainedDate ? parseISO(entry.trainedDate) : undefined,
+  const [trainedDate, setTrainedDate] = useState<Date | undefined>(() =>
+    entry?.trainedDate ? parseISO(entry.trainedDate) : new Date(),
   );
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(
     entry?.partner ?? null,
@@ -143,7 +134,6 @@ export function JournalEntryForm({
       name: techniqueName,
       category,
       notes: notes || (mode === "update" ? null : undefined),
-      intensity: intensity || (mode === "update" ? null : undefined),
       ...(trainedDate
         ? { trainedDate: format(trainedDate, "yyyy-MM-dd") }
         : mode === "update"
@@ -247,9 +237,6 @@ export function JournalEntryForm({
         {optionsError ? (
           <ErrorState message={optionsError} onRetry={retryOptions} />
         ) : null}
-        {isOptionsLoading ? (
-          <p className="text-xs text-zinc-500">Loading saved options...</p>
-        ) : null}
         <>
           <PropertyField icon={Shapes} label="Category">
             <TechniqueCategoryPillSelect
@@ -290,7 +277,7 @@ export function JournalEntryForm({
               disabled={isSubmitting || isDeleting}
               techniques={setups}
               value={selectedSetup}
-              placeholder="Find or add setup"
+              placeholder="Add setup (optional)"
               variant="property"
               onSelectTechnique={(technique) => {
                 setSetupName(technique.name);
@@ -313,29 +300,11 @@ export function JournalEntryForm({
             <Textarea
               id={notesId}
               className="min-h-10 resize-none border-transparent bg-transparent px-2 py-2 text-sm shadow-none hover:bg-zinc-100 focus-visible:border-transparent focus-visible:bg-zinc-100 focus-visible:ring-0"
-              placeholder="Add notes"
+              placeholder="Add notes (optional)"
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               disabled={isSubmitting || isDeleting}
             />
-          </PropertyField>
-          <PropertyField icon={Gauge} label="Intensity" htmlFor={intensityId}>
-            <SelectInput
-              id={intensityId}
-              value={intensity}
-              onChange={(event) =>
-                setIntensity(event.target.value as Intensity)
-              }
-              disabled={isSubmitting || isDeleting}
-              variant="property"
-            >
-              <option value="">Select intensity</option>
-              {intensities.map((item) => (
-                <option key={item} value={item}>
-                  {formatIntensity(item)}
-                </option>
-              ))}
-            </SelectInput>
           </PropertyField>
           <PropertyField icon={CalendarDays} label="Trained date">
             <DateSelector
@@ -377,14 +346,14 @@ export function JournalEntryForm({
                 }
                 disabled={isSubmitting || isDeleting}
               >
-                <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
+                <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition has-[[data-state=checked]]:text-zinc-950">
                   <RadioGroupItem
                     className="size-3.5 shadow-none cursor-pointer"
                     value="attempt"
                   />
                   Attempt
                 </Label>
-                <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition hover:bg-zinc-100 has-[[data-state=checked]]:bg-zinc-100 has-[[data-state=checked]]:text-zinc-950">
+                <Label className="cursor-pointer min-h-10 rounded-md px-2 py-1 font-normal text-zinc-700 transition has-[[data-state=checked]]:text-zinc-950">
                   <RadioGroupItem
                     className="size-3.5 shadow-none cursor-pointer"
                     value="success"
@@ -406,7 +375,7 @@ export function JournalEntryForm({
                 title="Delete this journal entry?"
               >
                 <ButtonSecondary
-                  className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100 hover:text-red-800"
+                  className="text-red-700 hover:bg-red-100 hover:text-red-800 border-none bg-none"
                   disabled={isSubmitting || isDeleting}
                   type="button"
                 >
