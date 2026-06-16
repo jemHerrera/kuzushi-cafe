@@ -38,7 +38,10 @@ export async function proxy(request: NextRequest) {
   const { supabase, getResponse } = createSupabaseProxyClient(request);
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
-  const isProtectedPage = pathname === "/app" || pathname.startsWith("/app/");
+  const isProtectedPage =
+    pathname === "/app" ||
+    pathname.startsWith("/app/") ||
+    pathname.startsWith("/profiles/");
   const isSignInPage = pathname === SIGN_IN_PATH;
   const isCompleteProfilePage = pathname === COMPLETE_PROFILE_PATH;
 

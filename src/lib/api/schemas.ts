@@ -142,14 +142,9 @@ export const accountUpdateSchema = z
 
 export const privacyUpdateSchema = z
   .object({
-    profile: z.enum(privacyTypes).optional(),
     journalEntries: z.enum(privacyTypes).optional(),
-    submissions: z.enum(privacyTypes).optional(),
-    sweeps: z.enum(privacyTypes).optional(),
-    reversals: z.enum(privacyTypes).optional(),
-    backtakes: z.enum(privacyTypes).optional(),
-    guardPasses: z.enum(privacyTypes).optional(),
-    taps: z.enum(privacyTypes).optional(),
+    activity: z.enum(privacyTypes).optional(),
+    stats: z.enum(privacyTypes).optional(),
   })
   .refine(
     (value) => Object.values(value).some((item) => item !== undefined),

@@ -5,7 +5,6 @@ import {
   LockKeyhole,
   Plus,
   Settings,
-  UserRound,
   UsersRound,
 } from "lucide-react";
 import Link from "next/link";
@@ -92,13 +91,6 @@ export function SidePanel({
         aria-label="Workspace navigation"
         className="mt-4 grid gap-1 text-sm font-semibold text-zinc-800"
       >
-        <button
-          className="flex items-center gap-2 rounded-md bg-zinc-100 px-3 py-2 text-left text-zinc-950 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          type="button"
-        >
-          <UserRound className="size-4" />
-          Journal
-        </button>
         {navItems.map((item) => {
           const Icon = item.icon;
 

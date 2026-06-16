@@ -1,20 +1,28 @@
 import { authenticatedApiContext } from "@/lib/api/context";
 import { apiErrorResponse } from "@/lib/api/errors";
-import { pathIdSchema } from "@/lib/api/schemas";
-import { TrainingActivityManager } from "@/lib/managers/training-activity";
+import {
+  pathIdSchema,
+  searchParamsObject,
+  statsQuerySchema,
+} from "@/lib/api/schemas";
+import { StatsManager } from "@/lib/managers/stats";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { supabase, accountId: viewerAccountId } =
       await authenticatedApiContext();
     const { id: accountId } = pathIdSchema.parse(await params);
-    const result = await new TrainingActivityManager(
-      supabase,
-    ).getPublicTrainingActivity({ accountId, viewerAccountId });
-    return Response.json(result);
+    const query = statsQuerySchema.parse(searchParamsObject(request.url));
+    return Response.json(
+      await new StatsManager(supabase).getPublicStats({
+        accountId,
+        viewerAccountId,
+        ...query,
+      }),
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

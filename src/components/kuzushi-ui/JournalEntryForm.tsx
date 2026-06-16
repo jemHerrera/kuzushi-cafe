@@ -70,7 +70,7 @@ export function JournalEntryForm({
     entry?.intensity ?? "",
   );
   const [journalType, setJournalType] = useState<JournalType | "not-specified">(
-    entry?.journalType ?? "not-specified",
+    entry?.journalType ?? (mode === "create" ? "success" : "not-specified"),
   );
   const [trainedDate, setTrainedDate] = useState(() =>
     entry?.trainedDate ? parseISO(entry.trainedDate) : undefined,

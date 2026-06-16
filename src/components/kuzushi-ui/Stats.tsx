@@ -68,9 +68,11 @@ const categoryChartColors: Record<Category, { light: string; strong: string }> =
   };
 
 export function Stats({
+  accountId,
   onAddEntry,
   refreshToken = 0,
 }: {
+  accountId?: string;
   onAddEntry?: () => void;
   refreshToken?: number;
 }) {
@@ -96,7 +98,10 @@ export function Stats({
       setError(undefined);
 
       try {
-        const response = await fetch(`/api/stats?${params}`, {
+        const endpoint = accountId
+          ? `/api/accounts/${accountId}/stats`
+          : "/api/stats";
+        const response = await fetch(`${endpoint}?${params}`, {
           signal: controller.signal,
         });
         if (!response.ok) {
@@ -119,7 +124,7 @@ export function Stats({
 
     void loadStats();
     return () => controller.abort();
-  }, [category, effectiveType, refreshToken, retryToken, timeline]);
+  }, [accountId, category, effectiveType, refreshToken, retryToken, timeline]);
 
   function changeCategory(nextCategory: Category) {
     setCategory(nextCategory);

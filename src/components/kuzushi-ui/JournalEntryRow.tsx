@@ -2,6 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { Ellipsis, Pencil, Trash2, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import {
   Dialog,
@@ -61,19 +62,24 @@ export function JournalEntryRow({
     <>
       <tr className="border-t border-zinc-200 bg-white md:hidden">
         <td colSpan={readOnly ? 5 : 6} className="p-0">
-          <button
-            type="button"
-            className="grid min-h-16 w-full items-center gap-2 px-3 py-3 text-left transition hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring disabled:cursor-default"
+          <div
+            className="relative grid min-h-16 w-full items-center gap-2 px-3 py-3 text-left transition hover:bg-zinc-50"
             style={{
               gridTemplateColumns: "2fr 5fr 2fr 1fr",
             }}
-            disabled={readOnly}
-            onClick={() => setIsEditOpen(true)}
           >
-            <span className="min-w-0 justify-self-start">
+            {!readOnly ? (
+              <button
+                aria-label={`Edit ${entry.technique}`}
+                className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                type="button"
+                onClick={() => setIsEditOpen(true)}
+              />
+            ) : null}
+            <span className="pointer-events-none min-w-0 justify-self-start">
               <TechniqueCategoryPill category={entry.category} />
             </span>
-            <span className="min-w-0 text-center">
+            <span className="pointer-events-none min-w-0 text-center">
               <span className="block truncate text-sm font-medium text-zinc-950">
                 {entry.technique}
               </span>
@@ -83,7 +89,7 @@ export function JournalEntryRow({
                 </span>
               ) : null}
             </span>
-            <span className="justify-self-center self-center">
+            <span className="pointer-events-none justify-self-center self-center">
               {entry.journalType ? (
                 <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold capitalize text-zinc-700">
                   {entry.journalType}
@@ -92,10 +98,17 @@ export function JournalEntryRow({
                 <span className="text-xs text-zinc-400">—</span>
               )}
             </span>
-            <span className="justify-self-end">
+            <span
+              className={cx(
+                "justify-self-end",
+                entry.partner?.accountId
+                  ? "relative z-10"
+                  : "pointer-events-none",
+              )}
+            >
               <MobilePartnerAvatar partner={entry.partner} />
             </span>
-          </button>
+          </div>
         </td>
       </tr>
       <tr className="border-t border-zinc-200 bg-white max-md:hidden">
@@ -208,8 +221,8 @@ function PartnerCell({ partner }: { partner?: Partner }) {
 
   const label = [partner.firstName, partner.lastName].filter(Boolean).join(" ");
 
-  return (
-    <span className="flex min-w-0 items-center gap-2">
+  const content = (
+    <>
       <span
         className={cx(
           "inline-flex shrink-0 rounded-full border-2",
@@ -225,7 +238,18 @@ function PartnerCell({ partner }: { partner?: Partner }) {
       <span className="truncate text-sm font-medium text-zinc-900">
         {label || "Unknown Partner"}
       </span>
-    </span>
+    </>
+  );
+
+  return partner.accountId ? (
+    <Link
+      className="flex min-w-0 items-center gap-2 rounded-md hover:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      href={`/profiles/${encodeURIComponent(partner.accountId)}`}
+    >
+      {content}
+    </Link>
+  ) : (
+    <span className="flex min-w-0 items-center gap-2">{content}</span>
   );
 }
 
@@ -241,7 +265,7 @@ function MobilePartnerAvatar({ partner }: { partner?: Partner }) {
     );
   }
 
-  return (
+  const avatar = (
     <span
       aria-label={
         [partner.firstName, partner.lastName].filter(Boolean).join(" ") ||
@@ -258,5 +282,20 @@ function MobilePartnerAvatar({ partner }: { partner?: Partner }) {
         size="xs"
       />
     </span>
+  );
+
+  return partner.accountId ? (
+    <Link
+      aria-label={`View ${
+        [partner.firstName, partner.lastName].filter(Boolean).join(" ") ||
+        "training partner"
+      } profile`}
+      className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      href={`/profiles/${encodeURIComponent(partner.accountId)}`}
+    >
+      {avatar}
+    </Link>
+  ) : (
+    avatar
   );
 }

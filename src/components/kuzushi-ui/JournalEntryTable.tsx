@@ -33,6 +33,7 @@ import {
 } from "./shared";
 
 export function JournalEntryTable({
+  accountId,
   entries,
   initialEntries = [],
   initialQueryKey,
@@ -40,6 +41,7 @@ export function JournalEntryTable({
   readOnly = false,
   refreshToken = 0,
 }: {
+  accountId?: string;
   entries?: JournalEntry[];
   initialEntries?: JournalEntryDetail[];
   initialQueryKey?: string;
@@ -57,7 +59,7 @@ export function JournalEntryTable({
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const hasUsedInitialEntries = useRef(false);
-  const isStatic = entries !== undefined || readOnly;
+  const isStatic = entries !== undefined || (readOnly && !accountId);
   const query = useMemo(() => {
     const parsed = parseJournalQuery(
       `http://kuzushi.local${pathname}?${searchParams.toString()}`,
@@ -93,7 +95,10 @@ export function JournalEntryTable({
       setIsLoading(true);
       setError(undefined);
       try {
-        const response = await fetch(`/api/journal-entries?${params}`, {
+        const endpoint = accountId
+          ? `/api/accounts/${accountId}/journal-entries`
+          : "/api/journal-entries";
+        const response = await fetch(`${endpoint}?${params}`, {
           signal: controller.signal,
         });
 
@@ -119,7 +124,7 @@ export function JournalEntryTable({
 
     loadEntries();
     return () => controller.abort();
-  }, [initialQueryKey, isStatic, query, refreshKey, refreshToken]);
+  }, [accountId, initialQueryKey, isStatic, query, refreshKey, refreshToken]);
 
   const tableEntries = isStatic ? (entries ?? sampleEntries) : apiEntries;
   const visibleEntries = isStatic

@@ -70,41 +70,26 @@ export type Database = {
       account_privacy_settings: {
         Row: {
           account_id: string
-          backtakes: Database["public"]["Enums"]["privacy_type"]
+          activity: Database["public"]["Enums"]["privacy_type"]
           created_date: string
-          guard_passes: Database["public"]["Enums"]["privacy_type"]
           journal_entries: Database["public"]["Enums"]["privacy_type"]
-          profile: Database["public"]["Enums"]["privacy_type"]
-          reversals: Database["public"]["Enums"]["privacy_type"]
-          submissions: Database["public"]["Enums"]["privacy_type"]
-          sweeps: Database["public"]["Enums"]["privacy_type"]
-          taps: Database["public"]["Enums"]["privacy_type"]
+          stats: Database["public"]["Enums"]["privacy_type"]
           updated_date: string
         }
         Insert: {
           account_id: string
-          backtakes?: Database["public"]["Enums"]["privacy_type"]
+          activity?: Database["public"]["Enums"]["privacy_type"]
           created_date?: string
-          guard_passes?: Database["public"]["Enums"]["privacy_type"]
           journal_entries?: Database["public"]["Enums"]["privacy_type"]
-          profile?: Database["public"]["Enums"]["privacy_type"]
-          reversals?: Database["public"]["Enums"]["privacy_type"]
-          submissions?: Database["public"]["Enums"]["privacy_type"]
-          sweeps?: Database["public"]["Enums"]["privacy_type"]
-          taps?: Database["public"]["Enums"]["privacy_type"]
+          stats?: Database["public"]["Enums"]["privacy_type"]
           updated_date?: string
         }
         Update: {
           account_id?: string
-          backtakes?: Database["public"]["Enums"]["privacy_type"]
+          activity?: Database["public"]["Enums"]["privacy_type"]
           created_date?: string
-          guard_passes?: Database["public"]["Enums"]["privacy_type"]
           journal_entries?: Database["public"]["Enums"]["privacy_type"]
-          profile?: Database["public"]["Enums"]["privacy_type"]
-          reversals?: Database["public"]["Enums"]["privacy_type"]
-          submissions?: Database["public"]["Enums"]["privacy_type"]
-          sweeps?: Database["public"]["Enums"]["privacy_type"]
-          taps?: Database["public"]["Enums"]["privacy_type"]
+          stats?: Database["public"]["Enums"]["privacy_type"]
           updated_date?: string
         }
         Relationships: [
@@ -482,8 +467,12 @@ export type Database = {
         Args: { account_id: string; blocked_account_id: string }
         Returns: undefined
       }
-      can_view_account_profile: {
-        Args: { target_account_id: string }
+      can_view_account_section: {
+        Args: {
+          target_account_id: string
+          viewer_account_id: string
+          visibility: Database["public"]["Enums"]["privacy_type"]
+        }
         Returns: boolean
       }
       can_view_journal_entries: {
@@ -498,18 +487,14 @@ export type Database = {
         Args: { account_id: string; training_partner_id: string }
         Returns: undefined
       }
-      get_public_privacy: {
-        Args: { target_account_id: string; viewer_account_id?: string }
-        Returns: {
-          journal_entries: Database["public"]["Enums"]["privacy_type"]
-          profile: Database["public"]["Enums"]["privacy_type"]
-        }[]
-      }
       get_public_profile: {
         Args: { target_account_id: string; viewer_account_id?: string }
         Returns: {
           belt: Database["public"]["Enums"]["belt"]
           bio: string
+          can_view_activity: boolean
+          can_view_journal_entries: boolean
+          can_view_stats: boolean
           first_name: string
           id: string
           last_name: string
@@ -517,11 +502,39 @@ export type Database = {
           relationship_status: string
         }[]
       }
+      get_public_stats: {
+        Args: {
+          stats_category: Database["public"]["Enums"]["category"]
+          stats_end_exclusive: string
+          stats_start: string
+          successes_only?: boolean
+          target_account_id: string
+          viewer_account_id: string
+        }
+        Returns: {
+          attempts: number
+          label: string
+          occurrences: number
+          successes: number
+        }[]
+      }
+      get_public_training_activity: {
+        Args: {
+          activity_end: string
+          activity_start: string
+          target_account_id: string
+          viewer_account_id: string
+        }
+        Returns: {
+          activity_date: string
+          entry_count: number
+        }[]
+      }
       get_training_partner_profile_photos: {
         Args: { account_id: string; training_partner_ids: string[] }
         Returns: {
           id: string
-          profile_photo: string | null
+          profile_photo: string
         }[]
       }
       list_training_partner_requests: {

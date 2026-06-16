@@ -49,7 +49,7 @@ import {
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
-import type { AccountDetail, PublicAccountSummary } from "@/lib/managers/types";
+import type { AccountDetail, PublicProfileDetail } from "@/lib/managers/types";
 import { sampleEntries } from "@/components/kuzushi-ui/shared";
 import { sampleTrainingActivity } from "@/components/kuzushi-ui/TrainingActivity";
 
@@ -65,7 +65,7 @@ const sampleAccount: AccountDetail = {
   updatedAt: 0,
 };
 
-const samplePublicProfile: PublicAccountSummary = {
+const samplePublicProfile: PublicProfileDetail = {
   id: "component-library-public-profile",
   object: "public_account_summary",
   firstName: "Maya",
@@ -73,6 +73,11 @@ const samplePublicProfile: PublicAccountSummary = {
   bio: "Purple belt focused on guard retention, sweeps, and technical rounds.",
   belt: "purple",
   relationshipStatus: "none",
+  visibility: {
+    journalEntries: true,
+    activity: true,
+    stats: true,
+  },
 };
 
 const sections = [
@@ -213,10 +218,12 @@ const sections = [
       {
         name: "PublicProfile",
         element: (
-          <PublicProfile
-            accountId={samplePublicProfile.id}
-            initialProfile={samplePublicProfile}
-          />
+          <Suspense fallback={<LoadingState label="Loading public profile" />}>
+            <PublicProfile
+              accountId={samplePublicProfile.id}
+              initialProfile={samplePublicProfile}
+            />
+          </Suspense>
         ),
       },
     ],

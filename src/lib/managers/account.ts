@@ -13,7 +13,7 @@ import type {
   Belt,
   PrivacyType,
   PublicAccountSummary,
-  PublicPrivacyDetail,
+  PublicProfileDetail,
   TrainingPartnerDetail,
   TrainingPartnerRelationshipStatus,
   WeightClass,
@@ -21,14 +21,9 @@ import type {
 import type { Database } from "@/lib/supabase/database.types";
 
 type PrivacyOptions = Partial<{
-  profile: PrivacyType;
   journalEntries: PrivacyType;
-  submissions: PrivacyType;
-  sweeps: PrivacyType;
-  reversals: PrivacyType;
-  backtakes: PrivacyType;
-  guardPasses: PrivacyType;
-  taps: PrivacyType;
+  activity: PrivacyType;
+  stats: PrivacyType;
 }>;
 
 export class AccountManager {
@@ -144,24 +139,11 @@ export class AccountManager {
     const { data, error } = await this.supabase
       .from("account_privacy_settings")
       .update({
-        ...(params.options.profile && { profile: params.options.profile }),
         ...(params.options.journalEntries && {
           journal_entries: params.options.journalEntries,
         }),
-        ...(params.options.submissions && {
-          submissions: params.options.submissions,
-        }),
-        ...(params.options.sweeps && { sweeps: params.options.sweeps }),
-        ...(params.options.reversals && {
-          reversals: params.options.reversals,
-        }),
-        ...(params.options.backtakes && {
-          backtakes: params.options.backtakes,
-        }),
-        ...(params.options.guardPasses && {
-          guard_passes: params.options.guardPasses,
-        }),
-        ...(params.options.taps && { taps: params.options.taps }),
+        ...(params.options.activity && { activity: params.options.activity }),
+        ...(params.options.stats && { stats: params.options.stats }),
       })
       .eq("account_id", params.accountId)
       .select("*")
@@ -207,8 +189,8 @@ export class AccountManager {
 
   async getPublicProfile(params: {
     accountId: string;
-    viewerAccountId?: string;
-  }): Promise<PublicAccountSummary> {
+    viewerAccountId: string;
+  }): Promise<PublicProfileDetail> {
     const { data, error } = await this.supabase.rpc("get_public_profile", {
       target_account_id: params.accountId,
       viewer_account_id: params.viewerAccountId,
@@ -221,26 +203,14 @@ export class AccountManager {
         404,
       );
     }
-    return toPublicAccountSummary(row);
-  }
-
-  async getPublicPrivacy(params: {
-    accountId: string;
-    viewerAccountId?: string;
-  }): Promise<PublicPrivacyDetail> {
-    const { data, error } = await this.supabase.rpc("get_public_privacy", {
-      target_account_id: params.accountId,
-      viewer_account_id: params.viewerAccountId,
-    });
-    const row = data?.[0];
-    if (error || !row) {
-      throw new ManagerError(
-        "public_profile_not_found",
-        "Profile not found.",
-        404,
-      );
-    }
-    return { profile: row.profile, journalEntries: row.journal_entries };
+    return {
+      ...toPublicAccountSummary(row),
+      visibility: {
+        journalEntries: row.can_view_journal_entries,
+        activity: row.can_view_activity,
+        stats: row.can_view_stats,
+      },
+    };
   }
 
   async sendTrainingPartnerRequest(params: {

@@ -53,14 +53,9 @@ export type SignInResult =
 
 export type AccountPrivacySettings = {
   accountId: string;
-  profile: PrivacyType;
   journalEntries: PrivacyType;
-  submissions: PrivacyType;
-  sweeps: PrivacyType;
-  reversals: PrivacyType;
-  backtakes: PrivacyType;
-  guardPasses: PrivacyType;
-  taps: PrivacyType;
+  activity: PrivacyType;
+  stats: PrivacyType;
   createdAt: number;
   updatedAt: number;
 };
@@ -84,11 +79,12 @@ export type PublicAccountSummary = {
   relationshipStatus?: TrainingPartnerRelationshipStatus;
 };
 
-export type PublicProfileDetail = PublicAccountSummary;
-
-export type PublicPrivacyDetail = {
-  profile: PrivacyType;
-  journalEntries: PrivacyType;
+export type PublicProfileDetail = PublicAccountSummary & {
+  visibility: {
+    journalEntries: boolean;
+    activity: boolean;
+    stats: boolean;
+  };
 };
 
 export type TrainingPartnerDetail =

@@ -40,27 +40,31 @@ type ShellModal =
       SidePanelAction,
       "profile" | "saved-techniques" | "training-partners"
     >
-  | "profile"
-  | "public-profile";
+  | "profile";
 
 const modalDescriptions: Record<ShellModal, string> = {
   profile: "View and update your profile details.",
   "new-entry":
     "Add a journal entry with technique, partner, and training details.",
-  settings: "Choose who can view your profile and journal activity.",
+  settings: "Choose who can view your journal, activity, and stats.",
   donation: "Choose a donation amount to support Kuzushi Cafe.",
-  "public-profile": "View a public profile and manage relationship state.",
 };
 
-export function AppShell({
-  account,
-  initialJournal,
-  initialJournalQueryKey,
-}: {
-  account: AccountDetail;
-  initialJournal: PaginatedResponse<JournalEntryDetail>;
-  initialJournalQueryKey: string;
-}) {
+type AppShellProps = { account: AccountDetail } & (
+  | {
+      initialJournal: PaginatedResponse<JournalEntryDetail>;
+      initialJournalQueryKey: string;
+      profileAccountId?: never;
+    }
+  | {
+      initialJournal?: never;
+      initialJournalQueryKey?: never;
+      profileAccountId: string;
+    }
+);
+
+export function AppShell(props: AppShellProps) {
+  const { account } = props;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -75,20 +79,13 @@ export function AppShell({
     hasUnreadNotifications: false,
     hasInboundTrainingPartnerRequests: false,
   });
-  const [selectedProfile, setSelectedProfile] =
-    useState<PublicAccountSummary | null>(null);
-  const profileAccountId = searchParams.get("profile")?.trim() || undefined;
   const donationReturn = searchParams.get("donation");
   const donationReturnState =
     donationReturn === "success" || donationReturn === "canceled"
       ? donationReturn
       : undefined;
   const donationSessionId = searchParams.get("session_id")?.trim() || undefined;
-  const displayedModal = profileAccountId
-    ? "public-profile"
-    : donationReturnState
-      ? "donation"
-      : activeModal;
+  const displayedModal = donationReturnState ? "donation" : activeModal;
 
   const refreshIndicators = useCallback(async () => {
     try {
@@ -130,9 +127,8 @@ export function AppShell({
   }
 
   function closeModal() {
-    if (profileAccountId || donationReturnState) {
+    if (donationReturnState) {
       const params = new URLSearchParams(searchParams.toString());
-      params.delete("profile");
       params.delete("donation");
       params.delete("session_id");
       router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
@@ -140,21 +136,16 @@ export function AppShell({
       });
     }
     setActiveModal(null);
-    setSelectedProfile(null);
   }
 
   function openPublicProfile(profile: PublicAccountSummary) {
-    setIsNavigationOpen(false);
-    setSelectedProfile(profile);
     openPublicProfileById(profile.id);
   }
 
   function openPublicProfileById(accountId: string) {
     setIsNavigationOpen(false);
     setIsNotificationsOpen(false);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("profile", accountId);
-    router.push(`${pathname}?${params}`, { scroll: false });
+    router.push(`/profiles/${encodeURIComponent(accountId)}`);
   }
 
   return (
@@ -178,27 +169,38 @@ export function AppShell({
             />
           </div>
           <section className="mx-auto grid w-full max-w-7xl gap-6 p-4 sm:p-6 lg:p-8">
-            <div>
-              <h2 className="mt-1 text-3xl italic font-black tracking-tight">
-                Welcome back, {currentAccount.firstName}
-              </h2>
-            </div>
-            <JournalEntryTable
-              initialEntries={initialJournal.items}
-              initialQueryKey={initialJournalQueryKey}
-              onEntriesChange={() =>
-                setJournalRefreshToken((token) => token + 1)
-              }
-              refreshToken={journalRefreshToken}
-            />
-            <TrainingActivity
-              onAddEntry={() => setActiveModal("new-entry")}
-              refreshToken={journalRefreshToken}
-            />
-            <Stats
-              onAddEntry={() => setActiveModal("new-entry")}
-              refreshToken={journalRefreshToken}
-            />
+            {props.profileAccountId !== undefined ? (
+              <PublicProfile
+                key={props.profileAccountId}
+                accountId={props.profileAccountId}
+                onClose={() => router.push("/app")}
+                onRelationshipChange={() => void refreshIndicators()}
+              />
+            ) : (
+              <>
+                <div>
+                  <h2 className="mt-1 text-3xl font-black tracking-tight">
+                    My Journal Entries
+                  </h2>
+                </div>
+                <JournalEntryTable
+                  initialEntries={props.initialJournal.items}
+                  initialQueryKey={props.initialJournalQueryKey}
+                  onEntriesChange={() =>
+                    setJournalRefreshToken((token) => token + 1)
+                  }
+                  refreshToken={journalRefreshToken}
+                />
+                <TrainingActivity
+                  onAddEntry={() => setActiveModal("new-entry")}
+                  refreshToken={journalRefreshToken}
+                />
+                <Stats
+                  onAddEntry={() => setActiveModal("new-entry")}
+                  refreshToken={journalRefreshToken}
+                />
+              </>
+            )}
           </section>
         </div>
       </div>
@@ -333,20 +335,6 @@ export function AppShell({
               onClose={closeModal}
               returnState={donationReturnState}
               sessionId={donationSessionId}
-              withinDialog
-            />
-          ) : null}
-          {displayedModal === "public-profile" && profileAccountId ? (
-            <PublicProfile
-              key={profileAccountId}
-              accountId={profileAccountId}
-              initialProfile={
-                selectedProfile?.id === profileAccountId
-                  ? selectedProfile
-                  : undefined
-              }
-              onClose={closeModal}
-              onRelationshipChange={() => void refreshIndicators()}
               withinDialog
             />
           ) : null}

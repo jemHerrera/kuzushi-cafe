@@ -1,21 +1,31 @@
 "use client";
 
-import { Ban, Check, UserMinus, UserPlus, X } from "lucide-react";
+import {
+  ArrowLeft,
+  Ban,
+  Check,
+  LockKeyhole,
+  UserMinus,
+  UserPlus,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import type {
   ApiErrorDetail,
-  PublicAccountSummary,
+  PublicProfileDetail,
   TrainingPartnerRelationshipStatus,
 } from "@/lib/managers/types";
+import { Button } from "@/components/ui/button";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
 import { ErrorState } from "./ErrorState";
+import { JournalEntryTable } from "./JournalEntryTable";
 import { LoadingState } from "./LoadingState";
-import { ModalFrame } from "./ModalFrame";
+import { Stats } from "./Stats";
 import { TrainingActivity } from "./TrainingActivity";
 import { beltBorderStyles, cx, formatBelt } from "./shared";
 
@@ -26,15 +36,13 @@ export function PublicProfile({
   initialProfile,
   onClose,
   onRelationshipChange,
-  withinDialog = false,
 }: {
   accountId: string;
-  initialProfile?: PublicAccountSummary;
+  initialProfile?: PublicProfileDetail;
   onClose?: () => void;
   onRelationshipChange?: () => void;
-  withinDialog?: boolean;
 }) {
-  const [profile, setProfile] = useState<PublicAccountSummary | undefined>(
+  const [profile, setProfile] = useState<PublicProfileDetail | undefined>(
     initialProfile,
   );
   const [status, setStatus] = useState<
@@ -61,7 +69,7 @@ export function PublicProfile({
           throw new Error(detail.error.message);
         }
 
-        const loaded = (await response.json()) as PublicAccountSummary;
+        const loaded = (await response.json()) as PublicProfileDetail;
         if (!isActive) return;
         setProfile(loaded);
         setStatus(loaded.relationshipStatus);
@@ -121,13 +129,25 @@ export function PublicProfile({
 
   const name = profile ? displayName(profile) : "Public profile";
 
+  const hasVisibleContent =
+    profile &&
+    (profile.visibility.journalEntries ||
+      profile.visibility.activity ||
+      profile.visibility.stats);
+
   return (
-    <ModalFrame
-      title={name}
-      onClose={onClose}
-      withinDialog={withinDialog}
-      className="p-3 sm:p-5"
-    >
+    <section className="grid gap-8">
+      {onClose ? (
+        <Button
+          className="w-fit gap-2 text-zinc-600"
+          type="button"
+          variant="ghost"
+          onClick={onClose}
+        >
+          <ArrowLeft className="size-4" />
+          Back to dashboard
+        </Button>
+      ) : null}
       {isLoading ? (
         <LoadingState label="Loading public profile" variant="profile" />
       ) : null}
@@ -140,91 +160,115 @@ export function PublicProfile({
         />
       ) : null}
       {profile ? (
-        <section className="grid gap-5">
-          <header className="flex flex-wrap items-start gap-3 border-b border-zinc-200 pb-5">
+        <>
+          <header className="flex flex-col gap-5 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm sm:flex-row sm:items-start sm:p-6">
             <span
               className={cx(
-                "inline-flex shrink-0 rounded-full border-[3px] p-0",
+                "inline-flex w-fit shrink-0 rounded-full border-4 p-0",
                 beltBorderStyles[profile.belt ?? "unknown"],
               )}
             >
               <Avatar
                 initials={initialsForProfile(profile)}
                 src={profile.profilePhoto}
-                size="md"
+                size="lg"
               />
             </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-zinc-950">{name}</h2>
-              <p className="mt-1 text-sm font-medium text-zinc-500">
-                {profile.belt ? formatBelt(profile.belt) : "Unknown"} belt /
-                {` ${relationshipLabel(status)}`}
-              </p>
-              {profile.bio ? (
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
-                  {profile.bio}
+            <div className="grid min-w-0 flex-1 gap-5">
+              <div>
+                <h1 className="text-3xl font-black tracking-tight text-zinc-950">
+                  {name}
+                </h1>
+                <p className="mt-1 text-sm font-semibold text-zinc-500">
+                  {profile.belt ? formatBelt(profile.belt) : "Unknown"} belt
+                  <span aria-hidden="true"> · </span>
+                  {relationshipLabel(status)}
                 </p>
-              ) : null}
+                {profile.bio ? (
+                  <p className="mt-4 max-w-3xl text-sm leading-6 text-zinc-600">
+                    {profile.bio}
+                  </p>
+                ) : null}
+              </div>
+              <RelationshipActions
+                disabled={isSubmitting}
+                status={status}
+                onAccept={() =>
+                  runAction(
+                    "Training partner request accepted.",
+                    () =>
+                      fetch(`/api/training-partners/${accountId}/accept`, {
+                        method: "POST",
+                      }),
+                    "accepted",
+                  )
+                }
+                onAdd={() =>
+                  runAction(
+                    "Training partner request sent.",
+                    () =>
+                      fetch(`/api/training-partners/${accountId}/request`, {
+                        method: "POST",
+                      }),
+                    "pending-outbound",
+                  )
+                }
+                onCancel={() =>
+                  runAction(
+                    "Training partner request canceled.",
+                    () =>
+                      fetch(`/api/training-partners/${accountId}/request`, {
+                        method: "DELETE",
+                      }),
+                    "none",
+                  )
+                }
+                onBlock={() => setConfirming("block")}
+                onRemove={() => setConfirming("remove")}
+                onUnblock={() =>
+                  runAction(
+                    "Account unblocked.",
+                    () =>
+                      fetch(`/api/training-partners/${accountId}/block`, {
+                        method: "DELETE",
+                      }),
+                    "none",
+                  )
+                }
+              />
             </div>
           </header>
-          <RelationshipActions
-            disabled={isSubmitting}
-            status={status}
-            onAccept={() =>
-              runAction(
-                "Training partner request accepted.",
-                () =>
-                  fetch(`/api/training-partners/${accountId}/accept`, {
-                    method: "POST",
-                  }),
-                "accepted",
-              )
-            }
-            onAdd={() =>
-              runAction(
-                "Training partner request sent.",
-                () =>
-                  fetch(`/api/training-partners/${accountId}/request`, {
-                    method: "POST",
-                  }),
-                "pending-outbound",
-              )
-            }
-            onCancel={() =>
-              runAction(
-                "Training partner request canceled.",
-                () =>
-                  fetch(`/api/training-partners/${accountId}/request`, {
-                    method: "DELETE",
-                  }),
-                "none",
-              )
-            }
-            onBlock={() => setConfirming("block")}
-            onRemove={() => setConfirming("remove")}
-            onUnblock={() =>
-              runAction(
-                "Account unblocked.",
-                () =>
-                  fetch(`/api/training-partners/${accountId}/block`, {
-                    method: "DELETE",
-                  }),
-                "none",
-              )
-            }
-          />
-          <section className="grid gap-3 border-t border-zinc-200 pt-5">
-            <div>
-              <h3 className="text-lg font-bold text-zinc-950">
-                Training activity
-              </h3>
-              <p className="text-sm text-zinc-500">
-                Journal activity visible to you over the last 12 months.
-              </p>
+          {profile.visibility.journalEntries ? (
+            <section className="grid gap-3" aria-labelledby="profile-journal">
+              <h2
+                className="text-2xl font-black tracking-tight"
+                id="profile-journal"
+              >
+                Journal Entries
+              </h2>
+              <JournalEntryTable accountId={accountId} readOnly />
+            </section>
+          ) : null}
+          {profile.visibility.activity ? (
+            <TrainingActivity accountId={accountId} />
+          ) : null}
+          {profile.visibility.stats ? <Stats accountId={accountId} /> : null}
+          {!hasVisibleContent ? (
+            <div className="grid justify-items-center gap-3 rounded-lg border border-zinc-200 bg-white px-5 py-12 text-center">
+              <span className="inline-flex size-11 items-center justify-center rounded-full bg-zinc-100 text-zinc-600">
+                <LockKeyhole className="size-5" />
+              </span>
+              <div>
+                <h2 className="text-lg font-bold text-zinc-950">
+                  This account is private
+                </h2>
+                <p className="mt-1 text-sm text-zinc-500">
+                  No journal, activity, or stats are visible to you.
+                </p>
+              </div>
             </div>
-            <TrainingActivity accountId={accountId} showHeading={false} />
-          </section>
-        </section>
+          ) : null}
+        </>
       ) : null}
       <DestructiveConfirmDialog
         actionLabel={confirming === "block" ? "Block" : "Remove"}
@@ -262,7 +306,7 @@ export function PublicProfile({
         pendingLabel={confirming === "block" ? "Blocking..." : "Removing..."}
         title={confirming === "block" ? `Block ${name}?` : `Remove ${name}?`}
       />
-    </ModalFrame>
+    </section>
   );
 }
 
@@ -287,14 +331,10 @@ function RelationshipActions({
 }) {
   if (status === "accepted") {
     return (
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap gap-2">
         <ButtonSecondary type="button" onClick={onRemove} disabled={disabled}>
           <UserMinus className="size-4" />
           Remove
-        </ButtonSecondary>
-        <ButtonSecondary type="button" onClick={onBlock} disabled={disabled}>
-          <Ban className="size-4" />
-          Block
         </ButtonSecondary>
       </div>
     );
@@ -302,7 +342,7 @@ function RelationshipActions({
 
   if (status === "pending-inbound") {
     return (
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap gap-2">
         <ButtonPrimary type="button" onClick={onAccept} disabled={disabled}>
           <Check className="size-4" />
           Accept request
@@ -317,7 +357,7 @@ function RelationshipActions({
 
   if (status === "pending-outbound") {
     return (
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap gap-2">
         <ButtonSecondary type="button" onClick={onCancel} disabled={disabled}>
           <X className="size-4" />
           Cancel request
@@ -328,7 +368,7 @@ function RelationshipActions({
 
   if (status === "blocked") {
     return (
-      <div className="flex flex-wrap justify-end gap-2">
+      <div className="flex flex-wrap gap-2">
         <ButtonSecondary type="button" onClick={onUnblock} disabled={disabled}>
           Unblock
         </ButtonSecondary>
@@ -337,10 +377,10 @@ function RelationshipActions({
   }
 
   return (
-    <div className="flex flex-wrap justify-end gap-2">
+    <div className="flex flex-wrap gap-2">
       <ButtonPrimary type="button" onClick={onAdd} disabled={disabled}>
         <UserPlus className="size-4" />
-        Add partner
+        Add as Training Partner
       </ButtonPrimary>
       <ButtonSecondary type="button" onClick={onBlock} disabled={disabled}>
         <Ban className="size-4" />
@@ -350,14 +390,14 @@ function RelationshipActions({
   );
 }
 
-function displayName(profile: PublicAccountSummary) {
+function displayName(profile: PublicProfileDetail) {
   return (
     [profile.firstName, profile.lastName].filter(Boolean).join(" ") ||
     "Unnamed grappler"
   );
 }
 
-function initialsForProfile(profile: PublicAccountSummary) {
+function initialsForProfile(profile: PublicProfileDetail) {
   return (
     [profile.firstName, profile.lastName]
       .filter(Boolean)
@@ -366,7 +406,7 @@ function initialsForProfile(profile: PublicAccountSummary) {
   );
 }
 
-function relationshipLabel(status: PublicAccountSummary["relationshipStatus"]) {
+function relationshipLabel(status: PublicProfileDetail["relationshipStatus"]) {
   const labels: Record<TrainingPartnerRelationshipStatus, string> = {
     none: "Not connected",
     "pending-inbound": "Request received",

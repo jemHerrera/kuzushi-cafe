@@ -57,6 +57,7 @@ export class StatsManager {
         occurrences: 0,
         firstIndex: index,
       };
+      if (label < item.label) item.label = label;
       item.occurrences += 1;
       if (row.journal_type === "attempt") item.attempts += 1;
       if (row.journal_type === "success") item.successes += 1;
@@ -89,6 +90,57 @@ export class StatsManager {
           successes: item.successes,
           occurrences: item.occurrences,
         })),
+    };
+  }
+
+  async getPublicStats(params: {
+    accountId: string;
+    viewerAccountId: string;
+    category: Category;
+    timeline: StatsTimeline;
+    type: StatsTypeFilter;
+  }): Promise<StatsDetail> {
+    const interval = statsInterval(params.timeline);
+    const effectiveType = params.category === "tap" ? "all" : params.type;
+    const { data, error } = await this.supabase.rpc("get_public_stats", {
+      target_account_id: params.accountId,
+      viewer_account_id: params.viewerAccountId,
+      stats_category: params.category,
+      stats_start: interval.start.toISOString(),
+      stats_end_exclusive: interval.endExclusive.toISOString(),
+      successes_only: effectiveType === "success",
+    });
+    if (error) {
+      throw new ManagerError("stats_query_failed", error.message, 500);
+    }
+
+    const items = (data ?? [])
+      .map((row) => ({
+        label: row.label,
+        attempts: row.attempts,
+        successes: row.successes,
+        occurrences: row.occurrences,
+      }))
+      .sort(
+        (left, right) =>
+          displayedCount(right, params.category, effectiveType) -
+            displayedCount(left, params.category, effectiveType) ||
+          left.label.localeCompare(right.label, undefined, {
+            sensitivity: "base",
+          }),
+      );
+
+    return {
+      object: "stats",
+      accountId: params.accountId,
+      category: params.category,
+      timeline: params.timeline,
+      type: effectiveType,
+      ...(params.timeline === "all"
+        ? {}
+        : { startDate: toDateOnly(interval.start) }),
+      endDate: toDateOnly(new Date(interval.endExclusive.getTime() - 1)),
+      items,
     };
   }
 

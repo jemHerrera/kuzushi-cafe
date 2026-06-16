@@ -16,14 +16,9 @@ type TagRow = Database["public"]["Tables"]["technique_tags"]["Row"];
 export function toPrivacySettings(row: PrivacyRow): AccountPrivacySettings {
   return {
     accountId: row.account_id,
-    profile: row.profile,
     journalEntries: row.journal_entries,
-    submissions: row.submissions,
-    sweeps: row.sweeps,
-    reversals: row.reversals,
-    backtakes: row.backtakes,
-    guardPasses: row.guard_passes,
-    taps: row.taps,
+    activity: row.activity,
+    stats: row.stats,
     createdAt: new Date(row.created_date).getTime(),
     updatedAt: new Date(row.updated_date).getTime(),
   };

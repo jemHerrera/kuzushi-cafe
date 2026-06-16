@@ -15,7 +15,9 @@ vi.mock("@/lib/supabase/server", () => ({
 }));
 
 import * as accountProfileRoute from "@/app/api/accounts/[id]/route";
+import * as publicActivityRoute from "@/app/api/accounts/[id]/training-activity/route";
 import * as publicJournalRoute from "@/app/api/accounts/[id]/journal-entries/route";
+import * as publicStatsRoute from "@/app/api/accounts/[id]/stats/route";
 import * as journalDetailRoute from "@/app/api/journal-entries/[id]/route";
 import * as journalRoute from "@/app/api/journal-entries/route";
 import * as notificationReadRoute from "@/app/api/notifications/[id]/read/route";
@@ -496,13 +498,25 @@ describe.skipIf(!hasLocalSupabase)("API route integration", () => {
     });
   });
 
-  it("applies public journal privacy and blocked-profile scoping", async () => {
+  it("applies independent public profile section privacy", async () => {
+    const { data: defaults, error: defaultsError } = await admin
+      .from("account_privacy_settings")
+      .select("journal_entries,activity,stats")
+      .eq("account_id", users[1].accountId)
+      .single();
+    expect(defaultsError).toBeNull();
+    expect(defaults).toEqual({
+      journal_entries: "training-partners",
+      activity: "training-partners",
+      stats: "training-partners",
+    });
+
     await admin
       .from("account_privacy_settings")
       .update({
-        profile: "public",
         journal_entries: "public",
-        submissions: "public",
+        activity: "private",
+        stats: "public",
       })
       .eq("account_id", users[1].accountId);
 
@@ -512,12 +526,25 @@ describe.skipIf(!hasLocalSupabase)("API route integration", () => {
         name: "Public entry",
         setup: "Open guard",
         category: "submission",
+        journalType: "success",
       }),
     );
 
-    serverClient.current = createClient<Database>(supabaseUrl, anonKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
+    serverClient.current = users[0].client;
+    const profile = await accountProfileRoute.GET(
+      new Request(`http://localhost/api/accounts/${users[1].accountId}`),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(profile.status).toBe(200);
+    expect(await profile.json()).toMatchObject({
+      firstName: "Route1",
+      visibility: {
+        journalEntries: true,
+        activity: false,
+        stats: true,
+      },
     });
+
     const publicList = await publicJournalRoute.GET(
       new Request(
         `http://localhost/api/accounts/${users[1].accountId}/journal-entries`,
@@ -526,10 +553,90 @@ describe.skipIf(!hasLocalSupabase)("API route integration", () => {
     );
     expect(publicList.status).toBe(200);
     expect(await publicList.json()).toMatchObject({
-      visibility: "public",
       items: [{ name: "Public entry" }],
     });
 
+    const privateActivity = await publicActivityRoute.GET(
+      new Request(
+        `http://localhost/api/accounts/${users[1].accountId}/training-activity`,
+      ),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(privateActivity.status).toBe(200);
+    expect(await privateActivity.json()).toMatchObject({
+      totalEntries: 0,
+      activeDays: 0,
+    });
+
+    const publicStats = await publicStatsRoute.GET(
+      new Request(
+        `http://localhost/api/accounts/${users[1].accountId}/stats?category=submission&timeline=all&type=all`,
+      ),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(publicStats.status).toBe(200);
+    expect(await publicStats.json()).toMatchObject({
+      items: [{ label: "Public entry", successes: 1 }],
+    });
+
+    await admin
+      .from("account_privacy_settings")
+      .update({
+        journal_entries: "private",
+        activity: "private",
+        stats: "private",
+      })
+      .eq("account_id", users[1].accountId);
+
+    const privateProfile = await accountProfileRoute.GET(
+      new Request(`http://localhost/api/accounts/${users[1].accountId}`),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(await privateProfile.json()).toMatchObject({
+      visibility: {
+        journalEntries: false,
+        activity: false,
+        stats: false,
+      },
+    });
+
+    const { error: partnerError } = await admin
+      .from("training_partners")
+      .insert([
+        {
+          owner_account_id: users[0].accountId,
+          partner_account_id: users[1].accountId,
+        },
+        {
+          owner_account_id: users[1].accountId,
+          partner_account_id: users[0].accountId,
+        },
+      ]);
+    expect(partnerError).toBeNull();
+    await admin
+      .from("account_privacy_settings")
+      .update({
+        journal_entries: "training-partners",
+        activity: "training-partners",
+        stats: "training-partners",
+      })
+      .eq("account_id", users[1].accountId);
+
+    const partnerProfile = await accountProfileRoute.GET(
+      new Request(`http://localhost/api/accounts/${users[1].accountId}`),
+      { params: Promise.resolve({ id: users[1].accountId }) },
+    );
+    expect(await partnerProfile.json()).toMatchObject({
+      relationshipStatus: "accepted",
+      visibility: {
+        journalEntries: true,
+        activity: true,
+        stats: true,
+      },
+    });
+  });
+
+  it("allows blockers to revisit a basic profile but denies blocked viewers", async () => {
     serverClient.current = users[0].client;
     const blocked = await blockRoute.POST(
       new Request(
@@ -539,11 +646,26 @@ describe.skipIf(!hasLocalSupabase)("API route integration", () => {
       { params: Promise.resolve({ id: users[1].accountId }) },
     );
     expect(blocked.status).toBe(200);
-    const profile = await accountProfileRoute.GET(
+    const blockerView = await accountProfileRoute.GET(
       new Request(`http://localhost/api/accounts/${users[1].accountId}`),
       { params: Promise.resolve({ id: users[1].accountId }) },
     );
-    expect(profile.status).toBe(404);
+    expect(blockerView.status).toBe(200);
+    expect(await blockerView.json()).toMatchObject({
+      relationshipStatus: "blocked",
+      visibility: {
+        journalEntries: false,
+        activity: false,
+        stats: false,
+      },
+    });
+
+    serverClient.current = users[1].client;
+    const blockedViewer = await accountProfileRoute.GET(
+      new Request(`http://localhost/api/accounts/${users[0].accountId}`),
+      { params: Promise.resolve({ id: users[0].accountId }) },
+    );
+    expect(blockedViewer.status).toBe(404);
   });
 });
 

@@ -17,14 +17,9 @@ import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 
 const privacyRows = [
-  ["profile", "Profile"],
   ["journalEntries", "Journal entries"],
-  ["submissions", "Submissions"],
-  ["sweeps", "Sweeps"],
-  ["reversals", "Reversals"],
-  ["backtakes", "Back takes"],
-  ["guardPasses", "Guard passes"],
-  ["taps", "Taps"],
+  ["activity", "Activity"],
+  ["stats", "Stats"],
 ] as const;
 
 const visibilityOptions = [
@@ -70,14 +65,9 @@ export function PrivacySettings({
         const loaded = (await response.json()) as AccountPrivacySettings;
         if (!isActive) return;
         setSettings({
-          profile: loaded.profile,
           journalEntries: loaded.journalEntries,
-          submissions: loaded.submissions,
-          sweeps: loaded.sweeps,
-          reversals: loaded.reversals,
-          backtakes: loaded.backtakes,
-          guardPasses: loaded.guardPasses,
-          taps: loaded.taps,
+          activity: loaded.activity,
+          stats: loaded.stats,
         });
       } catch (loadError) {
         if (!isActive) return;
