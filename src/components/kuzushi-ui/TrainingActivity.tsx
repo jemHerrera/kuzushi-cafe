@@ -91,7 +91,10 @@ export function TrainingActivity({
   }, [accountId, isStatic, refreshToken, retryToken]);
 
   return (
-    <section className="grid gap-3" aria-label="Training activity">
+    <section
+      className="grid w-full min-w-0 max-w-full gap-3"
+      aria-label="Training activity"
+    >
       {showHeading ? (
         <h2 className="mt-1 mb-2 text-md font-black tracking-tight">
           Activity
@@ -210,13 +213,13 @@ function TrainingActivityLoadingState() {
   return (
     <div
       aria-label="Loading training activity"
-      className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4"
+      className="grid w-full min-w-0 max-w-full gap-4 overflow-hidden"
     >
-      <div className="flex justify-between gap-4">
-        <Skeleton className="h-5 w-60 max-w-full" />
-        <Skeleton className="h-4 w-24" />
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+        <Skeleton className="h-5 w-full max-w-60" />
+        <Skeleton className="h-4 w-20 sm:w-24" />
       </div>
-      <Skeleton className="h-32 rounded-lg" />
+      <Skeleton className="h-32 w-full rounded-lg" />
     </div>
   );
 }

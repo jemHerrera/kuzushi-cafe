@@ -132,7 +132,10 @@ export function Stats({
   }
 
   return (
-    <section className="grid gap-3" aria-label="Stats">
+    <section
+      className="grid w-full min-w-0 max-w-full gap-3"
+      aria-label="Stats"
+    >
       <h2 className="mt-1 mb-2 text-md font-black tracking-tight">Stats</h2>
       <div className="flex flex-wrap items-center gap-2">
         <TechniqueCategoryPillSelect
@@ -409,14 +412,17 @@ function StatsLoadingState() {
   return (
     <div
       aria-label="Loading stats"
-      className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4"
+      className="grid w-full min-w-0 max-w-full gap-4 overflow-hidden"
     >
       <Skeleton className="h-5 w-48 max-w-full" />
       <div className="grid gap-3">
         {[1, 2, 3, 4].map((item) => (
-          <div className="flex items-center gap-4" key={item}>
-            <Skeleton className="h-4 w-36" />
-            <Skeleton className="h-7 flex-1" />
+          <div
+            className="grid min-w-0 grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-center gap-4"
+            key={item}
+          >
+            <Skeleton className="h-4 w-full max-w-36" />
+            <Skeleton className="h-7 w-full" />
           </div>
         ))}
       </div>
