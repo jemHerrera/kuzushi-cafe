@@ -1,6 +1,12 @@
 "use client";
 
-import { cloneElement, useEffect, useState } from "react";
+import {
+  cloneElement,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { ActivityCalendar, type Activity } from "react-activity-calendar";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -128,6 +134,46 @@ function TrainingActivityCalendar({
   isPublic: boolean;
   onAddEntry?: () => void;
 }) {
+  const calendarWrapperRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const calendarWrapper = calendarWrapperRef.current;
+    if (!calendarWrapper) return;
+
+    const scrollToEnd = () => {
+      const scrollContainer =
+        calendarWrapper.querySelector<HTMLElement>(
+          ".react-activity-calendar__scroll-container",
+        ) ?? calendarWrapper;
+
+      scrollContainer.scrollLeft =
+        scrollContainer.scrollWidth - scrollContainer.clientWidth;
+    };
+
+    let nestedFrame = 0;
+    const firstFrame = requestAnimationFrame(scrollToEnd);
+    const secondFrame = requestAnimationFrame(() => {
+      nestedFrame = requestAnimationFrame(scrollToEnd);
+    });
+
+    const observer = new ResizeObserver(scrollToEnd);
+    observer.observe(calendarWrapper);
+
+    const mutationObserver = new MutationObserver(scrollToEnd);
+    mutationObserver.observe(calendarWrapper, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+      if (nestedFrame) cancelAnimationFrame(nestedFrame);
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [data.days.length]);
+
   if (data.totalEntries === 0) {
     return (
       <EmptyState
@@ -150,7 +196,7 @@ function TrainingActivityCalendar({
 
   return (
     <div className="grid gap-4">
-      <div className="overflow-x-auto pb-1">
+      <div ref={calendarWrapperRef} className="overflow-x-auto pb-1">
         <ActivityCalendar
           blockMargin={4}
           blockRadius={2}
