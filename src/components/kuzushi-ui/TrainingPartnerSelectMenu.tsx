@@ -8,7 +8,13 @@ import {
   SearchSelectPopover,
   searchSelectOptionClassName,
 } from "./SearchSelectPopover";
-import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
+import {
+  beltBorderStyles,
+  cx,
+  initialsForPartner,
+  samplePartners,
+  type Partner,
+} from "./shared";
 
 type TrainingPartnerSelectMenuProps = {
   partners?: Partner[];
@@ -264,7 +270,7 @@ function PartnerAvatar({
       )}
     >
       <Avatar
-        initials={partner.initials}
+        initials={initialsForPartner(partner)}
         src={partner.profilePhoto}
         size="xs"
       />

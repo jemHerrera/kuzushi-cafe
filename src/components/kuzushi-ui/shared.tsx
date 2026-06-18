@@ -40,6 +40,26 @@ export type Partner = {
   initials?: string;
 };
 
+export function initialsForName(name: string) {
+  return (
+    name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "KC"
+  );
+}
+
+export function initialsForPartner(
+  partner: Pick<Partner, "firstName" | "lastName" | "initials">,
+) {
+  if (partner.initials) return partner.initials;
+  return initialsForName(
+    [partner.firstName, partner.lastName].filter(Boolean).join(" "),
+  );
+}
+
 export type Technique = {
   name: string;
   category: Category;

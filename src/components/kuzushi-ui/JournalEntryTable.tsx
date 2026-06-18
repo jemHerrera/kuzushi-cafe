@@ -26,6 +26,7 @@ import { JournalEntryHeading } from "./JournalEntryHeading";
 import { JournalEntryPagination } from "./JournalEntryPagination";
 import { JournalEntryRow } from "./JournalEntryRow";
 import {
+  initialsForPartner,
   sampleEntries,
   type JournalEntry,
   type Partner,
@@ -325,6 +326,7 @@ function toPartner(partner: TrainingPartnerDetail): Partner {
       partner.object === "training_partner" ? partner.accountId : undefined,
     firstName: partner.firstName,
     lastName: partner.lastName,
+    initials: initialsForPartner(partner),
     profilePhoto:
       partner.object === "training_partner" ? partner.profilePhoto : undefined,
     belt: partner.belt,

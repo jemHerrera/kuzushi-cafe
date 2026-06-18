@@ -32,7 +32,13 @@ import { ErrorState } from "./ErrorState";
 import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 import { TrainingPartnerSearch } from "./TrainingPartnerSearch";
-import { beltBorderStyles, cx, formatBelt, formatWeightClass } from "./shared";
+import {
+  beltBorderStyles,
+  cx,
+  formatBelt,
+  formatWeightClass,
+  initialsForName,
+} from "./shared";
 
 type ConfirmAction =
   | { type: "remove"; partner: TrainingPartnerDetail }
@@ -611,15 +617,4 @@ function partnerMeta(partner: TrainingPartnerDetail) {
   ]
     .filter(Boolean)
     .join(" / ");
-}
-
-function initialsForName(name: string) {
-  return (
-    name
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part.charAt(0).toUpperCase())
-      .join("") || "KC"
-  );
 }

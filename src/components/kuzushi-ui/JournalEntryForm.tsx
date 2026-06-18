@@ -30,6 +30,7 @@ import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
 import { TechniqueTagSelectMenu } from "./TechniqueTagSelectMenu";
 import { TrainingPartnerInput } from "./TrainingPartnerInput";
 import {
+  initialsForPartner,
   type Category,
   type JournalEntry,
   type JournalType,
@@ -412,6 +413,7 @@ function toPartner(partner: TrainingPartnerDetail): Partner {
       partner.object === "training_partner" ? partner.accountId : undefined,
     firstName: partner.firstName,
     lastName: partner.lastName,
+    initials: initialsForPartner(partner),
     profilePhoto:
       partner.object === "training_partner" ? partner.profilePhoto : undefined,
     belt: partner.belt,

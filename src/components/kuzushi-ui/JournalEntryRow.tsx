@@ -24,6 +24,7 @@ import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import {
   beltBorderStyles,
   cx,
+  initialsForPartner,
   type JournalEntry,
   type Partner,
 } from "./shared";
@@ -260,7 +261,7 @@ function PartnerCell({ partner }: { partner?: Partner }) {
         )}
       >
         <Avatar
-          initials={partner.initials}
+          initials={initialsForPartner(partner)}
           src={partner.profilePhoto}
           size="xs"
         />
@@ -307,7 +308,7 @@ function MobilePartnerAvatar({ partner }: { partner?: Partner }) {
       )}
     >
       <Avatar
-        initials={partner.initials}
+        initials={initialsForPartner(partner)}
         src={partner.profilePhoto}
         size="xs"
       />
