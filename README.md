@@ -128,7 +128,7 @@ protocol-relative destinations are discarded.
 - [x] Journal entry slow loading. Also loading when changing categories. Improve this performance
   - [x] When creating new tag from "Tap", automatic category should be Submission, and remove Tap from the list
 - [x] Added as training partner but still shows Unknown partner, and wrong image
-- [ ] Customize Signin email
+- [x] Customize Signin email
 - [x] Setup hello@kuzushi.cafe
 - [x] Setup noreply@kuzushi.cafe
 - [x] Verify google auth
