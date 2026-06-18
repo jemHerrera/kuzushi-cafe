@@ -127,9 +127,30 @@ protocol-relative destinations are discarded.
 - [x] Remove all success banner
 - [x] Journal entry slow loading. Also loading when changing categories. Improve this performance
   - [x] When creating new tag from "Tap", automatic category should be Submission, and remove Tap from the list
-- [ ] Added as training partner but still shows Unknown partner, and wrong image
+- [x] Added as training partner but still shows Unknown partner, and wrong image
 - [ ] Customize Signin email
-- [ ] Setup hello@kuzushi.cafe
-- [ ] Update public profile page
-- [ ] Change Training activity into activity dots (Like Github) - filters are years
-- [ ] Change Technique occurences to vertical bar chart
+- [x] Setup hello@kuzushi.cafe
+- [x] Setup noreply@kuzushi.cafe
+- [x] Verify google auth
+- [x] Update public profile page
+- [x] Change Training activity into activity dots (Like Github) - filters are years
+- [x] Change Technique occurences to vertical bar chart
+- [ ] Mobile
+  - [ ] Home: Wierd loading flash
+  - [ ] Activity: should be automatically scrolled to the end
+  - [ ] JournalEntry form
+    - [ ] Select menu, can't scroll properly, can't see search, not enough vertical space
+      - Maybe reduce min height? In notion an entirely new draggable panel appears
+    - [ ] Journal entry form should be full height
+  - [ ] Stats - Need to find a way to properly show holistically
+    - Maybe do "translucent tabs" as labels inside the bar? Also reduce space between and ensure full width is the mobile width
+  - [ ] Journal entry table - Reduce row py, Draggable delete?
+  - [ ] Public Profile - Should be able to see inside the Journal entry row (Add read only prop to Journal entry)
+    - [ ] Public Journal entry row should not display training partner, only belt
+    - [ ] Also public journal entry modal should not display training partner, only belt
+  - [ ] Notifications side bar need more real estate
+    - Make all other sidebars full width
+    - [ ] Mark as read should be just icon
+  - [ ] Filters - Category and type should be side by side
+  - [ ] Stats - improve empty state and loading state (currently has borders and white bg)
+- [ ] S3 bucket and profile upload. Maybe supabase already supports this?

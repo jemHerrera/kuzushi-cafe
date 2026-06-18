@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { BrandWordmark, SignInForm } from "@/components/kuzushi-ui";
+import { BrandWordmark, SignIn } from "@/components/kuzushi-ui";
 
 export default function Home() {
   return (
@@ -11,23 +11,18 @@ export default function Home() {
         </header>
 
         <div className="grid flex-1 items-center gap-12 py-12 lg:grid-cols-2">
-          <div className="hidden max-w-2xl lg:block">
-            <h1 className="text-5xl font-black italic leading-tight text-zinc-950 sm:text-6xl">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-black italic leading-tight text-zinc-950 sm:text-5xl">
               Track grappling progress with intention.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-zinc-700">
-              Kuzushi Cafe is a free grappling journaling and tracking app. No
-              ads, no clutter, no persistent subscription popups.
+              Kuzushi Cafe is a humble grappling journaling and tracking app.
+              Completely free, with no ads, no clutter, no persistent
+              subscription popups.
             </p>
           </div>
 
-          <div className="w-full rounded-xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
-            <h2 className="text-2xl font-black text-zinc-950">Sign in</h2>
-            <p className="mt-2 mb-6 text-sm leading-6 text-zinc-600">
-              Continue with Google or receive a one-time sign-in link by email.
-            </p>
-            <SignInForm next="/app" />
-          </div>
+          <SignIn next="/app" />
         </div>
 
         <footer className="flex flex-wrap gap-x-5 gap-y-2 border-t border-zinc-200 py-5 text-sm text-zinc-600">

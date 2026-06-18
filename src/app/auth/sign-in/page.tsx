@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-import { BrandWordmark, SignInForm } from "@/components/kuzushi-ui";
+import { BrandWordmark, SignIn } from "@/components/kuzushi-ui";
 import { safeRelativePath } from "@/lib/auth/redirects";
 
 export default async function SignInPage({
@@ -14,33 +12,12 @@ export default async function SignInPage({
     <main className="grid min-h-screen place-items-center bg-stone-50 px-6 py-12">
       <section className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
         <BrandWordmark href="/" />
-        <h1 className="mt-8 text-3xl font-black text-zinc-950">
-          Sign in to your journal
-        </h1>
-        <p className="mt-2 mb-6 text-sm leading-6 text-zinc-600">
-          Continue with Google or receive a one-time sign-in link by email.
-        </p>
-        <SignInForm
+        <SignIn
           next={safeRelativePath(params.next)}
           initialError={params.error}
+          showTerms
+          title="Sign in to your journal"
         />
-        <p className="mt-6 text-center text-xs leading-5 text-zinc-500">
-          By continuing, you agree to the{" "}
-          <Link
-            className="font-semibold text-zinc-700 underline underline-offset-4"
-            href="/terms-of-service"
-          >
-            Terms of Service
-          </Link>{" "}
-          and acknowledge the{" "}
-          <Link
-            className="font-semibold text-zinc-700 underline underline-offset-4"
-            href="/privacy-policy"
-          >
-            Privacy Policy
-          </Link>
-          .
-        </p>
       </section>
     </main>
   );

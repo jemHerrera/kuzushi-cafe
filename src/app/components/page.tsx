@@ -7,6 +7,7 @@ import {
   ButtonPrimary,
   ButtonSecondary,
   CompleteProfile,
+  ConfirmSignupEmailTemplate,
   CustomPartnerInput,
   DateSelector,
   DonationBanner,
@@ -35,6 +36,9 @@ import {
   SavedTechniqueUpsert,
   Search,
   SidePanel,
+  SignIn,
+  SignInForm,
+  SignInWithLinkEmailTemplate,
   StatsRow,
   TechniqueCategoryPill,
   TechniqueCategoryPillSelect,
@@ -102,6 +106,63 @@ const sections = [
             icon={<Plus className="size-4" />}
           />
         ),
+      },
+    ],
+  },
+  {
+    title: "Auth",
+    items: [
+      { name: "SignIn", element: <SignIn next="/app" /> },
+      {
+        name: "SignInForm error",
+        element: (
+          <SignInForm
+            next="/app"
+            previewState={{
+              kind: "error",
+              message:
+                "That sign-in link has expired or was already used. Request a new link.",
+            }}
+          />
+        ),
+      },
+      {
+        name: "SignInForm email sent",
+        element: (
+          <SignInForm
+            next="/app"
+            previewState={{
+              kind: "email-sent",
+              email: "maya@example.com",
+            }}
+          />
+        ),
+      },
+      {
+        name: "SignInForm Google loading",
+        element: (
+          <SignInForm next="/app" previewState={{ kind: "google-loading" }} />
+        ),
+      },
+      {
+        name: "SignInForm link loading",
+        element: (
+          <SignInForm
+            next="/app"
+            previewState={{
+              kind: "magic-link-loading",
+              email: "maya@example.com",
+            }}
+          />
+        ),
+      },
+      {
+        name: "ConfirmSignupEmailTemplate",
+        element: <ConfirmSignupEmailTemplate />,
+      },
+      {
+        name: "SignInWithLinkEmailTemplate",
+        element: <SignInWithLinkEmailTemplate />,
       },
     ],
   },

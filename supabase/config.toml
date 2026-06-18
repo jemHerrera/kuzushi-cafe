@@ -60,6 +60,10 @@ otp_expiry = 3600
 subject = "Sign in to Kuzushi Cafe"
 content_path = "./supabase/templates/magic-link.html"
 
+[auth.email.template.confirmation]
+subject = "Confirm your Kuzushi Cafe account"
+content_path = "./supabase/templates/confirm-signup.html"
+
 [auth.external.google]
 enabled = true
 client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"

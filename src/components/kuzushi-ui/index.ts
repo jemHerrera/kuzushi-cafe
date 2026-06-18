@@ -12,6 +12,12 @@ export { DonationBanner } from "./DonationBanner";
 export { DonationModal } from "./DonationModal";
 export { EmptyState } from "./EmptyState";
 export { ErrorState } from "./ErrorState";
+export {
+  ConfirmSignupEmailTemplate,
+  SignInWithLinkEmailTemplate,
+  confirmSignupEmailHtml,
+  signInWithLinkEmailHtml,
+} from "./EmailTemplates";
 export { Header } from "./Header";
 export { IconButton } from "./IconButton";
 export { JournalEntryCreate } from "./JournalEntryCreate";
@@ -38,6 +44,7 @@ export { SavedTechniqueTagList } from "./SavedTechniqueTagList";
 export { SavedTechniqueUpsert } from "./SavedTechniqueUpsert";
 export { Search } from "./Search";
 export { SearchSelectPopover } from "./SearchSelectPopover";
+export { SignIn } from "./SignIn";
 export { SignInForm } from "./SignInForm";
 export { SignOutButton } from "./SignOutButton";
 export { SidePanel } from "./SidePanel";
