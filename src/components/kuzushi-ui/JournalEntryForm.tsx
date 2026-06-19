@@ -30,6 +30,10 @@ import { TechniqueCategoryPillSelect } from "./TechniqueCategoryPillSelect";
 import { TechniqueTagSelectMenu } from "./TechniqueTagSelectMenu";
 import { TrainingPartnerInput } from "./TrainingPartnerInput";
 import {
+  BeltMarker,
+  cx,
+  formatBelt,
+  formatCategoryLabel,
   initialsForPartner,
   type Category,
   type JournalEntry,
@@ -46,6 +50,8 @@ export function JournalEntryForm({
   onSaved,
   onDeleted,
   withinDialog = false,
+  readOnly = false,
+  showPartnerIdentity = true,
 }: {
   mode: "create" | "update";
   entry?: JournalEntry;
@@ -53,6 +59,8 @@ export function JournalEntryForm({
   onSaved?: () => void;
   onDeleted?: () => void;
   withinDialog?: boolean;
+  readOnly?: boolean;
+  showPartnerIdentity?: boolean;
 }) {
   const notesId = useId();
   const [category, setCategory] = useState<Category>(
@@ -105,8 +113,9 @@ export function JournalEntryForm({
   );
 
   useEffect(() => {
+    if (readOnly) return;
     refreshOptions();
-  }, [refreshOptions]);
+  }, [readOnly, refreshOptions]);
 
   const selectedTechnique = useMemo(
     () =>
@@ -218,6 +227,62 @@ export function JournalEntryForm({
     } finally {
       setIsDeleting(false);
     }
+  }
+
+  if (readOnly) {
+    return (
+      <ModalFrame
+        title="Journal entry details"
+        onClose={onClose}
+        withinDialog={withinDialog}
+        className="p-3 sm:p-5"
+      >
+        <div className="grid content-start gap-3 sm:gap-4">
+          <PropertyField icon={Shapes} label="Category">
+            <ReadOnlyValue>{formatCategoryLabel(category)}</ReadOnlyValue>
+          </PropertyField>
+          <PropertyField icon={Tag} label="Technique">
+            <ReadOnlyValue>{techniqueName || "Not collected"}</ReadOnlyValue>
+          </PropertyField>
+          <PropertyField icon={Route} label="Setup">
+            <ReadOnlyValue>{setupName || "Not collected"}</ReadOnlyValue>
+          </PropertyField>
+          <PropertyField icon={NotebookPen} label="Notes">
+            <ReadOnlyValue multiline>{notes || "No notes"}</ReadOnlyValue>
+          </PropertyField>
+          <PropertyField icon={CalendarDays} label="Trained date">
+            <ReadOnlyValue>
+              {trainedDate
+                ? format(trainedDate, "MMMM dd, yyyy")
+                : "Not collected"}
+            </ReadOnlyValue>
+          </PropertyField>
+          <PropertyField icon={UserRound} label="Belt">
+            <BeltValue partner={selectedPartner ?? undefined} />
+          </PropertyField>
+          {showPartnerIdentity ? (
+            <PropertyField icon={UserRound} label="Partner">
+              <ReadOnlyValue>
+                {selectedPartner
+                  ? [selectedPartner.firstName, selectedPartner.lastName]
+                      .filter(Boolean)
+                      .join(" ") || "Unknown Partner"
+                  : "No partner"}
+              </ReadOnlyValue>
+            </PropertyField>
+          ) : null}
+          {category !== "tap" ? (
+            <PropertyField icon={CircleCheck} label="Type">
+              <ReadOnlyValue>
+                {journalType === "not-specified"
+                  ? "Not collected"
+                  : formatJournalType(journalType)}
+              </ReadOnlyValue>
+            </PropertyField>
+          ) : null}
+        </div>
+      </ModalFrame>
+    );
   }
 
   return (
@@ -412,6 +477,42 @@ export function JournalEntryForm({
       </form>
     </ModalFrame>
   );
+}
+
+function ReadOnlyValue({
+  children,
+  multiline = false,
+}: {
+  children: React.ReactNode;
+  multiline?: boolean;
+}) {
+  return (
+    <div
+      className={cx(
+        "flex min-h-10 items-center rounded-md px-2 py-2 text-sm text-zinc-900",
+        multiline && "items-start whitespace-pre-wrap leading-6",
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function BeltValue({ partner }: { partner?: Partner }) {
+  const belt = partner?.belt ?? "unknown";
+
+  return (
+    <ReadOnlyValue>
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <BeltMarker belt={belt} />
+        <span>{partner ? formatBelt(belt) : "Not collected"}</span>
+      </span>
+    </ReadOnlyValue>
+  );
+}
+
+function formatJournalType(journalType: JournalType) {
+  return journalType.charAt(0).toUpperCase() + journalType.slice(1);
 }
 
 function toPartner(partner: TrainingPartnerDetail): Partner {

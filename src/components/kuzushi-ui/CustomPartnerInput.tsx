@@ -20,14 +20,13 @@ import type {
   WeightClass,
 } from "@/lib/managers/types";
 import { AlertBanner } from "./AlertBanner";
+import { BeltSelectInput } from "./BeltSelectInput";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ModalFrame } from "./ModalFrame";
 import { PropertyField } from "./PropertyField";
 import {
   ageClasses,
-  belts,
   formatAgeClassOption,
-  formatBelt,
   formatWeightClassOption,
   SelectInput,
   TextInput,
@@ -38,25 +37,40 @@ export function CustomPartnerInput({
   onBack,
   onClose,
   onCreated,
+  onSaved,
+  partner,
   presentation = "modal",
   withinDialog = false,
 }: {
   onBack?: () => void;
   onClose?: () => void;
   onCreated?: (partner: TrainingPartnerDetail) => void;
+  onSaved?: (partner: TrainingPartnerDetail) => void;
+  partner?: TrainingPartnerDetail;
   presentation?: "modal" | "sheet";
   withinDialog?: boolean;
 }) {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [partnerWeight, setPartnerWeight] = useState<WeightClass>("unknown");
-  const [partnerAge, setPartnerAge] = useState<AgeClass>("unknown");
-  const [partnerBelt, setPartnerBelt] = useState<Belt>("unknown");
+  const isEditing = partner !== undefined;
+  const isEditable = !partner || partner.object === "custom_training_partner";
+  const [firstName, setFirstName] = useState(partner?.firstName ?? "");
+  const [lastName, setLastName] = useState(partner?.lastName ?? "");
+  const [partnerWeight, setPartnerWeight] = useState<WeightClass>(
+    partner?.weight ?? "unknown",
+  );
+  const [partnerAge, setPartnerAge] = useState<AgeClass>(
+    partner?.object === "custom_training_partner"
+      ? (partner.age ?? "unknown")
+      : "unknown",
+  );
+  const [partnerBelt, setPartnerBelt] = useState<Belt>(
+    partner?.belt ?? "unknown",
+  );
   const [error, setError] = useState<string>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function submitPartner(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!isEditable) return;
     setError(undefined);
 
     const body = {
@@ -69,24 +83,36 @@ export function CustomPartnerInput({
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/training-partners/custom", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const response = await fetch(
+        isEditing && partner
+          ? `/api/training-partners/${partner.id}`
+          : "/api/training-partners/custom",
+        {
+          method: isEditing ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        },
+      );
 
       if (!response.ok) {
         const detail = (await response.json()) as ApiErrorDetail;
         throw new Error(detail.error.message);
       }
 
-      onCreated?.((await response.json()) as TrainingPartnerDetail);
+      const savedPartner = (await response.json()) as TrainingPartnerDetail;
+      if (isEditing) {
+        onSaved?.(savedPartner);
+      } else {
+        onCreated?.(savedPartner);
+      }
       onBack?.();
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "We could not add this custom partner.",
+          : isEditing
+            ? "We could not save this training partner."
+            : "We could not add this custom partner.",
       );
     } finally {
       setIsSubmitting(false);
@@ -105,6 +131,9 @@ export function CustomPartnerInput({
       </button>
       <form className="grid gap-4" onSubmit={submitPartner}>
         {error ? <AlertBanner message={error} /> : null}
+        {!isEditable ? (
+          <AlertBanner message="Registered training partner details are managed by their profile." />
+        ) : null}
         <div className="grid">
           <PropertyField icon={UserRound} label="First name">
             <TextInput
@@ -112,7 +141,7 @@ export function CustomPartnerInput({
               placeholder="Add first name"
               value={firstName}
               onChange={(event) => setFirstName(event.target.value)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isEditable}
               variant="property"
             />
           </PropertyField>
@@ -122,7 +151,7 @@ export function CustomPartnerInput({
               placeholder="Add last name"
               value={lastName}
               onChange={(event) => setLastName(event.target.value)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isEditable}
               variant="property"
             />
           </PropertyField>
@@ -133,7 +162,7 @@ export function CustomPartnerInput({
               onChange={(event) =>
                 setPartnerWeight(event.target.value as WeightClass)
               }
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isEditable}
               variant="property"
             >
               {weightClasses.map((weight) => (
@@ -150,7 +179,7 @@ export function CustomPartnerInput({
               onChange={(event) =>
                 setPartnerAge(event.target.value as AgeClass)
               }
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isEditable}
               variant="property"
             >
               {ageClasses.map((age) => (
@@ -161,27 +190,29 @@ export function CustomPartnerInput({
             </SelectInput>
           </PropertyField>
           <PropertyField icon={Award} label="Belt">
-            <SelectInput
+            <BeltSelectInput
               aria-label="Belt"
               value={partnerBelt}
-              onChange={(event) => setPartnerBelt(event.target.value as Belt)}
-              disabled={isSubmitting}
+              onValueChange={setPartnerBelt}
+              disabled={isSubmitting || !isEditable}
               variant="property"
-            >
-              {belts.map((belt) => (
-                <option key={belt} value={belt}>
-                  {formatBelt(belt)}
-                </option>
-              ))}
-            </SelectInput>
+            />
           </PropertyField>
         </div>
-        <div className="flex justify-end">
-          <ButtonPrimary type="submit" disabled={isSubmitting}>
-            <Plus className="size-4" />
-            {isSubmitting ? "Adding..." : "Add partner"}
-          </ButtonPrimary>
-        </div>
+        {isEditable ? (
+          <div className="flex justify-end">
+            <ButtonPrimary type="submit" disabled={isSubmitting}>
+              <Plus className="size-4" />
+              {isSubmitting
+                ? isEditing
+                  ? "Saving..."
+                  : "Adding..."
+                : isEditing
+                  ? "Save changes"
+                  : "Add partner"}
+            </ButtonPrimary>
+          </div>
+        ) : null}
       </form>
     </>
   );
@@ -191,7 +222,7 @@ export function CustomPartnerInput({
       <section className="flex h-full min-h-0 flex-col overflow-y-auto bg-white">
         <div className="flex items-center justify-between gap-3 p-4 pb-0">
           <h2 className="text-lg font-bold text-zinc-950">
-            Add custom partner
+            {isEditing ? "Edit training partner" : "Add custom partner"}
           </h2>
           <Button
             aria-label="Close"
@@ -212,7 +243,7 @@ export function CustomPartnerInput({
 
   return (
     <ModalFrame
-      title="Add custom partner"
+      title={isEditing ? "Edit training partner" : "Add custom partner"}
       onClose={onClose}
       withinDialog={withinDialog}
       className="p-3 sm:p-5"

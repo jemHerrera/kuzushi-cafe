@@ -114,6 +114,76 @@ export const beltBorderStyles: Record<Belt, string> = {
   coral: "border-red-500",
 };
 
+export const beltDotStyles: Record<Belt, string> = {
+  unknown: "border-zinc-300 bg-zinc-300",
+  white: "border-zinc-300 bg-white",
+  blue: "border-blue-600 bg-blue-600",
+  purple: "border-purple-700 bg-purple-700",
+  brown: "border-amber-900 bg-amber-900",
+  black: "border-zinc-950 bg-zinc-950",
+  coral: "border-red-500 bg-red-500",
+};
+
+export const beltMarkerSquareStyles: Record<Belt, [string, string, string]> = {
+  unknown: [
+    "border-zinc-300 bg-zinc-300",
+    "border-zinc-300 bg-zinc-300",
+    "border-zinc-300 bg-zinc-300",
+  ],
+  white: [
+    "border-zinc-300 bg-white",
+    "border-zinc-950 bg-zinc-950",
+    "border-zinc-300 bg-white",
+  ],
+  blue: [
+    "border-blue-600 bg-blue-600",
+    "border-zinc-950 bg-zinc-950",
+    "border-blue-600 bg-blue-600",
+  ],
+  purple: [
+    "border-purple-700 bg-purple-700",
+    "border-zinc-950 bg-zinc-950",
+    "border-purple-700 bg-purple-700",
+  ],
+  brown: [
+    "border-amber-900 bg-amber-900",
+    "border-zinc-950 bg-zinc-950",
+    "border-amber-900 bg-amber-900",
+  ],
+  black: [
+    "border-zinc-950 bg-zinc-950",
+    "border-red-500 bg-red-500",
+    "border-zinc-950 bg-zinc-950",
+  ],
+  coral: [
+    "border-red-500 bg-red-500",
+    "border-zinc-300 bg-white",
+    "border-red-500 bg-red-500",
+  ],
+};
+
+export function BeltMarker({
+  belt = "unknown",
+  className,
+}: {
+  belt?: Belt;
+  className?: string;
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cx("inline-flex shrink-0 items-center gap-0.5", className)}
+    >
+      {beltMarkerSquareStyles[belt].map((squareClassName, index) => (
+        <span
+          key={index}
+          className={cx("size-2.5 rounded-[2px] border", squareClassName)}
+        />
+      ))}
+    </span>
+  );
+}
+
 export const categories = Object.keys(categoryStyles) as Category[];
 export const savedTagCategories = [...savedTagCategoryValues] as Category[];
 export const intensities: Intensity[] = ["playful", "casual", "intense"];

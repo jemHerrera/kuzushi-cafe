@@ -537,6 +537,14 @@ export type Database = {
           profile_photo: string
         }[]
       }
+      get_visible_journal_entry_partner_belts: {
+        Args: { journal_entry_ids: string[]; target_account_id: string }
+        Returns: {
+          belt: Database["public"]["Enums"]["belt"]
+          journal_entry_id: string
+          training_partner_id: string
+        }[]
+      }
       list_training_partner_requests: {
         Args: {
           account_id: string

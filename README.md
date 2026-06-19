@@ -138,21 +138,26 @@ protocol-relative destinations are discarded.
 - [x] Mobile
   - [x] Home: Wierd loading flash
   - [x] Activity: should be automatically scrolled to the end
-  - [ ] JournalEntry form
+  - [x] JournalEntry form
     - [x] Select menu, can't scroll properly, can't see search, not enough vertical space
       - Maybe reduce min height? In notion an entirely new draggable panel appears
     - [x] Journal entry form should be full height
-    - [ ] Add ? saying inly belt is shown in public
+    - [x] Add ? saying inly belt is shown in public
   - [ ] Stats - Need to find a way to properly show holistically
     - Maybe do "translucent tabs" as labels inside the bar? Also reduce space between and ensure full width is the mobile width
   - [ ] Journal entry table - Reduce row py, Draggable delete?
-  - [ ] Public Profile - Should be able to see inside the Journal entry row (Add read only prop to Journal entry)
-    - [ ] Public Journal entry row should not display training partner, only belt
-    - [ ] Also public journal entry modal should not display training partner, only belt
+    - [ ] Remove belt text, just color
+    - [ ] On mobile, instead of categories, add success or attempts instead?
+  - [x] Public Profile - Should be able to see inside the Journal entry row (Add read only prop to Journal entry)
+    - [x] Public Journal entry row should not display training partner, only belt
+    - [x] Also public journal entry modal should not display training partner, only belt
+    - [ ] Remove back arrow
+    - [ ]
   - [ ] Notifications side bar need more real estate
     - Make all other sidebars full width
     - [ ] Mark as read should be just icon
+    - [ ] Remove assignments notification
   - [ ] Filters - Category and type should be side by side
   - [ ] Stats - improve empty state and loading state (currently has borders and white bg)
 - [ ] S3 bucket and profile upload. Maybe supabase already supports this?
-- [ ] Need to be able to edit custom training partners
+- [x] Need to be able to edit custom training partners

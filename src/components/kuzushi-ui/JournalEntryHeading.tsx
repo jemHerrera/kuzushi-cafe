@@ -29,7 +29,13 @@ export function JournalEntryHeading({
         {headings.map((heading) => (
           <th key={heading.field} className="whitespace-nowrap px-2 py-2">
             <SortButton
-              heading={heading}
+              heading={{
+                ...heading,
+                label:
+                  readOnly && heading.field === "trainingPartner"
+                    ? "Belt"
+                    : heading.label,
+              }}
               sort={sort}
               onSortChange={onSortChange}
             />

@@ -7,12 +7,16 @@ export function JournalEntryUpdate({
   onSaved,
   onDeleted,
   withinDialog = false,
+  readOnly = false,
+  showPartnerIdentity = true,
 }: {
   entry: JournalEntry;
   onClose?: () => void;
   onSaved?: () => void;
   onDeleted?: () => void;
   withinDialog?: boolean;
+  readOnly?: boolean;
+  showPartnerIdentity?: boolean;
 }) {
   return (
     <JournalEntryForm
@@ -22,6 +26,8 @@ export function JournalEntryUpdate({
       onSaved={onSaved}
       onDeleted={onDeleted}
       withinDialog={withinDialog}
+      readOnly={readOnly}
+      showPartnerIdentity={showPartnerIdentity}
     />
   );
 }

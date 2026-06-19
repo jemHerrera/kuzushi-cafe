@@ -502,6 +502,81 @@ export class AccountManager {
     };
   }
 
+  async updateCustomTrainingPartner(params: {
+    accountId: string;
+    trainingPartnerId: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    partnerWeight?: WeightClass | null;
+    partnerAge?: AgeClass | null;
+    partnerBelt?: Belt | null;
+  }): Promise<TrainingPartnerDetail> {
+    const { data: existing, error: lookupError } = await this.supabase
+      .from("training_partners")
+      .select("id, partner_account_id")
+      .eq("id", params.trainingPartnerId)
+      .eq("owner_account_id", params.accountId)
+      .maybeSingle();
+
+    if (lookupError) {
+      throw new ManagerError(
+        "training_partner_lookup_failed",
+        lookupError.message,
+        500,
+      );
+    }
+
+    if (!existing) {
+      throw new ManagerError(
+        "training_partner_not_found",
+        "Training partner not found.",
+        404,
+      );
+    }
+
+    if (existing.partner_account_id) {
+      throw new ManagerError(
+        "account_partner_not_editable",
+        "Registered training partner details are managed by their profile.",
+        409,
+      );
+    }
+
+    const { data, error } = await this.supabase
+      .from("training_partners")
+      .update({
+        first_name: cleanOptionalText(params.firstName ?? undefined),
+        last_name: cleanOptionalText(params.lastName ?? undefined),
+        partner_weight: params.partnerWeight,
+        partner_age: params.partnerAge,
+        partner_belt: params.partnerBelt,
+      })
+      .eq("id", params.trainingPartnerId)
+      .eq("owner_account_id", params.accountId)
+      .is("partner_account_id", null)
+      .select("*")
+      .single();
+
+    const row = assertManagerResult(
+      data,
+      error,
+      "custom_partner_update_failed",
+      "Could not update custom training partner.",
+    );
+
+    return {
+      id: row.id,
+      object: "custom_training_partner",
+      firstName: row.first_name ?? undefined,
+      lastName: row.last_name ?? undefined,
+      weight: row.partner_weight ?? undefined,
+      age: row.partner_age ?? undefined,
+      belt: row.partner_belt ?? undefined,
+      createdAt: new Date(row.created_date).getTime(),
+      updatedAt: new Date(row.updated_date).getTime(),
+    };
+  }
+
   async getPotentialTrainingPartners(params: {
     accountId: string;
     search?: string;

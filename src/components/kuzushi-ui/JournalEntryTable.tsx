@@ -213,6 +213,7 @@ export function JournalEntryTable({
                 key={entry.id}
                 entry={entry}
                 readOnly={readOnly}
+                publicView={readOnly && Boolean(accountId)}
                 onSaved={refreshEntries}
                 onDeleted={refreshEntries}
               />

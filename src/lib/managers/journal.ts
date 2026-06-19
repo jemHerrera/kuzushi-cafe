@@ -643,17 +643,74 @@ export class JournalEntryManager {
       rows[0]?.account_id,
       accountBackedPartnerIds,
     );
+    const visiblePartnerBelts = await this.getVisiblePartnerBelts(
+      rows[0]?.account_id,
+      rows.map((row) => row.id),
+    );
 
     return rows.map((row) => {
       const partner = row.training_partner_id
         ? partners.get(row.training_partner_id)
         : undefined;
-      return toJournalEntry(
+      const entry = toJournalEntry(
         row,
         partner,
         partner ? profilePhotos.get(partner.id) : undefined,
       );
+      const visibleBelt = visiblePartnerBelts.get(row.id);
+      if (entry.trainingPartner && visibleBelt) {
+        return {
+          ...entry,
+          trainingPartner: {
+            ...entry.trainingPartner,
+            belt: visibleBelt,
+          },
+        };
+      }
+      if (!entry.trainingPartner && row.training_partner_id && visibleBelt) {
+        return {
+          ...entry,
+          trainingPartner: {
+            id: row.training_partner_id,
+            belt: visibleBelt,
+          },
+        };
+      }
+      return entry;
     });
+  }
+
+  private async getVisiblePartnerBelts(
+    accountId: string | undefined,
+    journalEntryIds: string[],
+  ) {
+    const belts = new Map<string, Belt | null>();
+    if (!accountId || !journalEntryIds.length) return belts;
+
+    const { data, error } = await this.supabase.rpc(
+      "get_visible_journal_entry_partner_belts",
+      {
+        target_account_id: accountId,
+        journal_entry_ids: journalEntryIds,
+      },
+    );
+    if (error) {
+      if (
+        error.code === "PGRST202" ||
+        error.message.includes("get_visible_journal_entry_partner_belts")
+      ) {
+        return belts;
+      }
+      throw new ManagerError(
+        "training_partner_belts_failed",
+        error.message,
+        500,
+      );
+    }
+    for (const partner of data ?? []) {
+      belts.set(partner.journal_entry_id, partner.belt);
+    }
+    return belts;
   }
 
   private async getPartnerProfilePhotos(

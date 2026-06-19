@@ -61,12 +61,14 @@ export function TrainingPartnersListModal({
   presentation?: "modal" | "sheet";
   withinDialog?: boolean;
 }) {
-  const [view, setView] = useState<"list" | "custom">("list");
+  const [view, setView] = useState<"list" | "custom" | "edit">("list");
   const [activeTab, setActiveTab] = useState<"partners" | "requests">(
     "partners",
   );
   const [query, setQuery] = useState("");
   const [partners, setPartners] = useState<TrainingPartnerDetail[]>([]);
+  const [selectedPartner, setSelectedPartner] =
+    useState<TrainingPartnerDetail>();
   const [inbound, setInbound] = useState<AccountDetail[]>([]);
   const [error, setError] = useState<string>();
   const [isPartnersLoading, setIsPartnersLoading] = useState(true);
@@ -148,12 +150,19 @@ export function TrainingPartnersListModal({
   function openList() {
     setView("list");
     setActiveTab("partners");
+    setSelectedPartner(undefined);
     onTitleChange?.("My training partners");
   }
 
   function openCustomPartner() {
     setView("custom");
     onTitleChange?.("Add custom partner");
+  }
+
+  function openEditPartner(partner: TrainingPartnerDetail) {
+    setSelectedPartner(partner);
+    setView("edit");
+    onTitleChange?.("Edit training partner");
   }
 
   async function runAction(
@@ -193,6 +202,22 @@ export function TrainingPartnersListModal({
         onClose={onClose}
         onCreated={() => {
           toast.success("Custom training partner added.");
+          void loadPartners();
+        }}
+        presentation={presentation}
+        withinDialog={withinDialog}
+      />
+    );
+  }
+
+  if (view === "edit" && selectedPartner) {
+    return (
+      <CustomPartnerInput
+        partner={selectedPartner}
+        onBack={openList}
+        onClose={onClose}
+        onSaved={() => {
+          toast.success("Training partner updated.");
           void loadPartners();
         }}
         presentation={presentation}
@@ -261,7 +286,10 @@ export function TrainingPartnersListModal({
                       onOpen={() => {
                         if (partner.object === "training_partner") {
                           onSelectPartner?.(partnerToPublicSummary(partner));
+                          return;
                         }
+
+                        openEditPartner(partner);
                       }}
                       onBlock={
                         partner.object === "training_partner"
@@ -474,7 +502,7 @@ function TrainingPartnerRow({
     <div className="flex flex-wrap items-center gap-2 bg-white">
       <ProfileButton
         belt={partner.belt}
-        disabled={disabled || partner.object !== "training_partner"}
+        disabled={disabled}
         meta={partnerMeta(partner)}
         name={displayPartnerName(partner)}
         photo={

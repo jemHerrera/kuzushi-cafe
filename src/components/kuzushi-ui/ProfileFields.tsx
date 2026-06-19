@@ -3,11 +3,11 @@
 import { Award, Cake, NotebookPen, Scale, UserRound } from "lucide-react";
 import { useId } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { BeltSelectInput } from "./BeltSelectInput";
 import { DateSelector } from "./DateSelector";
 import { PropertyField } from "./PropertyField";
 import {
   belts,
-  formatBelt,
   formatWeightClassOption,
   SelectInput,
   TextInput,
@@ -72,24 +72,18 @@ export function ProfileFields({
         />
       </PropertyField>
       <PropertyField icon={Award} label="Belt">
-        <SelectInput
+        <BeltSelectInput
           aria-label="Belt"
           value={value.belt}
-          onChange={(event) =>
+          onValueChange={(belt) =>
             onChange({
               ...value,
-              belt: event.target.value as ProfileFormValue["belt"],
+              belt,
             })
           }
           disabled={disabled}
           variant="property"
-        >
-          {belts.map((belt) => (
-            <option key={belt} value={belt}>
-              {formatBelt(belt)}
-            </option>
-          ))}
-        </SelectInput>
+        />
       </PropertyField>
       <PropertyField icon={Scale} label="Weight">
         <SelectInput

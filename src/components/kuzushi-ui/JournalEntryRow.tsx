@@ -22,8 +22,10 @@ import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
 import { JournalEntryUpdate } from "./JournalEntryUpdate";
 import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import {
+  BeltMarker,
   beltBorderStyles,
   cx,
+  formatBelt,
   initialsForPartner,
   type JournalEntry,
   type Partner,
@@ -34,6 +36,7 @@ type JournalEntryRowProps = {
   onSaved?: () => void;
   onDeleted?: () => void;
   readOnly?: boolean;
+  publicView?: boolean;
 };
 
 export function JournalEntryRow({
@@ -41,21 +44,23 @@ export function JournalEntryRow({
   onSaved,
   onDeleted,
   readOnly = false,
+  publicView = false,
 }: JournalEntryRowProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const canEdit = !readOnly;
+  const canOpenDetails = readOnly || canEdit;
 
-  function openEdit() {
-    if (canEdit) setIsEditOpen(true);
+  function openDetails() {
+    if (canOpenDetails) setIsEditOpen(true);
   }
 
   function handleRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>) {
-    if (!canEdit) return;
+    if (!canOpenDetails) return;
     if (event.key !== "Enter" && event.key !== " ") return;
 
     event.preventDefault();
-    openEdit();
+    openDetails();
   }
 
   function stopRowClick(event: MouseEvent) {
@@ -85,12 +90,12 @@ export function JournalEntryRow({
               gridTemplateColumns: "2fr 6fr 1fr",
             }}
           >
-            {!readOnly ? (
+            {canOpenDetails ? (
               <button
-                aria-label={`Edit ${entry.technique}`}
+                aria-label={`${canEdit ? "Edit" : "View"} ${entry.technique}`}
                 className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                 type="button"
-                onClick={openEdit}
+                onClick={openDetails}
               />
             ) : null}
             <span className="pointer-events-none min-w-0 justify-self-start">
@@ -118,28 +123,34 @@ export function JournalEntryRow({
             <span
               className={cx(
                 "justify-self-end",
-                entry.partner?.accountId
+                !publicView && entry.partner?.accountId
                   ? "relative z-10"
                   : "pointer-events-none",
               )}
             >
-              <MobilePartnerAvatar partner={entry.partner} />
+              {publicView ? (
+                <BeltIndicator partner={entry.partner} compact />
+              ) : (
+                <MobilePartnerAvatar partner={entry.partner} />
+              )}
             </span>
           </div>
         </td>
       </tr>
       <tr
         aria-label={
-          canEdit ? `Edit ${entry.technique} journal entry` : undefined
+          canOpenDetails
+            ? `${canEdit ? "Edit" : "View"} ${entry.technique} journal entry`
+            : undefined
         }
         className={cx(
           "border-t border-zinc-200 max-md:hidden",
-          canEdit &&
+          canOpenDetails &&
             "cursor-pointer transition hover:bg-zinc-50 focus-visible:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
         )}
-        role={canEdit ? "button" : undefined}
-        tabIndex={canEdit ? 0 : undefined}
-        onClick={openEdit}
+        role={canOpenDetails ? "button" : undefined}
+        tabIndex={canOpenDetails ? 0 : undefined}
+        onClick={openDetails}
         onKeyDown={handleRowKeyDown}
       >
         <td className="overflow-hidden whitespace-nowrap px-2 py-3">
@@ -164,9 +175,13 @@ export function JournalEntryRow({
         </td>
         <td
           className="overflow-hidden whitespace-nowrap px-2 py-3"
-          onClick={stopRowClick}
+          onClick={publicView ? undefined : stopRowClick}
         >
-          <PartnerCell partner={entry.partner} />
+          {publicView ? (
+            <BeltIndicator partner={entry.partner} />
+          ) : (
+            <PartnerCell partner={entry.partner} />
+          )}
         </td>
         <td className="overflow-hidden whitespace-nowrap px-2 py-3">
           <div className="grid gap-0.5">
@@ -211,20 +226,24 @@ export function JournalEntryRow({
           </td>
         ) : null}
       </tr>
-      {!readOnly ? (
+      {canOpenDetails ? (
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogContent
             className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
             showCloseButton={false}
           >
             <DialogDescription className="sr-only">
-              Update this journal entry.
+              {readOnly
+                ? "View this journal entry."
+                : "Update this journal entry."}
             </DialogDescription>
             <JournalEntryUpdate
               entry={entry}
               onClose={() => setIsEditOpen(false)}
               onSaved={onSaved}
               onDeleted={onDeleted}
+              readOnly={readOnly}
+              showPartnerIdentity={!publicView}
               withinDialog
             />
           </DialogContent>
@@ -242,6 +261,36 @@ export function JournalEntryRow({
         />
       ) : null}
     </>
+  );
+}
+
+function BeltIndicator({
+  partner,
+  compact = false,
+}: {
+  partner?: Partner;
+  compact?: boolean;
+}) {
+  const belt = partner?.belt ?? "unknown";
+
+  if (compact) {
+    return (
+      <span
+        aria-label={partner ? `${formatBelt(belt)} belt` : "No belt collected"}
+        className="inline-flex min-w-0 items-center"
+      >
+        <BeltMarker belt={belt} />
+      </span>
+    );
+  }
+
+  return (
+    <span className="inline-flex min-w-0 items-center gap-2 text-sm font-medium text-zinc-900">
+      <BeltMarker belt={belt} />
+      <span className="truncate">
+        {partner ? `${formatBelt(belt)} belt` : "Not collected"}
+      </span>
+    </span>
   );
 }
 
