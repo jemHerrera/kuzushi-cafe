@@ -13,13 +13,14 @@ export function JournalEntrySearch({
   onValueChange?: (value: string) => void;
   className?: string;
 } = {}) {
-  const [internalValue, setInternalValue] = useState("");
-  const [draftValue, setDraftValue] = useState(value ?? internalValue);
+  const [draftValue, setDraftValue] = useState(value ?? "");
+  const [lastValue, setLastValue] = useState(value);
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
+  if (value !== lastValue) {
+    setLastValue(value);
     if (value !== undefined) setDraftValue(value);
-  }, [value]);
+  }
 
   useEffect(
     () => () => {
@@ -30,9 +31,6 @@ export function JournalEntrySearch({
 
   function changeValue(nextValue: string) {
     setDraftValue(nextValue);
-    if (value === undefined) {
-      setInternalValue(nextValue);
-    }
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {

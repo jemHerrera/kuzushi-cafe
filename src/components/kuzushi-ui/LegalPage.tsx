@@ -29,6 +29,9 @@ export function LegalPage({
             <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
               {description}
             </p>
+            <p className="mt-4 text-sm font-medium text-zinc-500">
+              Effective {effectiveDate}
+            </p>
           </div>
 
           <div className="mt-8 grid gap-9 text-[15px] leading-7 text-zinc-700 [&_a]:font-semibold [&_a]:text-zinc-950 [&_a]:underline [&_a]:underline-offset-4 [&_h2]:text-xl [&_h2]:font-black [&_h2]:text-zinc-950 [&_li]:pl-1 [&_p+p]:mt-3 [&_ul]:mt-3 [&_ul]:grid [&_ul]:list-disc [&_ul]:gap-2 [&_ul]:pl-5">

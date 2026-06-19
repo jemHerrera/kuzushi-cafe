@@ -485,6 +485,17 @@ function TrainingPartnerRow({
         onOpen={onOpen}
       />
       <div className="ml-auto flex flex-wrap gap-2">
+        {onBlock ? (
+          <ButtonSecondary
+            className="h-8 gap-1.5 px-3 text-xs"
+            type="button"
+            onClick={onBlock}
+            disabled={disabled}
+          >
+            <Ban className="size-3.5" />
+            Block
+          </ButtonSecondary>
+        ) : null}
         <ButtonSecondary
           className="h-8 gap-1.5 px-3 text-xs"
           type="button"

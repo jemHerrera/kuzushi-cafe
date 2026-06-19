@@ -10,6 +10,7 @@ export function SignOutButton() {
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function signOut() {
+    if (isSigningOut) return;
     setIsSigningOut(true);
     const response = await fetch("/api/auth/sign-out", { method: "POST" });
 
@@ -25,8 +26,12 @@ export function SignOutButton() {
   return (
     <Link
       href="#"
-      className="hover:text-zinc-950"
-      onClick={() => void signOut()}
+      aria-disabled={isSigningOut}
+      className="hover:text-zinc-950 aria-disabled:pointer-events-none aria-disabled:opacity-60"
+      onClick={(event) => {
+        event.preventDefault();
+        void signOut();
+      }}
     >
       Sign out
     </Link>

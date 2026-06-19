@@ -135,13 +135,14 @@ protocol-relative destinations are discarded.
 - [x] Update public profile page
 - [x] Change Training activity into activity dots (Like Github) - filters are years
 - [x] Change Technique occurences to vertical bar chart
-- [ ] Mobile
-  - [ ] Home: Wierd loading flash
-  - [ ] Activity: should be automatically scrolled to the end
+- [x] Mobile
+  - [x] Home: Wierd loading flash
+  - [x] Activity: should be automatically scrolled to the end
   - [ ] JournalEntry form
-    - [ ] Select menu, can't scroll properly, can't see search, not enough vertical space
+    - [x] Select menu, can't scroll properly, can't see search, not enough vertical space
       - Maybe reduce min height? In notion an entirely new draggable panel appears
-    - [ ] Journal entry form should be full height
+    - [x] Journal entry form should be full height
+    - [ ] Add ? saying inly belt is shown in public
   - [ ] Stats - Need to find a way to properly show holistically
     - Maybe do "translucent tabs" as labels inside the bar? Also reduce space between and ensure full width is the mobile width
   - [ ] Journal entry table - Reduce row py, Draggable delete?
@@ -154,3 +155,4 @@ protocol-relative destinations are discarded.
   - [ ] Filters - Category and type should be side by side
   - [ ] Stats - improve empty state and loading state (currently has borders and white bg)
 - [ ] S3 bucket and profile upload. Maybe supabase already supports this?
+- [ ] Need to be able to edit custom training partners

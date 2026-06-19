@@ -151,6 +151,18 @@ export function PublicProfile({
       {profile ? (
         <>
           <header className="flex gap-5 sm:items-start sm:p-6">
+            {onClose ? (
+              <Button
+                aria-label="Back"
+                className="shrink-0"
+                size="icon"
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+              >
+                <ArrowLeft className="size-4" />
+              </Button>
+            ) : null}
             <span
               className={cx(
                 "inline-flex w-fit h-fit shrink-0 rounded-full border-4 p-0",

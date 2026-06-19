@@ -77,7 +77,6 @@ export function JournalEntryForm({
   const {
     tags,
     partners: loadedPartners,
-    isLoading: isOptionsLoading,
     error: optionsError,
     refresh: refreshOptions,
     retry: retryOptions,

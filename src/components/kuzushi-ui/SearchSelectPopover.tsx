@@ -9,6 +9,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import {
   Popover,
@@ -66,8 +67,8 @@ export function SearchSelectPopover({
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isDragClosing, setIsDragClosing] = useState(false);
-  const [isMobileSheetMounted, setIsMobileSheetMounted] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isMobileSheetMounted = !isDesktop && open;
 
   useEffect(() => {
     if (!open || isDesktop) return;
@@ -79,14 +80,7 @@ export function SearchSelectPopover({
     return () => window.cancelAnimationFrame(frame);
   }, [isDesktop, isDragClosing, open]);
 
-  useEffect(() => {
-    if (!open) {
-      dragStartYRef.current = null;
-      setIsDragging(false);
-      return;
-    }
-
-    setIsMobileSheetMounted(true);
+  function resetSheetDragState() {
     if (dragCloseTimerRef.current !== null) {
       window.clearTimeout(dragCloseTimerRef.current);
       dragCloseTimerRef.current = null;
@@ -96,7 +90,18 @@ export function SearchSelectPopover({
     setDragOffset(0);
     setIsDragging(false);
     setIsDragClosing(false);
-  }, [open]);
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      resetSheetDragState();
+    } else {
+      dragStartYRef.current = null;
+      setIsDragging(false);
+    }
+
+    onOpenChange(nextOpen);
+  }
 
   useEffect(() => {
     return () => {
@@ -131,8 +136,8 @@ export function SearchSelectPopover({
       updateDragOffset(window.innerHeight);
       dragCloseTimerRef.current = window.setTimeout(() => {
         dragCloseTimerRef.current = null;
-        setIsMobileSheetMounted(false);
-        onOpenChange(false);
+        setIsDragClosing(false);
+        handleOpenChange(false);
       }, 180);
       return;
     }
@@ -142,7 +147,7 @@ export function SearchSelectPopover({
 
   return (
     <>
-      <Popover open={isDesktop && open} onOpenChange={onOpenChange} modal>
+      <Popover open={isDesktop && open} onOpenChange={handleOpenChange} modal>
         <PopoverAnchor asChild>{trigger}</PopoverAnchor>
         <PopoverContent
           align="start"
@@ -187,7 +192,7 @@ export function SearchSelectPopover({
       </Popover>
 
       {!isDesktop && isMobileSheetMounted ? (
-        <Sheet open={open} onOpenChange={onOpenChange}>
+        <Sheet open={open} onOpenChange={handleOpenChange}>
           <SheetContent
             className={cn(
               "h-[95dvh] gap-0 rounded-t-2xl border-x-0 border-b-0 bg-zinc-50 p-0 shadow-2xl data-[side=bottom]:h-[95dvh] sm:hidden",
@@ -197,9 +202,7 @@ export function SearchSelectPopover({
             side="bottom"
             showCloseButton={false}
             style={
-              dragOffset > 0
-                ? { transform: `translateY(${dragOffset}px)` }
-                : {}
+              dragOffset > 0 ? { transform: `translateY(${dragOffset}px)` } : {}
             }
           >
             <div
@@ -252,19 +255,23 @@ export function SearchSelectPopover({
 }
 
 function useMediaQuery(query: string) {
-  const [matches, setMatches] = useState(false);
+  return useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined") {
+        return () => {};
+      }
 
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    setMatches(media.matches);
+      const media = window.matchMedia(query);
+      media.addEventListener("change", onStoreChange);
+      return () => media.removeEventListener("change", onStoreChange);
+    },
+    () => {
+      if (typeof window === "undefined") {
+        return false;
+      }
 
-    function updateMatches() {
-      setMatches(media.matches);
-    }
-
-    media.addEventListener("change", updateMatches);
-    return () => media.removeEventListener("change", updateMatches);
-  }, [query]);
-
-  return matches;
+      return window.matchMedia(query).matches;
+    },
+    () => false,
+  );
 }
