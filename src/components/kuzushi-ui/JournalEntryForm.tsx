@@ -228,7 +228,10 @@ export function JournalEntryForm({
       withinDialog={withinDialog}
       className="p-3 sm:p-5"
     >
-      <form className="grid gap-4" onSubmit={submitEntry}>
+      <form
+        className="grid content-start gap-3 sm:gap-4"
+        onSubmit={submitEntry}
+      >
         {error ? (
           <AlertBanner
             className="border-red-200 bg-red-50 text-red-900"
@@ -250,6 +253,7 @@ export function JournalEntryForm({
           <PropertyField icon={Tag} label="Technique">
             <TechniqueTagSelectMenu
               category={tagCategory}
+              createMode="instant"
               disabled={isSubmitting || isDeleting}
               techniques={techniques}
               value={selectedTechnique}

@@ -18,6 +18,7 @@ type TechniqueTagSelectMenuProps = {
   placeholder?: string;
   ariaLabel?: string;
   variant?: "default" | "property" | "table";
+  createMode?: "dialog" | "instant";
   disabled?: boolean;
   onSelectTechnique?: (technique: Technique) => void;
   onCreateSavedTag?: (input: {
@@ -34,6 +35,7 @@ export function TechniqueTagSelectMenu({
   placeholder = "Select technique",
   ariaLabel,
   variant = "default",
+  createMode = "dialog",
   disabled = false,
   onSelectTechnique,
   onCreateSavedTag,
@@ -48,6 +50,8 @@ export function TechniqueTagSelectMenu({
   const [activeIndex, setActiveIndex] = useState(0);
   const [createLabel, setCreateLabel] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [createError, setCreateError] = useState<string>();
+  const [isCreating, setIsCreating] = useState(false);
   const trimmedQuery = query.trim();
   const visibleTechniques = useMemo(
     () => rankTechniques(uniqueTechniques(techniques), trimmedQuery),
@@ -71,8 +75,32 @@ export function TechniqueTagSelectMenu({
     onSelectTechnique?.(technique);
   }
 
-  function createSavedTag() {
-    if (!trimmedQuery) return;
+  async function createSavedTag() {
+    if (!trimmedQuery || isCreating) return;
+
+    if (createMode === "instant") {
+      if (!onCreateSavedTag) return;
+
+      setCreateError(undefined);
+      setIsCreating(true);
+      try {
+        const technique = await onCreateSavedTag({
+          label: trimmedQuery,
+          category: category ?? techniques[0]?.category ?? "other",
+        });
+        selectTechnique(technique);
+      } catch (error) {
+        setCreateError(
+          error instanceof Error
+            ? error.message
+            : "We could not save this technique.",
+        );
+      } finally {
+        setIsCreating(false);
+      }
+      return;
+    }
+
     setCreateLabel(trimmedQuery);
     setQuery("");
     setIsOpen(false);
@@ -111,7 +139,7 @@ export function TechniqueTagSelectMenu({
     if (!canAdd) return;
 
     if (activeIndex === visibleTechniques.length) {
-      createSavedTag();
+      void createSavedTag();
     }
   }
 
@@ -124,6 +152,7 @@ export function TechniqueTagSelectMenu({
         searchLabel={`Search ${ariaLabel ?? "techniques"}`}
         searchPlaceholder="Search or add technique"
         searchValue={query}
+        mobileTitle={ariaLabel ?? "Technique"}
         onSearchChange={(event) => {
           setQuery(event.target.value);
           setActiveIndex(0);
@@ -179,6 +208,15 @@ export function TechniqueTagSelectMenu({
           </button>
         ))}
 
+        {createError ? (
+          <div
+            role="alert"
+            className="rounded-md px-4 py-2 text-sm text-red-700"
+          >
+            {createError}
+          </div>
+        ) : null}
+
         {canAdd ? (
           <button
             type="button"
@@ -189,13 +227,13 @@ export function TechniqueTagSelectMenu({
               activeIndex === visibleTechniques.length && "bg-zinc-100",
             )}
             onMouseEnter={() => setActiveIndex(visibleTechniques.length)}
-            onClick={createSavedTag}
+            onClick={() => void createSavedTag()}
           >
             <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
               <Plus className="size-4" />
             </span>
             <span className="min-w-0 flex-1 truncate font-medium text-zinc-900">
-              Add &quot;{trimmedQuery}&quot;
+              {isCreating ? "Adding..." : `Add "${trimmedQuery}"`}
             </span>
           </button>
         ) : null}

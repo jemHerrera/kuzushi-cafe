@@ -214,7 +214,7 @@ export function JournalEntryRow({
       {!readOnly ? (
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogContent
-            className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
+            className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
             showCloseButton={false}
           >
             <DialogDescription className="sr-only">

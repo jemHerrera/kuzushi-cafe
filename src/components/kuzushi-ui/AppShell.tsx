@@ -238,7 +238,7 @@ export function AppShell(props: AppShellProps) {
 
       <Sheet open={isNavigationOpen} onOpenChange={setIsNavigationOpen}>
         <SheetContent
-          className="p-0 data-[side=left]:w-[calc(100vw-1rem)] data-[side=left]:max-w-none data-[side=left]:sm:w-[min(24rem,calc(100vw-2rem))]"
+          className="p-0 data-[side=left]:w-full data-[side=left]:max-w-none data-[side=left]:sm:w-[min(24rem,calc(100vw-2rem))]"
           side="left"
         >
           <SheetTitle className="sr-only">Navigation</SheetTitle>
@@ -276,7 +276,7 @@ export function AppShell(props: AppShellProps) {
         onOpenChange={setIsSavedTechniquesOpen}
       >
         <SheetContent
-          className="p-0 data-[side=left]:w-[calc(100vw-1rem)] data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
+          className="p-0 data-[side=left]:w-full data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
           side="left"
           showCloseButton={false}
         >
@@ -297,7 +297,7 @@ export function AppShell(props: AppShellProps) {
         onOpenChange={setIsTrainingPartnersOpen}
       >
         <SheetContent
-          className="p-0 data-[side=left]:w-[calc(100vw-1rem)] data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
+          className="p-0 data-[side=left]:w-full data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
           side="left"
           showCloseButton={false}
         >
@@ -327,7 +327,7 @@ export function AppShell(props: AppShellProps) {
         }}
       >
         <DialogContent
-          className="max-h-[calc(100vh-2rem)] max-w-2xl overflow-y-auto bg-transparent p-0 ring-0 sm:max-w-2xl"
+          className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
           showCloseButton={false}
         >
           <DialogDescription className="sr-only">

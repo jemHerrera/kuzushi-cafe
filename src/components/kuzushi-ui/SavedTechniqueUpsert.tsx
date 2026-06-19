@@ -84,7 +84,7 @@ export function SavedTechniqueUpsert({
   }
 
   const form = (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-3">
       {presentation === "dialog" ? (
         <>
           <DialogTitle>Save technique</DialogTitle>
@@ -102,7 +102,7 @@ export function SavedTechniqueUpsert({
       <Input
         autoFocus
         aria-label="Technique label"
-        className="h-8 rounded-md border-transparent bg-transparent px-2 text-sm text-zinc-950 shadow-none focus-visible:border-transparent focus-visible:bg-zinc-50 focus-visible:ring-0"
+        className="h-9 rounded-md border-transparent bg-transparent px-2 text-sm text-zinc-950 shadow-none focus-visible:border-transparent focus-visible:bg-zinc-50 focus-visible:ring-0"
         disabled={isSaving}
         placeholder="Add technique label"
         value={label}
@@ -121,7 +121,7 @@ export function SavedTechniqueUpsert({
         onValueChange={setCategory}
       />
       <ButtonPrimary
-        className="h-8 w-full text-sm"
+        className="h-9 w-full text-sm"
         disabled={!label.trim() || isSaving}
         onClick={saveTechnique}
         type="button"
@@ -134,7 +134,9 @@ export function SavedTechniqueUpsert({
   if (presentation === "dialog") {
     return (
       <Dialog open={isOpen} onOpenChange={changeOpen}>
-        <DialogContent className="sm:max-w-sm">{form}</DialogContent>
+        <DialogContent className="inset-auto top-1/2 left-1/2 h-auto max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 content-start overflow-y-auto rounded-xl p-4 sm:max-w-sm">
+          {form}
+        </DialogContent>
       </Dialog>
     );
   }

@@ -32,7 +32,9 @@ export function ModalFrame({
   return (
     <section
       className={cn(
-        "grid max-w-2xl gap-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm",
+        "grid max-w-2xl content-start gap-4 rounded-lg border border-zinc-200 bg-white p-5 shadow-sm",
+        withinDialog &&
+          "min-h-dvh w-full max-w-none rounded-none border-0 shadow-none sm:min-h-0 sm:max-w-2xl sm:rounded-lg sm:border sm:shadow-sm",
         className,
       )}
     >

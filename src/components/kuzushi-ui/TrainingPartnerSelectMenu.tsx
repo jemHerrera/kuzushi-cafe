@@ -135,8 +135,10 @@ export function TrainingPartnerSelectMenu({
       open={isOpen}
       onOpenChange={setIsOpen}
       listboxId={listboxId}
+      searchLabel={`Search ${ariaLabel ?? "training partners"}`}
       searchPlaceholder="Search by name"
       searchValue={query}
+      mobileTitle={ariaLabel ?? "Training partner"}
       onSearchChange={(event) => {
         setQuery(event.target.value);
         setActiveIndex(0);
