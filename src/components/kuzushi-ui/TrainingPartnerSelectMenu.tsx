@@ -8,6 +8,10 @@ import {
   SearchSelectPopover,
   searchSelectOptionClassName,
 } from "./SearchSelectPopover";
+import type {
+  ApiErrorDetail,
+  TrainingPartnerDetail,
+} from "@/lib/managers/types";
 import {
   beltBorderStyles,
   cx,
@@ -47,6 +51,8 @@ export function TrainingPartnerSelectMenu({
   const selectedPartner = value !== undefined ? value : internalSelectedPartner;
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+  const [createError, setCreateError] = useState<string>();
+  const [isCreating, setIsCreating] = useState(false);
   const trimmedQuery = query.trim();
   const visiblePartners = useMemo(
     () => rankPartners(partners, trimmedQuery),
@@ -80,9 +86,28 @@ export function TrainingPartnerSelectMenu({
     onSelectPartner?.(partner);
   }
 
-  function addCustomPartner() {
-    setIsOpen(false);
-    onAddCustomPartner?.();
+  async function addCustomPartner() {
+    if (!trimmedQuery || isCreating) return;
+    if (onAddCustomPartner) {
+      setIsOpen(false);
+      onAddCustomPartner();
+      return;
+    }
+
+    setCreateError(undefined);
+    setIsCreating(true);
+    try {
+      const created = await createCustomPartnerFromName(trimmedQuery);
+      selectPartner(toPartner(created));
+    } catch (error) {
+      setCreateError(
+        error instanceof Error
+          ? error.message
+          : "We could not add this training partner.",
+      );
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
@@ -119,7 +144,7 @@ export function TrainingPartnerSelectMenu({
     }
 
     if (canAddCustomPartner && activeIndex === addCustomPartnerIndex) {
-      addCustomPartner();
+      void addCustomPartner();
     }
   }
 
@@ -161,8 +186,11 @@ export function TrainingPartnerSelectMenu({
           )}
           onClick={openMenu}
         >
-          {selectedPartner && variant === "table" ? (
-            <PartnerAvatar partner={selectedPartner} compact />
+          {selectedPartner ? (
+            <PartnerAvatar
+              partner={selectedPartner}
+              compact={variant === "table"}
+            />
           ) : null}
           <span
             className={cn(
@@ -172,9 +200,6 @@ export function TrainingPartnerSelectMenu({
           >
             {selectedLabel}
           </span>
-          {selectedPartner && variant !== "table" ? (
-            <PartnerAvatar partner={selectedPartner} />
-          ) : null}
         </button>
       }
     >
@@ -183,10 +208,7 @@ export function TrainingPartnerSelectMenu({
           type="button"
           role="option"
           aria-selected={isUnknownSelected}
-          className={cx(
-            searchSelectOptionClassName,
-            activeIndex === 0 && "bg-zinc-100",
-          )}
+          className={searchSelectOptionClassName}
           onMouseEnter={() => setActiveIndex(0)}
           onClick={selectUnknownPartner}
         >
@@ -214,10 +236,7 @@ export function TrainingPartnerSelectMenu({
             type="button"
             role="option"
             aria-selected={isSelected}
-            className={cx(
-              searchSelectOptionClassName,
-              activeIndex === optionIndex && "bg-zinc-100",
-            )}
+            className={searchSelectOptionClassName}
             onMouseEnter={() => setActiveIndex(optionIndex)}
             onClick={() => selectPartner(partner)}
           >
@@ -232,28 +251,66 @@ export function TrainingPartnerSelectMenu({
         );
       })}
 
+      {createError ? (
+        <div role="alert" className="rounded-md px-4 py-2 text-sm text-red-700">
+          {createError}
+        </div>
+      ) : null}
+
       {canAddCustomPartner ? (
         <button
           type="button"
           role="option"
           aria-selected={false}
-          className={cx(
-            searchSelectOptionClassName,
-            activeIndex === addCustomPartnerIndex && "bg-zinc-100",
-          )}
+          className={searchSelectOptionClassName}
           onMouseEnter={() => setActiveIndex(addCustomPartnerIndex)}
-          onClick={addCustomPartner}
+          onClick={() => void addCustomPartner()}
         >
           <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
             <UserPlus className="size-4" />
           </span>
           <span className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900">
-            Add &quot;{trimmedQuery}&quot;
+            {isCreating ? "Adding..." : `Add "${trimmedQuery}"`}
           </span>
         </button>
       ) : null}
     </SearchSelectPopover>
   );
+}
+
+async function createCustomPartnerFromName(name: string) {
+  const [firstName, lastName] = name.split(/\s+/).filter(Boolean);
+  const response = await fetch("/api/training-partners/custom", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      firstName,
+      lastName,
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = (await response.json()) as ApiErrorDetail;
+    throw new Error(detail.error.message);
+  }
+
+  return (await response.json()) as TrainingPartnerDetail;
+}
+
+function toPartner(partner: TrainingPartnerDetail): Partner {
+  return {
+    id: partner.id,
+    accountId:
+      partner.object === "training_partner" ? partner.accountId : undefined,
+    firstName: partner.firstName,
+    lastName: partner.lastName,
+    initials: initialsForPartner(partner),
+    profilePhoto:
+      partner.object === "training_partner" ? partner.profilePhoto : undefined,
+    belt: partner.belt,
+    weight: partner.weight,
+    age: partner.object === "custom_training_partner" ? partner.age : undefined,
+  };
 }
 
 function PartnerAvatar({

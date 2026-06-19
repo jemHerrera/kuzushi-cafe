@@ -8,7 +8,7 @@ import {
   searchSelectOptionClassName,
 } from "./SearchSelectPopover";
 import { SavedTechniqueUpsert } from "./SavedTechniqueUpsert";
-import { cx, sampleTechniques, type Category, type Technique } from "./shared";
+import { sampleTechniques, type Category, type Technique } from "./shared";
 
 type TechniqueTagSelectMenuProps = {
   techniques?: Technique[];
@@ -192,10 +192,7 @@ export function TechniqueTagSelectMenu({
             type="button"
             role="option"
             aria-selected={selectedTechnique?.name === technique.name}
-            className={cx(
-              searchSelectOptionClassName,
-              activeIndex === index && "bg-zinc-100",
-            )}
+            className={searchSelectOptionClassName}
             onMouseEnter={() => setActiveIndex(index)}
             onClick={() => selectTechnique(technique)}
           >
@@ -222,10 +219,7 @@ export function TechniqueTagSelectMenu({
             type="button"
             role="option"
             aria-selected={false}
-            className={cx(
-              searchSelectOptionClassName,
-              activeIndex === visibleTechniques.length && "bg-zinc-100",
-            )}
+            className={searchSelectOptionClassName}
             onMouseEnter={() => setActiveIndex(visibleTechniques.length)}
             onClick={() => void createSavedTag()}
           >

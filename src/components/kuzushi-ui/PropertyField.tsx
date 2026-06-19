@@ -38,11 +38,11 @@ export function PropertyField({
     >
       <span
         aria-hidden="true"
-        className="flex h-8 items-center justify-center text-zinc-500"
+        className="flex h-10 items-center justify-center text-zinc-500"
       >
         {Icon ? <Icon className="size-4" /> : null}
       </span>
-      <div className="flex min-h-8 min-w-0 items-center gap-1">
+      <div className="flex min-h-10 min-w-0 items-center gap-1">
         {htmlFor ? (
           <Label
             htmlFor={htmlFor}

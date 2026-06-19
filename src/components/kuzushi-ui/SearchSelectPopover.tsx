@@ -80,6 +80,11 @@ export function SearchSelectPopover({
     return () => window.cancelAnimationFrame(frame);
   }, [isDesktop, isDragClosing, open]);
 
+  useEffect(() => {
+    if (!open) return;
+    resetSheetDragState();
+  }, [open]);
+
   function resetSheetDragState() {
     if (dragCloseTimerRef.current !== null) {
       window.clearTimeout(dragCloseTimerRef.current);

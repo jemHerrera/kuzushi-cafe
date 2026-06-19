@@ -320,7 +320,12 @@ export function JournalEntryForm({
               variant="property"
             />
           </PropertyField>
-          <PropertyField icon={UserRound} label="Partner">
+          <PropertyField
+            icon={UserRound}
+            label="Partner"
+            description="Training partners are only visible to you. Only their belt rank is displayed publicly."
+            descriptionLabel="Who can see training partners?"
+          >
             <TrainingPartnerInput
               ariaLabel="Select training partner"
               disabled={isSubmitting || isDeleting}
