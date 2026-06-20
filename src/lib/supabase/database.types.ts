@@ -490,6 +490,32 @@ export type Database = {
         Args: { account_id: string; training_partner_id: string }
         Returns: undefined
       }
+      get_private_stats: {
+        Args: {
+          account_id: string
+          stats_category: Database["public"]["Enums"]["category"]
+          stats_end_exclusive: string
+          stats_start: string
+          successes_only?: boolean
+        }
+        Returns: {
+          attempts: number
+          label: string
+          occurrences: number
+          successes: number
+        }[]
+      }
+      get_private_training_activity: {
+        Args: {
+          account_id: string
+          activity_end: string
+          activity_start: string
+        }
+        Returns: {
+          activity_date: string
+          entry_count: number
+        }[]
+      }
       get_public_profile: {
         Args: { target_account_id: string; viewer_account_id?: string }
         Returns: {
@@ -559,6 +585,39 @@ export type Database = {
           journal_entry_id: string
           training_partner_id: string
         }[]
+      }
+      list_private_journal_entries_by_partner: {
+        Args: {
+          account_id: string
+          categories?: Database["public"]["Enums"]["category"][]
+          is_no_gi?: boolean
+          journal_types?: Database["public"]["Enums"]["journal_type"][]
+          page_limit?: number
+          page_offset?: number
+          search?: string
+          sort_ascending?: boolean
+        }
+        Returns: {
+          account_id: string
+          category: Database["public"]["Enums"]["category"]
+          created_date: string
+          id: string
+          intensity: Database["public"]["Enums"]["intensity"] | null
+          is_no_gi: boolean | null
+          journal_type: Database["public"]["Enums"]["journal_type"] | null
+          name: string
+          notes: string | null
+          setup: string | null
+          trained_date: string | null
+          training_partner_id: string | null
+          updated_date: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "journal_entries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       list_training_partner_requests: {
         Args: {

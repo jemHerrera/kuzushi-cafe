@@ -2,6 +2,7 @@
 
 import { format, parseISO } from "date-fns";
 import { Ellipsis, Pencil, Trash2, UserRound } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   type KeyboardEvent,
@@ -14,6 +15,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,7 +27,6 @@ import {
 import type { ApiErrorDetail } from "@/lib/managers/types";
 import { Avatar } from "./Avatar";
 import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
-import { JournalEntryUpdate } from "./JournalEntryUpdate";
 import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import {
   BeltMarker,
@@ -36,6 +37,12 @@ import {
   type JournalEntry,
   type Partner,
 } from "./shared";
+
+const JournalEntryUpdate = dynamic(
+  () =>
+    import("./JournalEntryUpdate").then((module) => module.JournalEntryUpdate),
+  { loading: () => null },
+);
 
 const mobileDeleteRevealWidth = 76;
 const mobileDeleteRevealThreshold = 44;
@@ -299,6 +306,9 @@ export function JournalEntryRow({
             className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
             showCloseButton={false}
           >
+            <DialogTitle className="sr-only">
+              {readOnly ? "Journal entry details" : "Edit journal entry"}
+            </DialogTitle>
             <DialogDescription className="sr-only">
               {readOnly
                 ? "View this journal entry."

@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -20,7 +22,6 @@ import type {
   PaginatedResponse,
 } from "@/lib/managers/types";
 import { ErrorState } from "./ErrorState";
-import { JournalEntryCreate } from "./JournalEntryCreate";
 import { JournalEntryFilters } from "./JournalEntryFilters";
 import { JournalEntryHeading } from "./JournalEntryHeading";
 import { JournalEntryPagination } from "./JournalEntryPagination";
@@ -32,6 +33,12 @@ import {
   type Partner,
   type TrainingPartnerDetail,
 } from "./shared";
+
+const JournalEntryCreate = dynamic(
+  () =>
+    import("./JournalEntryCreate").then((module) => module.JournalEntryCreate),
+  { loading: () => null },
+);
 
 export function JournalEntryTable({
   accountId,
@@ -254,6 +261,7 @@ export function JournalEntryTable({
             className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
             showCloseButton={false}
           >
+            <DialogTitle className="sr-only">New journal entry</DialogTitle>
             <DialogDescription className="sr-only">
               Add a journal entry with technique, partner, and training details.
             </DialogDescription>

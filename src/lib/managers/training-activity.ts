@@ -19,11 +19,25 @@ export class TrainingActivityManager {
     start.setUTCFullYear(start.getUTCFullYear() - 1);
     start.setUTCDate(start.getUTCDate() + 1);
 
-    const counts = await this.loadDailyCounts({
-      accountId: params.accountId,
-      start,
-      end,
-    });
+    const { data, error } = await this.supabase.rpc(
+      "get_private_training_activity",
+      {
+        account_id: params.accountId,
+        activity_start: toDateOnly(start),
+        activity_end: toDateOnly(end),
+      },
+    );
+    if (error) {
+      throw new ManagerError(
+        "training_activity_query_failed",
+        error.message,
+        500,
+      );
+    }
+
+    const counts = new Map(
+      (data ?? []).map((row) => [row.activity_date, row.entry_count]),
+    );
     const days = [];
 
     for (
@@ -96,51 +110,6 @@ export class TrainingActivityManager {
     };
   }
 
-  private async loadDailyCounts(params: {
-    accountId: string;
-    start: Date;
-    end: Date;
-  }) {
-    const pageSize = 1000;
-    const counts = new Map<string, number>();
-    const endExclusive = new Date(params.end.getTime() + DAY_IN_MS);
-
-    for (let offset = 0; ; offset += pageSize) {
-      const { data, error } = await this.supabase
-        .from("journal_entries")
-        .select("trained_date, created_date")
-        .eq("account_id", params.accountId)
-        .order("created_date", { ascending: true })
-        .order("id", { ascending: true })
-        .range(offset, offset + pageSize - 1);
-
-      if (error) {
-        throw new ManagerError(
-          "training_activity_query_failed",
-          error.message,
-          500,
-        );
-      }
-
-      const page = data ?? [];
-      for (const entry of page) {
-        const occurredAt = entry.trained_date ?? entry.created_date;
-        const occurredAtTime = new Date(occurredAt).getTime();
-        if (
-          occurredAtTime < params.start.getTime() ||
-          occurredAtTime >= endExclusive.getTime()
-        ) {
-          continue;
-        }
-
-        const date = occurredAt.slice(0, 10);
-        counts.set(date, (counts.get(date) ?? 0) + 1);
-      }
-      if (page.length < pageSize) break;
-    }
-
-    return counts;
-  }
 }
 
 function startOfUtcDay(date: Date) {

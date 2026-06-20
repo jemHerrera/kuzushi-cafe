@@ -256,6 +256,52 @@ describe.skipIf(!hasLocalSupabase)("API route integration", () => {
     });
   });
 
+  it("sorts journal entries by training partner with database pagination beyond 1000 rows", async () => {
+    serverClient.current = users[0].client;
+    const token = `partner-sort-${suffix}`;
+    const { error } = await admin.from("journal_entries").insert(
+      Array.from({ length: 1001 }, (_, index) => ({
+        account_id: users[0].accountId,
+        category: "other",
+        name: `${token} filler ${index}`,
+        journal_type: "success",
+        trained_date: "2026-06-01T12:00:00.000Z",
+      })),
+    );
+    expect(error).toBeNull();
+
+    const created = await journalRoute.POST(
+      jsonRequest("/api/journal-entries", "POST", {
+        name: `${token} named partner`,
+        category: "other",
+        partnerFirstName: "Aardvark",
+        partnerLastName: "Partner",
+        trainedDate: "2026-06-01",
+      }),
+    );
+    expect(created.status).toBe(201);
+
+    const listed = await journalRoute.GET(
+      new Request(
+        `http://localhost/api/journal-entries?search=${token}&sortField=trainingPartner&sortDirection=asc&limit=2&offset=1001`,
+      ),
+    );
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toMatchObject({
+      items: [
+        {
+          name: `${token} named partner`,
+          trainingPartner: {
+            firstName: "Aardvark",
+            lastName: "Partner",
+          },
+        },
+      ],
+      limit: 2,
+      offset: 1001,
+    });
+  });
+
   it("aggregates dashboard stats by category, date, type, and normalized technique", async () => {
     const now = new Date();
     const today = now.toISOString().slice(0, 10);

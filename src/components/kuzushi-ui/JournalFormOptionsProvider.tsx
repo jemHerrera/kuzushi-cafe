@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useRef,
   useState,
   type ReactNode,
@@ -37,12 +36,14 @@ export function JournalFormOptionsProvider({
 }) {
   const [tags, setTags] = useState<TechniqueTagDetail[]>([]);
   const [partners, setPartners] = useState<TrainingPartnerDetail[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>();
   const requestRef = useRef<Promise<void> | null>(null);
+  const hasLoadedRef = useRef(false);
 
   const loadOptions = useCallback((force = false) => {
     if (requestRef.current && !force) return requestRef.current;
+    if (hasLoadedRef.current && !force) return Promise.resolve();
 
     setIsLoading(true);
     setError(undefined);
@@ -50,6 +51,7 @@ export function JournalFormOptionsProvider({
       .then(([loadedTags, loadedPartners]) => {
         setTags(loadedTags);
         setPartners(loadedPartners);
+        hasLoadedRef.current = true;
       })
       .catch((loadError) => {
         setError(
@@ -71,10 +73,6 @@ export function JournalFormOptionsProvider({
   const refresh = useCallback(() => {
     void loadOptions();
   }, [loadOptions]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
 
   return (
     <JournalFormOptionsContext.Provider

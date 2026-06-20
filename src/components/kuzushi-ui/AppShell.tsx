@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import {
   Sheet,
@@ -21,19 +23,50 @@ import type {
   PaginatedResponse,
   PublicAccountSummary,
 } from "@/lib/managers/types";
-import { DonationModal } from "./DonationModal";
 import { Header } from "./Header";
 import { JournalEntryTable } from "./JournalEntryTable";
-import { JournalEntryCreate } from "./JournalEntryCreate";
-import { MyProfile } from "./MyProfile";
-import { NotificationList } from "./NotificationList";
-import { PrivacySettings } from "./PrivacySettings";
 import { PublicProfile } from "./PublicProfile";
-import { SavedTechniqueTagList } from "./SavedTechniqueTagList";
 import { SidePanel, type SidePanelAction } from "./SidePanel";
 import { Stats } from "./Stats";
 import { TrainingActivity } from "./TrainingActivity";
-import { TrainingPartnersListModal } from "./TrainingPartnersListModal";
+
+const DonationModal = dynamic(
+  () => import("./DonationModal").then((module) => module.DonationModal),
+  { loading: () => null },
+);
+const JournalEntryCreate = dynamic(
+  () =>
+    import("./JournalEntryCreate").then((module) => module.JournalEntryCreate),
+  { loading: () => null },
+);
+const MyProfile = dynamic(
+  () => import("./MyProfile").then((module) => module.MyProfile),
+  { loading: () => null },
+);
+const NotificationList = dynamic(
+  () =>
+    import("./NotificationList").then((module) => module.NotificationList),
+  { loading: () => null },
+);
+const PrivacySettings = dynamic(
+  () =>
+    import("./PrivacySettings").then((module) => module.PrivacySettings),
+  { loading: () => null },
+);
+const SavedTechniqueTagList = dynamic(
+  () =>
+    import("./SavedTechniqueTagList").then(
+      (module) => module.SavedTechniqueTagList,
+    ),
+  { loading: () => null },
+);
+const TrainingPartnersListModal = dynamic(
+  () =>
+    import("./TrainingPartnersListModal").then(
+      (module) => module.TrainingPartnersListModal,
+    ),
+  { loading: () => null },
+);
 
 type ShellModal =
   | Exclude<
@@ -334,6 +367,16 @@ export function AppShell(props: AppShellProps) {
           className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
           showCloseButton={false}
         >
+          <DialogTitle className="sr-only">
+            {displayedModal
+              ? {
+                  profile: "Profile",
+                  "new-entry": "New journal entry",
+                  settings: "Privacy settings",
+                  donation: "Donation",
+                }[displayedModal]
+              : "Dialog"}
+          </DialogTitle>
           <DialogDescription className="sr-only">
             {displayedModal ? modalDescriptions[displayedModal] : ""}
           </DialogDescription>

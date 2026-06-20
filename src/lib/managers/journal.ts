@@ -222,6 +222,36 @@ export class JournalEntryManager {
     limit: number;
     offset: number;
   }) {
+    const sort = params.sort ?? { field: "trainedAt", direction: "desc" };
+    if (sort.field === "trainingPartner") {
+      const { data, error } = await this.supabase.rpc(
+        "list_private_journal_entries_by_partner",
+        {
+          account_id: params.accountId,
+          search: params.filter.search?.trim() || undefined,
+          categories: params.filter.category?.length
+            ? params.filter.category
+            : undefined,
+          journal_types: params.filter.journalTypes?.length
+            ? params.filter.journalTypes
+            : undefined,
+          is_no_gi: params.filter.isNoGi ?? undefined,
+          sort_ascending: sort.direction === "asc",
+          page_limit: params.limit,
+          page_offset: params.offset,
+        },
+      );
+      if (error) {
+        throw new ManagerError("journal_entries_failed", error.message, 500);
+      }
+
+      return {
+        items: await this.withPartners(data ?? []),
+        limit: params.limit,
+        offset: params.offset,
+      };
+    }
+
     let query = this.supabase
       .from("journal_entries")
       .select("*")
@@ -241,41 +271,23 @@ export class JournalEntryManager {
       query = query.eq("is_no_gi", params.filter.isNoGi);
     }
 
-    const sort = params.sort ?? { field: "trainedAt", direction: "desc" };
-    if (sort.field !== "trainingPartner") {
-      query = query.order(sortColumn(sort.field), {
+    query = query
+      .order(sortColumn(sort.field), {
         ascending: sort.direction === "asc",
         nullsFirst: false,
-      });
-    }
-
-    const needsClientSort = sort.field === "trainingPartner";
-    if (!needsClientSort) {
-      query = query.range(
-        params.offset,
-        params.offset + Math.max(0, params.limit) - 1,
-      );
-    } else {
-      query = query.limit(1000);
-    }
+      })
+      .range(params.offset, params.offset + Math.max(0, params.limit) - 1);
 
     const { data, error } = await query;
     if (error) {
       throw new ManagerError("journal_entries_failed", error.message, 500);
     }
 
-    let items = await this.withPartners(data ?? []);
-    if (needsClientSort) {
-      const direction = sort.direction === "asc" ? 1 : -1;
-      items = items
-        .sort(
-          (left, right) =>
-            partnerName(left).localeCompare(partnerName(right)) * direction,
-        )
-        .slice(params.offset, params.offset + params.limit);
-    }
-
-    return { items, limit: params.limit, offset: params.offset };
+    return {
+      items: await this.withPartners(data ?? []),
+      limit: params.limit,
+      offset: params.offset,
+    };
   }
 
   searchJournalEntries(params: {
@@ -889,12 +901,6 @@ function sortColumn(field: JournalEntrySort["field"]) {
     journalType: "journal_type",
   } as const;
   return columns[field as keyof typeof columns];
-}
-
-function partnerName(entry: JournalEntryDetail) {
-  return `${entry.trainingPartner?.firstName ?? ""} ${
-    entry.trainingPartner?.lastName ?? ""
-  }`.trim();
 }
 
 function withPartnerProfile(
