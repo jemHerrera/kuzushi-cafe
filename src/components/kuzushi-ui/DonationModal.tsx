@@ -234,10 +234,10 @@ export function DonationModal({
             {isSubmitting ? (
               <>
                 <LoaderCircle className="animate-spin" />
-                Opening Stripe...
+                Loading...
               </>
             ) : (
-              "Continue to Stripe"
+              "Continue"
             )}
           </ButtonPrimary>
           <p className="text-center text-xs text-zinc-500">
