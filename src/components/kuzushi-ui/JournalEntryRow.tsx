@@ -469,6 +469,8 @@ function MobilePartnerAvatar({ partner }: { partner?: Partner }) {
       } profile`}
       className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       href={`/profiles/${encodeURIComponent(partner.accountId)}`}
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
     >
       {avatar}
     </Link>
