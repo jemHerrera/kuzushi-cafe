@@ -77,6 +77,7 @@ export function SidePanel({
             profilePhoto: account.profilePhoto,
             donated: account.donated,
           }}
+          showBeltMarker
         />
       </button>
       <div className="mt-4">

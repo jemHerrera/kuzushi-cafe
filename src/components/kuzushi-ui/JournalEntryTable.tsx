@@ -279,10 +279,7 @@ export function JournalEntryTable({
 
 function JournalTableSkeleton({ readOnly }: { readOnly: boolean }) {
   return Array.from({ length: 4 }, (_, row) => (
-    <tr
-      key={row}
-      aria-label={row === 0 ? "Loading entries" : undefined}
-    >
+    <tr key={row} aria-label={row === 0 ? "Loading entries" : undefined}>
       {Array.from({ length: readOnly ? 5 : 6 }, (_, column) => (
         <td
           key={column}

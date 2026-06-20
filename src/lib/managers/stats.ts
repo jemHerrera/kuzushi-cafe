@@ -113,7 +113,6 @@ export class StatsManager {
       items,
     };
   }
-
 }
 
 function statsInterval(timeline: StatsTimeline) {

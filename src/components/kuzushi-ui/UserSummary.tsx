@@ -1,6 +1,13 @@
 import { Avatar } from "./Avatar";
 import { DonorBadge } from "./DonorBadge";
-import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
+import {
+  BeltMarker,
+  beltBorderStyles,
+  cx,
+  formatBelt,
+  samplePartners,
+  type Partner,
+} from "./shared";
 
 export function UserSummary({
   partner,
@@ -8,6 +15,7 @@ export function UserSummary({
   className,
   meta,
   donated = false,
+  showBeltMarker = false,
 }: {
   partner?: Partner;
   identity?: {
@@ -20,6 +28,7 @@ export function UserSummary({
   className?: string;
   meta?: string;
   donated?: boolean;
+  showBeltMarker?: boolean;
 }) {
   const summary = identity ?? partner ?? samplePartners[0];
   const isDonor = donated || ("donated" in summary && Boolean(summary.donated));
@@ -55,9 +64,18 @@ export function UserSummary({
             <DonorBadge className="px-1.5 py-0 text-[0.65rem]" />
           ) : null}
         </span>
-        <span className="block text-xs capitalize text-zinc-600">
-          {meta ?? `${summary.belt ?? "unknown"} belt`}
-        </span>
+        {showBeltMarker ? (
+          <span
+            className="mt-1 block"
+            aria-label={`${formatBelt(summary.belt ?? "unknown")} belt`}
+          >
+            <BeltMarker belt={summary.belt ?? "unknown"} />
+          </span>
+        ) : (
+          <span className="block text-xs capitalize text-zinc-600">
+            {meta ?? `${summary.belt ?? "unknown"} belt`}
+          </span>
+        )}
       </span>
     </span>
   );

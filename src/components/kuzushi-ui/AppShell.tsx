@@ -29,6 +29,7 @@ import { PublicProfile } from "./PublicProfile";
 import { SidePanel, type SidePanelAction } from "./SidePanel";
 import { Stats } from "./Stats";
 import { TrainingActivity } from "./TrainingActivity";
+import { UserSummary } from "./UserSummary";
 
 const DonationModal = dynamic(
   () => import("./DonationModal").then((module) => module.DonationModal),
@@ -44,13 +45,11 @@ const MyProfile = dynamic(
   { loading: () => null },
 );
 const NotificationList = dynamic(
-  () =>
-    import("./NotificationList").then((module) => module.NotificationList),
+  () => import("./NotificationList").then((module) => module.NotificationList),
   { loading: () => null },
 );
 const PrivacySettings = dynamic(
-  () =>
-    import("./PrivacySettings").then((module) => module.PrivacySettings),
+  () => import("./PrivacySettings").then((module) => module.PrivacySettings),
   { loading: () => null },
 );
 const SavedTechniqueTagList = dynamic(
@@ -243,11 +242,23 @@ export function AppShell(props: AppShellProps) {
               />
             ) : (
               <>
-                <div>
-                  <h2 className="mt-1 text-xl font-black tracking-tight">
-                    Home
-                  </h2>
-                </div>
+                <button
+                  type="button"
+                  className="w-full rounded-md text-left sm:hidden bg-transparent!"
+                  onClick={() => openModal("profile")}
+                >
+                  <UserSummary
+                    className="bg-transparent!"
+                    identity={{
+                      firstName: currentAccount.firstName,
+                      lastName: currentAccount.lastName,
+                      belt: currentAccount.belt,
+                      profilePhoto: currentAccount.profilePhoto,
+                      donated: currentAccount.donated,
+                    }}
+                    showBeltMarker
+                  />
+                </button>
                 <JournalEntryTable
                   initialEntries={props.initialJournal.items}
                   initialQueryKey={props.initialJournalQueryKey}

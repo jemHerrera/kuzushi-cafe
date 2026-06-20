@@ -129,7 +129,7 @@ export function JournalEntryFilters({
       ) : null}
       {showAddEntry ? (
         <div className="ml-auto">
-          <ButtonPrimary onClick={onAddEntry} type="button">
+          <ButtonPrimary onClick={onAddEntry} type="button" className="w-full">
             <Plus className="size-4" />
             Add entry
           </ButtonPrimary>

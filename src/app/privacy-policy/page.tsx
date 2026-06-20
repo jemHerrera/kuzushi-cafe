@@ -77,8 +77,8 @@ export default function PrivacyPolicyPage() {
       <section>
         <h2>3. Visibility and your choices</h2>
         <p>
-          Your profile is public by default. Entries and category statistics
-          are limited to accepted training partners by default. You can change
+          Your profile is public by default. Entries and category statistics are
+          limited to accepted training partners by default. You can change
           supported visibility settings to public, training-partners only, or
           private from the app&apos;s Privacy settings.
         </p>

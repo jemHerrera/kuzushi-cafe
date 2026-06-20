@@ -109,7 +109,6 @@ export class TrainingActivityManager {
       days,
     };
   }
-
 }
 
 function startOfUtcDay(date: Date) {
