@@ -14,6 +14,7 @@ import { ModalFrame } from "./ModalFrame";
 import { cx } from "./shared";
 
 const presetAmounts = [5, 10, 25] as const;
+const checkoutStatusRetryDelays = [600, 1_000, 1_600, 2_400] as const;
 
 type DonationReturn = "success" | "canceled";
 type DonationView = "form" | "checking" | DonationCheckoutStatus;
@@ -58,8 +59,9 @@ export function DonationModal({
     setError(undefined);
 
     try {
-      setView(await fetchCheckoutStatus(sessionId));
+      setView(await fetchCheckoutStatusWithRetry(sessionId));
     } catch (statusError) {
+      if (isAbortError(statusError)) return;
       setView("retryable-failure");
       setError(
         statusError instanceof Error
@@ -73,13 +75,17 @@ export function DonationModal({
     if (returnState !== "success" || !sessionId) return;
 
     let isActive = true;
+    const abortController = new AbortController();
     const checkoutSessionId = sessionId;
 
     async function loadStatus() {
       try {
-        const status = await fetchCheckoutStatus(checkoutSessionId);
+        const status = await fetchCheckoutStatusWithRetry(checkoutSessionId, {
+          signal: abortController.signal,
+        });
         if (isActive) setView(status);
       } catch (statusError) {
+        if (isAbortError(statusError)) return;
         if (!isActive) return;
         setView("retryable-failure");
         setError(
@@ -93,6 +99,7 @@ export function DonationModal({
     void loadStatus();
     return () => {
       isActive = false;
+      abortController.abort();
     };
   }, [returnState, sessionId]);
 
@@ -302,9 +309,40 @@ export function DonationModal({
   );
 }
 
-async function fetchCheckoutStatus(sessionId: string) {
+async function fetchCheckoutStatusWithRetry(
+  sessionId: string,
+  options?: { signal?: AbortSignal },
+) {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= checkoutStatusRetryDelays.length; attempt++) {
+    try {
+      const status = await fetchCheckoutStatus(sessionId, options);
+      if (status !== "retryable-failure") return status;
+      lastError = undefined;
+    } catch (error) {
+      if (isAbortError(error)) throw error;
+      lastError = error;
+    }
+
+    const delay = checkoutStatusRetryDelays[attempt];
+    if (delay !== undefined) {
+      await wait(delay, options?.signal);
+    }
+  }
+
+  if (lastError) throw lastError;
+  return "retryable-failure";
+}
+
+async function fetchCheckoutStatus(
+  sessionId: string,
+  options?: { signal?: AbortSignal },
+) {
   const params = new URLSearchParams({ sessionId });
-  const response = await fetch(`/api/donations/checkout-status?${params}`);
+  const response = await fetch(`/api/donations/checkout-status?${params}`, {
+    signal: options?.signal,
+  });
   const detail = (await response.json()) as
     | { status: DonationCheckoutStatus }
     | ApiErrorDetail;
@@ -318,6 +356,29 @@ async function fetchCheckoutStatus(sessionId: string) {
   }
 
   return detail.status;
+}
+
+function wait(delay: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+
+    const timeout = window.setTimeout(resolve, delay);
+    signal?.addEventListener(
+      "abort",
+      () => {
+        window.clearTimeout(timeout);
+        reject(new DOMException("Aborted", "AbortError"));
+      },
+      { once: true },
+    );
+  });
+}
+
+function isAbortError(error: unknown) {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 function DonationStatus({
