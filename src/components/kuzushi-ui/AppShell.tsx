@@ -242,6 +242,11 @@ export function AppShell(props: AppShellProps) {
               />
             ) : (
               <>
+                <div className="hidden sm:block">
+                  <h2 className="mt-1 text-xl font-black tracking-tight">
+                    Home
+                  </h2>
+                </div>
                 <JournalEntryTable
                   initialEntries={props.initialJournal.items}
                   initialQueryKey={props.initialJournalQueryKey}
