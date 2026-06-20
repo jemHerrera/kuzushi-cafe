@@ -3,7 +3,6 @@ import { apiErrorResponse, readJson } from "@/lib/api/errors";
 import { parseJournalQuery } from "@/lib/api/journal-query";
 import { journalCreateSchema } from "@/lib/api/schemas";
 import { JournalEntryManager } from "@/lib/managers/journal";
-import { NotificationManager } from "@/lib/managers/notification";
 
 export async function GET(request: Request) {
   try {
@@ -40,22 +39,12 @@ export async function POST(request: Request) {
         label: values.setup,
       });
     }
-    const entry = await manager.createJournalEntry({ accountId, ...values });
-    if (
-      values.trainingPartnerId &&
-      (await manager.isAcceptedTrainingPartner({
-        accountId,
-        trainingPartnerId: values.trainingPartnerId,
-      }))
-    ) {
-      await new NotificationManager(
-        supabase,
-      ).sendJournalEntryAssignmentNotification({
-        accountId,
-        journalEntryId: entry.id,
-      });
-    }
-    return Response.json(entry, { status: 201 });
+    return Response.json(
+      await manager.createJournalEntry({ accountId, ...values }),
+      {
+        status: 201,
+      },
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

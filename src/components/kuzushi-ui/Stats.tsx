@@ -173,7 +173,7 @@ export function Stats({
         />
       ) : (
         <EmptyState
-          className="border border-zinc-200"
+          className="bg-transparent px-0"
           body="Technique stats appear after journal entries matching these filters are created."
           onAction={onAddEntry}
           title="No stats yet"
@@ -412,7 +412,7 @@ function StatsLoadingState() {
   return (
     <div
       aria-label="Loading stats"
-      className="grid w-full min-w-0 max-w-full gap-4 overflow-hidden"
+      className="grid w-full min-w-0 max-w-full gap-4 overflow-hidden bg-transparent"
     >
       <Skeleton className="h-5 w-48 max-w-full" />
       <div className="grid gap-3">

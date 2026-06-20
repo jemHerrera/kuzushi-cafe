@@ -2,7 +2,6 @@ import { authenticatedApiContext } from "@/lib/api/context";
 import { apiErrorResponse, readJson } from "@/lib/api/errors";
 import { journalUpdateSchema, pathIdSchema } from "@/lib/api/schemas";
 import { JournalEntryManager } from "@/lib/managers/journal";
-import { NotificationManager } from "@/lib/managers/notification";
 
 async function routeContext(params: Promise<{ id: string }>) {
   const { supabase, accountId } = await authenticatedApiContext();
@@ -31,24 +30,11 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const { manager, supabase, accountId, id } = await routeContext(params);
+    const { manager, accountId, id } = await routeContext(params);
     const options = journalUpdateSchema.parse(await readJson(request));
-    const entry = await manager.updateJournalEntry({ accountId, id, options });
-    if (
-      options.trainingPartnerId &&
-      (await manager.isAcceptedTrainingPartner({
-        accountId,
-        trainingPartnerId: options.trainingPartnerId,
-      }))
-    ) {
-      await new NotificationManager(
-        supabase,
-      ).sendJournalEntryAssignmentNotification({
-        accountId,
-        journalEntryId: id,
-      });
-    }
-    return Response.json(entry);
+    return Response.json(
+      await manager.updateJournalEntry({ accountId, id, options }),
+    );
   } catch (error) {
     return apiErrorResponse(error);
   }

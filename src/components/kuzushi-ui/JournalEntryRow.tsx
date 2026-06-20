@@ -3,7 +3,13 @@
 import { format, parseISO } from "date-fns";
 import { Ellipsis, Pencil, Trash2, UserRound } from "lucide-react";
 import Link from "next/link";
-import { type KeyboardEvent, type MouseEvent, useState } from "react";
+import {
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+  useRef,
+  useState,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -31,12 +37,16 @@ import {
   type Partner,
 } from "./shared";
 
+const mobileDeleteRevealWidth = 76;
+const mobileDeleteRevealThreshold = 44;
+
 type JournalEntryRowProps = {
   entry: JournalEntry;
   onSaved?: () => void;
   onDeleted?: () => void;
   readOnly?: boolean;
   publicView?: boolean;
+  isLast?: boolean;
 };
 
 export function JournalEntryRow({
@@ -45,13 +55,21 @@ export function JournalEntryRow({
   onDeleted,
   readOnly = false,
   publicView = false,
+  isLast = false,
 }: JournalEntryRowProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [mobileDragOffset, setMobileDragOffset] = useState(0);
+  const dragStartX = useRef<number | null>(null);
+  const dragMoved = useRef(false);
   const canEdit = !readOnly;
   const canOpenDetails = readOnly || canEdit;
 
   function openDetails() {
+    if (dragMoved.current) {
+      dragMoved.current = false;
+      return;
+    }
     if (canOpenDetails) setIsEditOpen(true);
   }
 
@@ -65,6 +83,34 @@ export function JournalEntryRow({
 
   function stopRowClick(event: MouseEvent) {
     event.stopPropagation();
+  }
+
+  function startMobileDrag(event: PointerEvent<HTMLDivElement>) {
+    if (!canEdit) return;
+    dragStartX.current = event.clientX + mobileDragOffset;
+    dragMoved.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function moveMobileDrag(event: PointerEvent<HTMLDivElement>) {
+    if (!canEdit || dragStartX.current === null) return;
+    const nextOffset = Math.min(
+      mobileDeleteRevealWidth,
+      Math.max(0, dragStartX.current - event.clientX),
+    );
+    if (nextOffset > 6) dragMoved.current = true;
+    setMobileDragOffset(nextOffset);
+  }
+
+  function endMobileDrag() {
+    if (!canEdit || dragStartX.current === null) return;
+    dragStartX.current = null;
+    setMobileDragOffset((offset) =>
+      offset >= mobileDeleteRevealThreshold ? mobileDeleteRevealWidth : 0,
+    );
+    window.setTimeout(() => {
+      dragMoved.current = false;
+    }, 0);
   }
 
   async function deleteEntry() {
@@ -82,58 +128,77 @@ export function JournalEntryRow({
 
   return (
     <>
-      <tr className="border-t border-zinc-200 md:hidden">
+      <tr
+        className={cx(
+          "border-t border-zinc-200 md:hidden",
+          isLast && "border-b",
+        )}
+      >
         <td colSpan={readOnly ? 5 : 6} className="p-0">
-          <div
-            className="relative grid min-h-16 w-full items-center gap-2 px-0 md:px-2 py-2 text-left transition hover:bg-zinc-50"
-            style={{
-              gridTemplateColumns: "2fr 6fr 1fr",
-            }}
-          >
-            {canOpenDetails ? (
-              <button
-                aria-label={`${canEdit ? "Edit" : "View"} ${entry.technique}`}
-                className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-                type="button"
-                onClick={openDetails}
-              />
+          <div className="relative overflow-hidden">
+            {canEdit && mobileDragOffset > 0 ? (
+              <div className="absolute inset-y-0 right-0 flex w-[76px] items-stretch justify-end bg-red-600">
+                <button
+                  aria-label={`Delete ${entry.technique}`}
+                  className="inline-flex w-full items-center justify-center text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                  type="button"
+                  onClick={() => setIsDeleteOpen(true)}
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
             ) : null}
-            <span className="pointer-events-none min-w-0 justify-self-start">
-              <TechniqueCategoryPill category={entry.category} />
-            </span>
-            <span className="pointer-events-none min-w-0 text-center">
-              <span className="block truncate text-sm font-medium text-zinc-950">
-                {entry.technique}
-              </span>
-              {entry.setup ? (
-                <span className="block truncate text-xs text-zinc-500">
-                  from {entry.setup}
-                </span>
-              ) : null}
-            </span>
-            {/* <span className="pointer-events-none justify-self-center self-center">
-              {entry.journalType ? (
-                <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold capitalize text-zinc-700">
-                  {entry.journalType}
-                </span>
-              ) : (
-                <span className="text-xs text-zinc-400">—</span>
-              )}
-            </span> */}
-            <span
-              className={cx(
-                "justify-self-end",
-                !publicView && entry.partner?.accountId
-                  ? "relative z-10"
-                  : "pointer-events-none",
-              )}
+            <div
+              className="relative grid min-h-14 w-full items-center gap-2 bg-white px-3 py-1.5 text-left transition-transform hover:bg-zinc-50"
+              style={{
+                gridTemplateColumns: "2fr 6fr 1fr",
+                touchAction: canEdit ? "pan-y" : undefined,
+                transform: `translateX(-${mobileDragOffset}px)`,
+              }}
+              onPointerCancel={endMobileDrag}
+              onPointerDown={startMobileDrag}
+              onPointerMove={moveMobileDrag}
+              onPointerUp={endMobileDrag}
             >
-              {publicView ? (
-                <BeltIndicator partner={entry.partner} compact />
-              ) : (
-                <MobilePartnerAvatar partner={entry.partner} />
-              )}
-            </span>
+              {canOpenDetails ? (
+                <button
+                  aria-label={`${canEdit ? "Edit" : "View"} ${entry.technique}`}
+                  className="absolute inset-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                  type="button"
+                  onClick={openDetails}
+                />
+              ) : null}
+              <span className="pointer-events-none min-w-0 justify-self-start">
+                <JournalTypeBadge
+                  category={entry.category}
+                  journalType={entry.journalType}
+                />
+              </span>
+              <span className="pointer-events-none min-w-0 text-center">
+                <span className="block truncate text-sm font-medium text-zinc-950">
+                  {entry.technique}
+                </span>
+                {entry.setup ? (
+                  <span className="block truncate text-xs text-zinc-500">
+                    from {entry.setup}
+                  </span>
+                ) : null}
+              </span>
+              <span
+                className={cx(
+                  "justify-self-end",
+                  !publicView && entry.partner?.accountId
+                    ? "relative z-10"
+                    : "pointer-events-none",
+                )}
+              >
+                {publicView ? (
+                  <BeltIndicator partner={entry.partner} compact />
+                ) : (
+                  <MobilePartnerAvatar partner={entry.partner} />
+                )}
+              </span>
+            </div>
           </div>
         </td>
       </tr>
@@ -145,6 +210,7 @@ export function JournalEntryRow({
         }
         className={cx(
           "border-t border-zinc-200 max-md:hidden",
+          isLast && "border-b",
           canOpenDetails &&
             "cursor-pointer transition hover:bg-zinc-50 focus-visible:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
         )}
@@ -166,9 +232,10 @@ export function JournalEntryRow({
         </td>
         <td className="overflow-hidden whitespace-nowrap px-2 py-3">
           {entry.journalType ? (
-            <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-xs font-semibold capitalize text-zinc-700">
-              {entry.journalType}
-            </span>
+            <JournalTypeBadge
+              category={entry.category}
+              journalType={entry.journalType}
+            />
           ) : (
             <span className="text-xs text-zinc-500">Not collected</span>
           )}
@@ -285,13 +352,43 @@ function BeltIndicator({
   }
 
   return (
-    <span className="inline-flex min-w-0 items-center gap-2 text-sm font-medium text-zinc-900">
+    <span
+      aria-label={partner ? `${formatBelt(belt)} belt` : "No belt collected"}
+      className="inline-flex min-w-0 items-center"
+    >
       <BeltMarker belt={belt} />
-      <span className="truncate">
-        {partner ? `${formatBelt(belt)} belt` : "Not collected"}
-      </span>
     </span>
   );
+}
+
+function JournalTypeBadge({
+  category,
+  journalType,
+}: Pick<JournalEntry, "category" | "journalType">) {
+  if (journalType) {
+    return (
+      <span
+        className={cx(
+          "inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold capitalize",
+          journalType === "success"
+            ? "border-zinc-950 bg-zinc-950 text-white"
+            : "border-zinc-200 bg-zinc-50 text-zinc-700",
+        )}
+      >
+        {journalType}
+      </span>
+    );
+  }
+
+  if (category === "tap") {
+    return (
+      <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-xs font-semibold text-zinc-700">
+        tap
+      </span>
+    );
+  }
+
+  return <span className="text-xs text-zinc-400">—</span>;
 }
 
 function PartnerCell({ partner }: { partner?: Partner }) {

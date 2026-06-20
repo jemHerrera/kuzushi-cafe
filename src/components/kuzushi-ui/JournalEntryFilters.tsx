@@ -106,21 +106,25 @@ export function JournalEntryFilters({
               onValueChange={changeQuery}
             />
           </div>
-          <CheckboxFilterPill
-            label="Category"
-            options={categories.map((category) => ({
-              value: category,
-              label: formatCategoryLabel(category),
-            }))}
-            selected={currentCategories}
-            onSelectedChange={changeCategories}
-          />
-          <CheckboxFilterPill
-            label="Type"
-            options={typeOptions}
-            selected={currentTypes}
-            onSelectedChange={changeTypes}
-          />
+          <div className="grid grid-cols-2 gap-2 md:flex md:w-auto">
+            <CheckboxFilterPill
+              label="Category"
+              options={categories.map((category) => ({
+                value: category,
+                label: formatCategoryLabel(category),
+              }))}
+              selected={currentCategories}
+              onSelectedChange={changeCategories}
+              triggerClassName="w-full md:w-auto"
+            />
+            <CheckboxFilterPill
+              label="Type"
+              options={typeOptions}
+              selected={currentTypes}
+              onSelectedChange={changeTypes}
+              triggerClassName="w-full md:w-auto"
+            />
+          </div>
         </div>
       ) : null}
       {showAddEntry ? (
@@ -140,11 +144,13 @@ function CheckboxFilterPill<T extends string>({
   options,
   selected,
   onSelectedChange,
+  triggerClassName,
 }: {
   label: string;
   options: Array<{ value: T; label: string }>;
   selected: T[];
   onSelectedChange: (selected: T[]) => void;
+  triggerClassName?: string;
 }) {
   const labelId = useId();
 
@@ -161,7 +167,7 @@ function CheckboxFilterPill<T extends string>({
       <PopoverTrigger asChild>
         <Button
           aria-label={`${label} filter${selected.length ? `, ${selected.length} selected` : ""}`}
-          className="h-10 rounded-full px-3 font-medium"
+          className={`h-10 rounded-full px-3 font-medium ${triggerClassName ?? ""}`}
           type="button"
           variant="outline"
         >

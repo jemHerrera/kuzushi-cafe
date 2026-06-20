@@ -145,19 +145,18 @@ protocol-relative destinations are discarded.
     - [x] Add ? saying inly belt is shown in public
   - [ ] Stats - Need to find a way to properly show holistically
     - Maybe do "translucent tabs" as labels inside the bar? Also reduce space between and ensure full width is the mobile width
-  - [ ] Journal entry table - Reduce row py, Draggable delete?
-    - [ ] Remove belt text, just color
-    - [ ] On mobile, instead of categories, add success or attempts instead?
+  - [x] Journal entry table - Reduce row py, Draggable delete?
+    - [x] Remove belt text, just color
+    - [x] On mobile, instead of categories, add success or attempts instead?
   - [x] Public Profile - Should be able to see inside the Journal entry row (Add read only prop to Journal entry)
     - [x] Public Journal entry row should not display training partner, only belt
     - [x] Also public journal entry modal should not display training partner, only belt
-    - [ ] Remove back arrow
-    - [ ]
-  - [ ] Notifications side bar need more real estate
+    - [x] Remove back arrow
+  - [x] Notifications side bar need more real estate
     - Make all other sidebars full width
-    - [ ] Mark as read should be just icon
-    - [ ] Remove assignments notification
-  - [ ] Filters - Category and type should be side by side
-  - [ ] Stats - improve empty state and loading state (currently has borders and white bg)
+    - [x] Mark as read should be just icon
+    - [x] Remove assignments notification
+  - [x] Filters - Category and type should be side by side
+  - [x] Stats - improve empty state and loading state (currently has borders and white bg)
 - [ ] S3 bucket and profile upload. Maybe supabase already supports this?
 - [x] Need to be able to edit custom training partners

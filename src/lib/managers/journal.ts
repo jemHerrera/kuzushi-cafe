@@ -60,6 +60,13 @@ type JournalUpdate = PartnerInput &
   };
 
 type JournalRow = Database["public"]["Tables"]["journal_entries"]["Row"];
+type PartnerProfile = {
+  firstName?: string;
+  lastName?: string;
+  profilePhoto?: string;
+  belt?: Belt;
+  weight?: WeightClass;
+};
 
 export class JournalEntryManager {
   constructor(private readonly supabase: SupabaseClient<Database>) {}
@@ -609,10 +616,13 @@ export class JournalEntryManager {
       .maybeSingle();
     if (!data?.partner_account_id) return toJournalEntry(row, data);
 
-    const profilePhotos = await this.getPartnerProfilePhotos(row.account_id, [
+    const partnerProfiles = await this.getPartnerProfiles(row.account_id, [
       data.id,
     ]);
-    return toJournalEntry(row, data, profilePhotos.get(data.id));
+    return withPartnerProfile(
+      toJournalEntry(row, data, partnerProfiles.get(data.id)?.profilePhoto),
+      partnerProfiles.get(data.id),
+    );
   }
 
   private async withPartners(rows: JournalRow[]) {
@@ -639,7 +649,7 @@ export class JournalEntryManager {
     const accountBackedPartnerIds = (data ?? [])
       .filter((partner) => Boolean(partner.partner_account_id))
       .map((partner) => partner.id);
-    const profilePhotos = await this.getPartnerProfilePhotos(
+    const partnerProfiles = await this.getPartnerProfiles(
       rows[0]?.account_id,
       accountBackedPartnerIds,
     );
@@ -655,28 +665,35 @@ export class JournalEntryManager {
       const entry = toJournalEntry(
         row,
         partner,
-        partner ? profilePhotos.get(partner.id) : undefined,
+        partner ? partnerProfiles.get(partner.id)?.profilePhoto : undefined,
       );
+      const entryWithProfile = partner
+        ? withPartnerProfile(entry, partnerProfiles.get(partner.id))
+        : entry;
       const visibleBelt = visiblePartnerBelts.get(row.id);
-      if (entry.trainingPartner && visibleBelt) {
+      if (entryWithProfile.trainingPartner && visibleBelt) {
         return {
-          ...entry,
+          ...entryWithProfile,
           trainingPartner: {
-            ...entry.trainingPartner,
+            ...entryWithProfile.trainingPartner,
             belt: visibleBelt,
           },
         };
       }
-      if (!entry.trainingPartner && row.training_partner_id && visibleBelt) {
+      if (
+        !entryWithProfile.trainingPartner &&
+        row.training_partner_id &&
+        visibleBelt
+      ) {
         return {
-          ...entry,
+          ...entryWithProfile,
           trainingPartner: {
             id: row.training_partner_id,
             belt: visibleBelt,
           },
         };
       }
-      return entry;
+      return entryWithProfile;
     });
   }
 
@@ -713,12 +730,42 @@ export class JournalEntryManager {
     return belts;
   }
 
-  private async getPartnerProfilePhotos(
+  private async getPartnerProfiles(
     accountId: string | undefined,
     partnerIds: string[],
   ) {
-    const profilePhotos = new Map<string, string | null>();
-    if (!accountId || !partnerIds.length) return profilePhotos;
+    const partnerProfiles = new Map<string, PartnerProfile>();
+    if (!accountId || !partnerIds.length) return partnerProfiles;
+
+    const { data: profiles, error: profileError } = await this.supabase.rpc(
+      "get_training_partner_profiles",
+      {
+        account_id: accountId,
+        training_partner_ids: partnerIds,
+      },
+    );
+    if (!profileError) {
+      for (const partner of profiles ?? []) {
+        partnerProfiles.set(partner.id, {
+          firstName: partner.first_name ?? undefined,
+          lastName: partner.last_name ?? undefined,
+          profilePhoto: partner.profile_photo ?? undefined,
+          belt: partner.belt ?? undefined,
+          weight: partner.weight ?? undefined,
+        });
+      }
+      return partnerProfiles;
+    }
+    if (
+      profileError.code !== "PGRST202" &&
+      !profileError.message.includes("get_training_partner_profiles")
+    ) {
+      throw new ManagerError(
+        "training_partner_profiles_failed",
+        profileError.message,
+        500,
+      );
+    }
 
     const { data, error } = await this.supabase.rpc(
       "get_training_partner_profile_photos",
@@ -735,9 +782,11 @@ export class JournalEntryManager {
       );
     }
     for (const partner of data ?? []) {
-      profilePhotos.set(partner.id, partner.profile_photo);
+      partnerProfiles.set(partner.id, {
+        profilePhoto: partner.profile_photo ?? undefined,
+      });
     }
-    return profilePhotos;
+    return partnerProfiles;
   }
 
   private async createCustomPartner(
@@ -846,6 +895,25 @@ function partnerName(entry: JournalEntryDetail) {
   return `${entry.trainingPartner?.firstName ?? ""} ${
     entry.trainingPartner?.lastName ?? ""
   }`.trim();
+}
+
+function withPartnerProfile(
+  entry: JournalEntryDetail,
+  profile: PartnerProfile | undefined,
+) {
+  if (!entry.trainingPartner || !profile) return entry;
+
+  return {
+    ...entry,
+    trainingPartner: {
+      ...entry.trainingPartner,
+      firstName: profile.firstName ?? entry.trainingPartner.firstName,
+      lastName: profile.lastName ?? entry.trainingPartner.lastName,
+      profilePhoto: profile.profilePhoto ?? entry.trainingPartner.profilePhoto,
+      belt: profile.belt ?? entry.trainingPartner.belt,
+      weight: profile.weight ?? entry.trainingPartner.weight,
+    },
+  };
 }
 
 function createTagKey(label: string) {

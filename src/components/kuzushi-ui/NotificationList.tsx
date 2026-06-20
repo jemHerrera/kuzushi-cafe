@@ -145,7 +145,6 @@ export function NotificationList({
           onClick={markAllRead}
         >
           <CheckCheck className="size-4" />
-          {mutationId === "all" ? "Marking..." : "Mark all as read"}
         </Button>
       </div>
       {error ? (

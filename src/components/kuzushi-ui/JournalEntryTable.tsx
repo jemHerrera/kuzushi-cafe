@@ -208,12 +208,13 @@ export function JournalEntryTable({
             }
           />
           <tbody>
-            {visibleEntries.map((entry) => (
+            {visibleEntries.map((entry, index) => (
               <JournalEntryRow
                 key={entry.id}
                 entry={entry}
                 readOnly={readOnly}
                 publicView={readOnly && Boolean(accountId)}
+                isLast={index === visibleEntries.length - 1}
                 onSaved={refreshEntries}
                 onDeleted={refreshEntries}
               />

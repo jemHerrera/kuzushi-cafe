@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  ArrowLeft,
-  Ban,
-  Check,
-  LockKeyhole,
-  UserMinus,
-  UserPlus,
-  X,
-} from "lucide-react";
+import { Ban, Check, LockKeyhole, UserMinus, UserPlus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -17,7 +9,6 @@ import type {
   PublicProfileDetail,
   TrainingPartnerRelationshipStatus,
 } from "@/lib/managers/types";
-import { Button } from "@/components/ui/button";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
@@ -34,7 +25,6 @@ type DestructiveAction = "remove" | "block";
 export function PublicProfile({
   accountId,
   initialProfile,
-  onClose,
   onRelationshipChange,
 }: {
   accountId: string;
@@ -151,18 +141,6 @@ export function PublicProfile({
       {profile ? (
         <>
           <header className="flex gap-5 sm:items-start sm:p-6">
-            {onClose ? (
-              <Button
-                aria-label="Back"
-                className="shrink-0"
-                size="icon"
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-              >
-                <ArrowLeft className="size-4" />
-              </Button>
-            ) : null}
             <span
               className={cx(
                 "inline-flex w-fit h-fit shrink-0 rounded-full border-4 p-0",

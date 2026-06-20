@@ -21,7 +21,7 @@ export function NotificationItem({
   onMarkRead?: () => void;
 }) {
   return (
-    <article className="flex items-start gap-2 rounded-md border border-zinc-200 bg-white p-3">
+    <article className="flex items-start gap-2 px-3 py-2">
       <button
         aria-label={
           unread ? `${heading}. Unread. ${body}` : `${heading}. ${body}`
@@ -49,7 +49,6 @@ export function NotificationItem({
           className="shrink-0 text-zinc-500"
           disabled={disabled}
           size="icon-sm"
-          title="Mark as read"
           type="button"
           variant="ghost"
           onClick={onMarkRead}
