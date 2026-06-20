@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
@@ -48,6 +49,7 @@ export function JournalEntryTable({
   onEntriesChange,
   readOnly = false,
   refreshToken = 0,
+  mobileHeaderContent,
 }: {
   accountId?: string;
   entries?: JournalEntry[];
@@ -56,6 +58,7 @@ export function JournalEntryTable({
   onEntriesChange?: () => void;
   readOnly?: boolean;
   refreshToken?: number;
+  mobileHeaderContent?: ReactNode;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -185,6 +188,7 @@ export function JournalEntryTable({
           )
         }
         onAddEntry={() => setIsCreateOpen(true)}
+        mobileLeadingContent={mobileHeaderContent}
         showAddEntry={!readOnly}
       />
       {error ? (

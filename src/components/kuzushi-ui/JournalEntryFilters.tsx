@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, ListFilter, Plus } from "lucide-react";
+import type { ReactNode } from "react";
 import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,6 +28,7 @@ type JournalEntryFiltersProps = {
   onTypesChange?: (types: JournalType[]) => void;
   onAddEntry?: () => void;
   showAddEntry?: boolean;
+  mobileLeadingContent?: ReactNode;
 };
 
 const typeOptions: Array<{
@@ -46,6 +48,7 @@ export function JournalEntryFilters({
   onTypesChange,
   onAddEntry,
   showAddEntry = true,
+  mobileLeadingContent,
 }: JournalEntryFiltersProps = {}) {
   const [internalQuery, setInternalQuery] = useState("");
   const [internalCategories, setInternalCategories] = useState<Category[]>([]);
@@ -81,25 +84,42 @@ export function JournalEntryFilters({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button
-        aria-expanded={areFiltersOpen}
-        aria-label={`Toggle journal filters${activeFilterCount ? `, ${activeFilterCount} active` : ""}`}
-        className="relative size-8 rounded-md"
-        onClick={() => setAreFiltersOpen((isOpen) => !isOpen)}
-        size="icon-lg"
-        type="button"
-        variant="ghost"
-      >
-        <ListFilter className="size-4" />
-        {activeFilterCount ? (
-          <span className="absolute -right-1 -top-1 inline-flex size-5 items-center justify-center rounded-full bg-zinc-950 text-[11px] text-white">
-            {activeFilterCount}
-          </span>
+    <div className="grid gap-2 md:flex md:flex-wrap md:items-center">
+      <div className="flex min-w-0 items-center gap-2 md:contents">
+        {mobileLeadingContent ? (
+          <div className="min-w-0 flex-1 md:hidden">{mobileLeadingContent}</div>
         ) : null}
-      </Button>
+        <Button
+          aria-expanded={areFiltersOpen}
+          aria-label={`Toggle journal filters${activeFilterCount ? `, ${activeFilterCount} active` : ""}`}
+          className="relative size-8 rounded-md md:order-1"
+          onClick={() => setAreFiltersOpen((isOpen) => !isOpen)}
+          size="icon-lg"
+          type="button"
+          variant="ghost"
+        >
+          <ListFilter className="size-4" />
+          {activeFilterCount ? (
+            <span className="absolute -right-1 -top-1 inline-flex size-5 items-center justify-center rounded-full bg-zinc-950 text-[11px] text-white">
+              {activeFilterCount}
+            </span>
+          ) : null}
+        </Button>
+        {showAddEntry ? (
+          <div className="md:order-3 md:ml-auto">
+            <ButtonPrimary
+              onClick={onAddEntry}
+              type="button"
+              className="w-full"
+            >
+              <Plus className="size-4" />
+              Add entry
+            </ButtonPrimary>
+          </div>
+        ) : null}
+      </div>
       {areFiltersOpen ? (
-        <div className="order-3 flex w-full flex-col gap-2 md:order-none md:min-w-0 md:flex-1 md:flex-row">
+        <div className="order-3 flex w-full flex-col gap-2 md:order-2 md:min-w-0 md:flex-1 md:flex-row">
           <div className="min-w-40 flex-1 md:max-w-md">
             <JournalEntrySearch
               value={currentQuery}
@@ -125,14 +145,6 @@ export function JournalEntryFilters({
               triggerClassName="w-full md:w-auto"
             />
           </div>
-        </div>
-      ) : null}
-      {showAddEntry ? (
-        <div className="ml-auto">
-          <ButtonPrimary onClick={onAddEntry} type="button" className="w-full">
-            <Plus className="size-4" />
-            Add entry
-          </ButtonPrimary>
         </div>
       ) : null}
     </div>

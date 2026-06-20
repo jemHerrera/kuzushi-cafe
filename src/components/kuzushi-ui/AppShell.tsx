@@ -242,26 +242,28 @@ export function AppShell(props: AppShellProps) {
               />
             ) : (
               <>
-                <button
-                  type="button"
-                  className="w-full rounded-md text-left sm:hidden bg-transparent!"
-                  onClick={() => openModal("profile")}
-                >
-                  <UserSummary
-                    className="bg-transparent!"
-                    identity={{
-                      firstName: currentAccount.firstName,
-                      lastName: currentAccount.lastName,
-                      belt: currentAccount.belt,
-                      profilePhoto: currentAccount.profilePhoto,
-                      donated: currentAccount.donated,
-                    }}
-                    showBeltMarker
-                  />
-                </button>
                 <JournalEntryTable
                   initialEntries={props.initialJournal.items}
                   initialQueryKey={props.initialJournalQueryKey}
+                  mobileHeaderContent={
+                    <button
+                      type="button"
+                      className="w-full rounded-md text-left bg-transparent!"
+                      onClick={() => openModal("profile")}
+                    >
+                      <UserSummary
+                        className="bg-transparent!"
+                        identity={{
+                          firstName: currentAccount.firstName,
+                          lastName: currentAccount.lastName,
+                          belt: currentAccount.belt,
+                          profilePhoto: currentAccount.profilePhoto,
+                          donated: currentAccount.donated,
+                        }}
+                        showBeltMarker
+                      />
+                    </button>
+                  }
                   onEntriesChange={handleJournalEntriesChange}
                   refreshToken={journalRefreshToken}
                 />
