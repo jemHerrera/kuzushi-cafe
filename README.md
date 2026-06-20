@@ -143,7 +143,7 @@ protocol-relative destinations are discarded.
       - Maybe reduce min height? In notion an entirely new draggable panel appears
     - [x] Journal entry form should be full height
     - [x] Add ? saying inly belt is shown in public
-  - [ ] Stats - Need to find a way to properly show holistically
+  - [x] Stats - Need to find a way to properly show holistically
     - Maybe do "translucent tabs" as labels inside the bar? Also reduce space between and ensure full width is the mobile width
   - [x] Journal entry table - Reduce row py, Draggable delete?
     - [x] Remove belt text, just color
@@ -158,5 +158,7 @@ protocol-relative destinations are discarded.
     - [x] Remove assignments notification
   - [x] Filters - Category and type should be side by side
   - [x] Stats - improve empty state and loading state (currently has borders and white bg)
-- [ ] S3 bucket and profile upload. Maybe supabase already supports this?
 - [x] Need to be able to edit custom training partners
+- [ ] Removing training partner does not work (try both custom and real person)
+- [ ] Improve overall performance
+- [ ] S3 bucket and profile upload. Maybe supabase already supports this?
