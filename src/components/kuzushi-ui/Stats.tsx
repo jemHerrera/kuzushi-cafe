@@ -3,23 +3,6 @@
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-  type BarShapeProps,
-} from "recharts";
-
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -50,22 +33,21 @@ const typeOptions: Array<{ value: StatsTypeFilter; label: string }> = [
   { value: "success", label: "Successes only" },
 ];
 
-const categoryChartColors: Record<Category, { light: string; strong: string }> =
-  {
-    submission: { light: "#fda4af", strong: "#be123c" },
-    takedown: { light: "#fdba74", strong: "#c2410c" },
-    sweep: { light: "#fcd34d", strong: "#b45309" },
-    "guard-pass": { light: "#6ee7b7", strong: "#047857" },
-    reversal: { light: "#7dd3fc", strong: "#0369a1" },
-    "back-take": { light: "#c4b5fd", strong: "#6d28d9" },
-    "leg-entry": { light: "#f0abfc", strong: "#a21caf" },
-    escape: { light: "#67e8f9", strong: "#0e7490" },
-    tap: { light: "#d4d4d8", strong: "#3f3f46" },
-    "off-balance": { light: "#bef264", strong: "#4d7c0f" },
-    position: { light: "#a5b4fc", strong: "#4338ca" },
-    "guard-retention": { light: "#5eead4", strong: "#0f766e" },
-    other: { light: "#d6d3d1", strong: "#57534e" },
-  };
+const categoryChartColors: Record<Category, string> = {
+  submission: "#be123c",
+  takedown: "#c2410c",
+  sweep: "#b45309",
+  "guard-pass": "#047857",
+  reversal: "#0369a1",
+  "back-take": "#6d28d9",
+  "leg-entry": "#a21caf",
+  escape: "#0e7490",
+  tap: "#3f3f46",
+  "off-balance": "#4d7c0f",
+  position: "#4338ca",
+  "guard-retention": "#0f766e",
+  other: "#57534e",
+};
 
 export function Stats({
   accountId,
@@ -166,7 +148,7 @@ export function Stats({
       {isLoading ? (
         <StatsLoadingState />
       ) : stats?.items.length ? (
-        <StatsChart
+        <StatsBarList
           category={category}
           data={stats.items}
           typeFilter={effectiveType}
@@ -183,7 +165,7 @@ export function Stats({
   );
 }
 
-function StatsChart({
+function StatsBarList({
   category,
   data,
   typeFilter,
@@ -192,88 +174,69 @@ function StatsChart({
   data: StatsDetail["items"];
   typeFilter: StatsTypeFilter;
 }) {
-  const colors = categoryChartColors[category];
-  const config = {
-    attempts: { label: "Attempts", color: colors.light },
-    successes: { label: "Successes", color: colors.strong },
-    occurrences: { label: "Occurrences", color: colors.strong },
-  } satisfies ChartConfig;
   const isTap = category === "tap";
-  const displayedData = withDisplayValues(data, isTap, typeFilter);
-  const chartHeight = Math.max(100, displayedData.length * 30 + 56);
+  const color = categoryChartColors[category];
+  const rows = withDisplayValues(data, isTap, typeFilter);
+  const maxCount = Math.max(...rows.map((row) => row.displayCount), 1);
 
   return (
-    <div className="overflow-x-auto">
-      <ChartContainer
-        className="min-w-[28rem] aspect-auto"
-        config={config}
-        initialDimension={{ width: 640, height: chartHeight }}
-        style={{ height: chartHeight }}
-      >
-        <BarChart
-          accessibilityLayer
-          barCategoryGap={2}
-          barGap={0}
-          data={displayedData}
-          layout="vertical"
-          margin={{ top: 12, right: 16, bottom: 12, left: 8 }}
-        >
-          <CartesianGrid horizontal={false} />
-          <XAxis axisLine={false} hide tickLine={false} type="number" />
-          <YAxis
-            axisLine={false}
-            dataKey="label"
-            interval={0}
-            tickLine={false}
-            tickFormatter={formatYAxisLabel}
-            tickMargin={6}
-            type="category"
-            width={124}
-          />
-          <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-          {!isTap && typeFilter === "all" ? (
-            <Bar
-              dataKey="attempts"
-              fill="var(--color-attempts)"
-              isAnimationActive={false}
-              maxBarSize={18}
-              radius={[4, 0, 0, 4]}
-              shape={
-                <LabeledBarShape fillColor={colors.light} hideWhenSuccess />
-              }
-              stackId="outcome"
-            />
-          ) : null}
-          {!isTap ? (
-            <Bar
-              dataKey="successes"
-              fill="var(--color-successes)"
-              isAnimationActive={false}
-              maxBarSize={18}
-              radius={[0, 4, 4, 0]}
-              shape={<LabeledBarShape fillColor={colors.strong} />}
-              stackId={typeFilter === "all" ? "outcome" : undefined}
-            />
-          ) : (
-            <Bar
-              dataKey="occurrences"
-              fill="var(--color-occurrences)"
-              isAnimationActive={false}
-              maxBarSize={18}
-              radius={[0, 4, 4, 0]}
-              shape={<LabeledBarShape fillColor={colors.strong} />}
-            />
-          )}
-          {!isTap && typeFilter === "all" ? (
-            <ChartLegend content={<ChartLegendContent />} />
-          ) : null}
-        </BarChart>
-      </ChartContainer>
+    <div className="grid gap-2" aria-label="Technique stats">
+      {rows.map((row, index) => {
+        const barWidth = `${(row.displayCount / maxCount) * 100}%`;
+        const attemptWidth =
+          row.displayCount > 0
+            ? `${(row.attempts / row.displayCount) * 100}%`
+            : "0%";
+        const successWidth =
+          row.displayCount > 0
+            ? `${(row.successes / row.displayCount) * 100}%`
+            : "0%";
+
+        return (
+          <div key={`${row.label}-${index}`} className="grid min-w-0 gap-1">
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-baseline gap-3">
+              <span className="truncate text-xs font-semibold text-zinc-900">
+                {row.label}
+              </span>
+              <span className="text-[11px] font-semibold text-zinc-500">
+                {row.displayLabel}
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-xs bg-zinc-100">
+              <div
+                aria-label={`${row.label}: ${row.displayLabel}`}
+                className="flex h-full overflow-hidden rounded-xs"
+                style={{ width: barWidth }}
+              >
+                {!isTap && typeFilter === "all" ? (
+                  <span
+                    className="h-full"
+                    style={{
+                      width: attemptWidth,
+                      backgroundColor: color,
+                      opacity: 0.5,
+                    }}
+                  />
+                ) : null}
+                <span
+                  className="h-full"
+                  style={{
+                    width:
+                      !isTap && typeFilter === "all" ? successWidth : "100%",
+                    backgroundColor: color,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 type DisplayedStatsItem = StatsDetail["items"][number] & {
+  displayCount: number;
   displayLabel: string;
 };
 
@@ -292,82 +255,15 @@ function withDisplayValues(
   const total = counts.reduce((sum, count) => sum + count, 0);
 
   return data.map((item, index) => {
-    const label = `${counts[index]} · ${total ? Math.round((counts[index] / total) * 100) : 0}%`;
+    const count = counts[index];
+    const label = `${count} · ${total ? Math.round((count / total) * 100) : 0}%`;
 
     return {
       ...item,
+      displayCount: count,
       displayLabel: label,
     };
   });
-}
-
-function formatYAxisLabel(value: string) {
-  const maxLength = 18;
-  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
-}
-
-function LabeledBarShape({
-  fillColor,
-  height,
-  hideWhenSuccess = false,
-  payload,
-  width,
-  x,
-  y,
-}: Partial<BarShapeProps> & {
-  fillColor: string;
-  hideWhenSuccess?: boolean;
-  payload?: DisplayedStatsItem;
-}) {
-  if (
-    typeof height !== "number" ||
-    typeof width !== "number" ||
-    typeof x !== "number" ||
-    typeof y !== "number"
-  ) {
-    return null;
-  }
-
-  return (
-    <g>
-      <rect fill={fillColor} height={height} rx={4} width={width} x={x} y={y} />
-      {payload?.displayLabel &&
-      width > 0 &&
-      !(hideWhenSuccess && payload.successes > 0) ? (
-        <text
-          dominantBaseline="middle"
-          fill={contrastTextColor(fillColor)}
-          fontSize={11}
-          fontWeight={700}
-          textAnchor="end"
-          x={x + width - 5}
-          y={y + height / 2}
-        >
-          {payload.displayLabel}
-        </text>
-      ) : null}
-    </g>
-  );
-}
-
-function contrastTextColor(background: string) {
-  const [red, green, blue] = background
-    .slice(1)
-    .match(/.{2}/g)!
-    .map((value) => Number.parseInt(value, 16));
-  const luminance =
-    0.2126 * channelLuminance(red) +
-    0.7152 * channelLuminance(green) +
-    0.0722 * channelLuminance(blue);
-
-  return luminance > 0.42 ? "#18181b" : "#ffffff";
-}
-
-function channelLuminance(value: number) {
-  const channel = value / 255;
-  return channel <= 0.03928
-    ? channel / 12.92
-    : Math.pow((channel + 0.055) / 1.055, 2.4);
 }
 
 function FilterSelect({
@@ -414,15 +310,14 @@ function StatsLoadingState() {
       aria-label="Loading stats"
       className="grid w-full min-w-0 max-w-full gap-4 overflow-hidden bg-transparent"
     >
-      <Skeleton className="h-5 w-48 max-w-full" />
-      <div className="grid gap-3">
+      <div className="grid gap-2">
         {[1, 2, 3, 4].map((item) => (
-          <div
-            className="grid min-w-0 grid-cols-[minmax(0,9rem)_minmax(0,1fr)] items-center gap-4"
-            key={item}
-          >
-            <Skeleton className="h-4 w-full max-w-36" />
-            <Skeleton className="h-7 w-full" />
+          <div className="grid min-w-0 gap-1" key={item}>
+            <div className="grid grid-cols-[minmax(0,1fr)_3rem] gap-3">
+              <Skeleton className="h-3 w-full max-w-36" />
+              <Skeleton className="h-3 w-full" />
+            </div>
+            <Skeleton className="h-2 w-full rounded-full" />
           </div>
         ))}
       </div>
