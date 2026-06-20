@@ -40,30 +40,37 @@ export default async function AppPage({
     }
   }
   const query = parseJournalQuery(`http://kuzushi.local/app?${params}`);
-  const initialJournal = await new JournalEntryManager(
-    supabase,
-  ).getJournalEntries({
+  const journalManager = new JournalEntryManager(supabase);
+  const initialJournal = await journalManager.getJournalEntries({
     accountId: session.account.id,
     ...query,
     limit: query.limit + 1,
   });
-  const journalPresence = await new JournalEntryManager(
-    supabase,
-  ).getJournalEntries({
-    accountId: session.account.id,
-    filter: {},
-    limit: 1,
-    offset: 0,
-  });
+  const canDeriveJournalPresence =
+    query.offset === 0 && !hasJournalFilters(query.filter);
+  const initialHasJournalEntries = canDeriveJournalPresence
+    ? initialJournal.items.length > 0
+    : await journalManager.hasJournalEntries(session.account.id);
 
   return (
     <JournalFormOptionsProvider>
       <AppShell
         account={session.account}
-        initialHasJournalEntries={journalPresence.items.length > 0}
+        initialHasJournalEntries={initialHasJournalEntries}
         initialJournal={initialJournal}
         initialJournalQueryKey={serializeJournalQuery(query).toString()}
       />
     </JournalFormOptionsProvider>
+  );
+}
+
+function hasJournalFilters(
+  filter: ReturnType<typeof parseJournalQuery>["filter"],
+) {
+  return Boolean(
+    filter.search?.trim() ||
+    filter.category?.length ||
+    filter.journalTypes?.length ||
+    filter.isNoGi !== undefined,
   );
 }

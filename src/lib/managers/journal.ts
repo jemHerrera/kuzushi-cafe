@@ -71,6 +71,20 @@ type PartnerProfile = {
 export class JournalEntryManager {
   constructor(private readonly supabase: SupabaseClient<Database>) {}
 
+  async hasJournalEntries(accountId: string): Promise<boolean> {
+    const { data, error } = await this.supabase
+      .from("journal_entries")
+      .select("id")
+      .eq("account_id", accountId)
+      .limit(1);
+
+    if (error) {
+      throw new ManagerError("journal_entries_failed", error.message, 500);
+    }
+
+    return (data ?? []).length > 0;
+  }
+
   async createJournalEntry(
     params: JournalValues & { accountId: string },
   ): Promise<JournalEntryDetail> {
