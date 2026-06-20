@@ -60,16 +60,19 @@ export function UserSummary({
           <span className="truncate text-sm font-semibold text-zinc-950">
             {name}
           </span>
-          {isDonor ? (
+          {isDonor && !showBeltMarker ? (
             <DonorBadge className="px-1.5 py-0 text-[0.65rem]" />
           ) : null}
         </span>
         {showBeltMarker ? (
           <span
-            className="mt-1 block"
+            className="mt-1 flex items-center gap-2"
             aria-label={`${formatBelt(summary.belt ?? "unknown")} belt`}
           >
             <BeltMarker belt={summary.belt ?? "unknown"} />
+            {isDonor ? (
+              <DonorBadge className="px-1.5 py-0 text-[0.65rem]" />
+            ) : null}
           </span>
         ) : (
           <span className="block text-xs capitalize text-zinc-600">
