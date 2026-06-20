@@ -159,6 +159,6 @@ protocol-relative destinations are discarded.
   - [x] Filters - Category and type should be side by side
   - [x] Stats - improve empty state and loading state (currently has borders and white bg)
 - [x] Need to be able to edit custom training partners
-- [ ] Removing training partner does not work (try both custom and real person)
+- [x] Removing training partner does not work (try both custom and real person)
 - [ ] Improve overall performance
 - [ ] S3 bucket and profile upload. Maybe supabase already supports this?

@@ -271,7 +271,7 @@ export class AccountManager {
   }) {
     const { data: ownedPartner } = await this.supabase
       .from("training_partners")
-      .select("id")
+      .select("id, partner_account_id, former_partner_account_id")
       .eq("id", params.trainingPartnerId)
       .eq("owner_account_id", params.accountId)
       .maybeSingle();
@@ -282,6 +282,25 @@ export class AccountManager {
         404,
       );
     }
+
+    if (!ownedPartner.partner_account_id) {
+      if (!ownedPartner.former_partner_account_id) {
+        const { error } = await this.supabase
+          .from("training_partners")
+          .delete()
+          .eq("id", params.trainingPartnerId)
+          .eq("owner_account_id", params.accountId)
+          .is("partner_account_id", null)
+          .is("former_partner_account_id", null);
+
+        if (error) {
+          throw new ManagerError("partner_remove_failed", error.message, 500);
+        }
+      }
+
+      return { removed: true as const };
+    }
+
     const { error } = await this.supabase.rpc("detach_training_partner", {
       account_id: params.accountId,
       training_partner_id: params.trainingPartnerId,
@@ -407,33 +426,35 @@ export class AccountManager {
     }
 
     return {
-      items: (data ?? []).map(
-        (row): TrainingPartnerDetail =>
-          row.is_account_backed
-            ? {
-                id: row.id,
-                object: "training_partner",
-                accountId: row.partner_account_id!,
-                firstName: row.first_name ?? undefined,
-                lastName: row.last_name ?? undefined,
-                profilePhoto: row.profile_photo ?? undefined,
-                belt: row.partner_belt ?? "unknown",
-                weight: row.partner_weight ?? "unknown",
-                createdAt: new Date(row.created_date).getTime(),
-                updatedAt: new Date(row.updated_date).getTime(),
-              }
-            : {
-                id: row.id,
-                object: "custom_training_partner",
-                firstName: row.first_name ?? undefined,
-                lastName: row.last_name ?? undefined,
-                weight: row.partner_weight ?? undefined,
-                age: row.partner_age ?? undefined,
-                belt: row.partner_belt ?? undefined,
-                createdAt: new Date(row.created_date).getTime(),
-                updatedAt: new Date(row.updated_date).getTime(),
-              },
-      ),
+      items: (data ?? [])
+        .filter((row) => row.is_account_backed || !row.partner_account_id)
+        .map(
+          (row): TrainingPartnerDetail =>
+            row.is_account_backed
+              ? {
+                  id: row.id,
+                  object: "training_partner",
+                  accountId: row.partner_account_id!,
+                  firstName: row.first_name ?? undefined,
+                  lastName: row.last_name ?? undefined,
+                  profilePhoto: row.profile_photo ?? undefined,
+                  belt: row.partner_belt ?? "unknown",
+                  weight: row.partner_weight ?? "unknown",
+                  createdAt: new Date(row.created_date).getTime(),
+                  updatedAt: new Date(row.updated_date).getTime(),
+                }
+              : {
+                  id: row.id,
+                  object: "custom_training_partner",
+                  firstName: row.first_name ?? undefined,
+                  lastName: row.last_name ?? undefined,
+                  weight: row.partner_weight ?? undefined,
+                  age: row.partner_age ?? undefined,
+                  belt: row.partner_belt ?? undefined,
+                  createdAt: new Date(row.created_date).getTime(),
+                  updatedAt: new Date(row.updated_date).getTime(),
+                },
+        ),
       limit: params.limit,
       offset: params.offset,
     };
