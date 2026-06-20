@@ -15,7 +15,7 @@ const buttonPrimaryVariants: Record<
 };
 
 export function ButtonPrimary({
-  children = "Add journal entry",
+  children = "Add entry",
   className,
   variant = "default",
   ...props

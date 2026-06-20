@@ -137,7 +137,7 @@ export class JournalEntryManager {
       }
       throw new ManagerError(
         "journal_entry_creation_failed",
-        error?.message ?? "Could not create journal entry.",
+        error?.message ?? "Could not create entry.",
         500,
       );
     }
@@ -215,7 +215,7 @@ export class JournalEntryManager {
       }
       throw new ManagerError(
         "journal_entry_update_failed",
-        error?.message ?? "Could not update journal entry.",
+        error?.message ?? "Could not update entry.",
         500,
       );
     }
@@ -328,7 +328,7 @@ export class JournalEntryManager {
     if (owned?.length !== new Set(params.id).size) {
       throw new ManagerError(
         "journal_entry_not_found",
-        "Journal entry not found.",
+        "Entry not found.",
         404,
       );
     }
@@ -359,7 +359,7 @@ export class JournalEntryManager {
     if (partnerError || !partner) {
       throw new ManagerError(
         "accepted_partner_required",
-        "The journal entry must reference an accepted training partner.",
+        "The entry must reference an accepted training partner.",
         422,
       );
     }
@@ -626,7 +626,7 @@ export class JournalEntryManager {
     if (error || !data) {
       throw new ManagerError(
         "journal_entry_not_found",
-        "Journal entry not found.",
+        "Entry not found.",
         404,
       );
     }

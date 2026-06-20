@@ -123,7 +123,7 @@ export function JournalEntryTable({
         setError(
           loadError instanceof Error
             ? loadError.message
-            : "We could not load journal entries.",
+            : "We could not load entries.",
         );
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
@@ -261,9 +261,9 @@ export function JournalEntryTable({
             className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
             showCloseButton={false}
           >
-            <DialogTitle className="sr-only">New journal entry</DialogTitle>
+            <DialogTitle className="sr-only">New entry</DialogTitle>
             <DialogDescription className="sr-only">
-              Add a journal entry with technique, partner, and training details.
+              Add an entry with technique, partner, and training details.
             </DialogDescription>
             <JournalEntryCreate
               onClose={() => setIsCreateOpen(false)}
@@ -281,7 +281,7 @@ function JournalTableSkeleton({ readOnly }: { readOnly: boolean }) {
   return Array.from({ length: 4 }, (_, row) => (
     <tr
       key={row}
-      aria-label={row === 0 ? "Loading journal entries" : undefined}
+      aria-label={row === 0 ? "Loading entries" : undefined}
     >
       {Array.from({ length: readOnly ? 5 : 6 }, (_, column) => (
         <td

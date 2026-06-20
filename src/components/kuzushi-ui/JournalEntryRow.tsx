@@ -212,7 +212,7 @@ export function JournalEntryRow({
       <tr
         aria-label={
           canOpenDetails
-            ? `${canEdit ? "Edit" : "View"} ${entry.technique} journal entry`
+            ? `${canEdit ? "Edit" : "View"} ${entry.technique} entry`
             : undefined
         }
         className={cx(
@@ -274,8 +274,8 @@ export function JournalEntryRow({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  aria-label="Journal entry actions"
-                  title="Journal entry actions"
+                  aria-label="Entry actions"
+                  title="Entry actions"
                   type="button"
                   variant="ghost"
                   size="icon-sm"
@@ -307,12 +307,10 @@ export function JournalEntryRow({
             showCloseButton={false}
           >
             <DialogTitle className="sr-only">
-              {readOnly ? "Journal entry details" : "Edit journal entry"}
+              {readOnly ? "Entry details" : "Edit entry"}
             </DialogTitle>
             <DialogDescription className="sr-only">
-              {readOnly
-                ? "View this journal entry."
-                : "Update this journal entry."}
+              {readOnly ? "View this entry." : "Update this entry."}
             </DialogDescription>
             <JournalEntryUpdate
               entry={entry}
@@ -329,12 +327,12 @@ export function JournalEntryRow({
       {!readOnly ? (
         <DestructiveConfirmDialog
           actionLabel="Delete entry"
-          description="This journal entry will be permanently removed. This action cannot be undone."
+          description="This entry will be permanently removed. This action cannot be undone."
           onConfirm={deleteEntry}
           onOpenChange={setIsDeleteOpen}
           open={isDeleteOpen}
           pendingLabel="Deleting..."
-          title="Delete this journal entry?"
+          title="Delete this entry?"
         />
       ) : null}
     </>

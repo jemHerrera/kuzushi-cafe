@@ -4,10 +4,10 @@ import { cx } from "./shared";
 
 export function EmptyState({
   className,
-  title = "No journal entries",
+  title = "No entries",
   body = "Entries track training patterns. Add one to get started.",
   onAction,
-  actionLabel = "Add journal entry",
+  actionLabel = "Add entry",
   icon: Icon = Inbox,
 }: {
   className?: string;

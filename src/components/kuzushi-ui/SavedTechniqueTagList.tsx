@@ -190,7 +190,7 @@ export function SavedTechniqueTagList({
               body={
                 debouncedQuery
                   ? "Try a different search term."
-                  : "Add techniques you want to reuse in journal entries."
+                  : "Add techniques you want to reuse in entries."
               }
               className="mx-1"
               title={

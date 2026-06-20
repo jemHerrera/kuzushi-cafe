@@ -17,7 +17,7 @@ import { LoadingState } from "./LoadingState";
 import { ModalFrame } from "./ModalFrame";
 
 const privacyRows = [
-  ["journalEntries", "Journal entries"],
+  ["journalEntries", "Entries"],
   ["activity", "Activity"],
   ["stats", "Stats"],
 ] as const;

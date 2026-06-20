@@ -181,7 +181,7 @@ function TrainingActivityCalendar({
         body={
           isPublic
             ? "No journal activity is visible for the last 12 months."
-            : "Your contribution calendar will fill in as journal entries are created."
+            : "Your contribution calendar will fill in as entries are created."
         }
         onAction={onAddEntry}
         title="No training activity yet"
@@ -205,7 +205,7 @@ function TrainingActivityCalendar({
           data={calendarData}
           fontSize={12}
           labels={{
-            totalCount: "{{count}} journal entries in the last year",
+            totalCount: "{{count}} entries in the last year",
             legend: { less: "Less", more: "More" },
           }}
           showWeekdayLabels={["mon", "wed", "fri"]}

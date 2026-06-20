@@ -40,9 +40,9 @@ export function JournalEntrySearch({
 
   return (
     <Search
-      aria-label="Search journal entries"
+      aria-label="Search entries"
       className={cn("h-10 rounded-full bg-transparent shadow-none", className)}
-      placeholder="Search journal entries"
+      placeholder="Search entries"
       value={draftValue}
       onChange={(event) => changeValue(event.target.value)}
     />

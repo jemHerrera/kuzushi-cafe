@@ -154,23 +154,23 @@ export function PublicProfile({
                 size="lg"
               />
             </span>
-            <div className="grid min-w-0 flex-1 gap-5">
+            <div className="grid min-w-0 flex-1 gap-4">
               <div>
                 {profile.donated ? <DonorBadge className="mb-2" /> : null}
                 <h1 className="text-xl font-black tracking-tight text-zinc-950">
                   {name}
                 </h1>
+                {profile.bio ? (
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-zinc-600">
+                    {profile.bio}
+                  </p>
+                ) : null}
                 <div
-                  className="mt-1"
+                  className={profile.bio ? "mt-2" : "mt-1"}
                   aria-label={`${profile.belt ? formatBelt(profile.belt) : "Unknown"} belt`}
                 >
                   <BeltMarker belt={profile.belt ?? "unknown"} />
                 </div>
-                {profile.bio ? (
-                  <p className="mt-4 max-w-3xl text-sm leading-6 text-zinc-600">
-                    {profile.bio}
-                  </p>
-                ) : null}
               </div>
               <RelationshipActions
                 disabled={isSubmitting}

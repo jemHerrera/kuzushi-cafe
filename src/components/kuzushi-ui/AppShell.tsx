@@ -77,8 +77,7 @@ type ShellModal =
 
 const modalDescriptions: Record<ShellModal, string> = {
   profile: "View and update your profile details.",
-  "new-entry":
-    "Add a journal entry with technique, partner, and training details.",
+  "new-entry": "Add an entry with technique, partner, and training details.",
   settings: "Choose who can view your journal, activity, and stats.",
   donation: "Choose a donation amount to support Kuzushi Cafe.",
 };
@@ -371,7 +370,7 @@ export function AppShell(props: AppShellProps) {
             {displayedModal
               ? {
                   profile: "Profile",
-                  "new-entry": "New journal entry",
+                  "new-entry": "New entry",
                   settings: "Privacy settings",
                   donation: "Donation",
                 }[displayedModal]

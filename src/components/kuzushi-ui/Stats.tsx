@@ -156,7 +156,7 @@ export function Stats({
       ) : (
         <EmptyState
           className="bg-transparent px-0"
-          body="Technique stats appear after journal entries matching these filters are created."
+          body="Technique stats appear after entries matching these filters are created."
           onAction={onAddEntry}
           title="No stats yet"
         />

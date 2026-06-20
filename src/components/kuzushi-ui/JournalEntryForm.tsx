@@ -194,7 +194,7 @@ export function JournalEntryForm({
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "We could not save this journal entry.",
+          : "We could not save this entry.",
       );
     } finally {
       setIsSubmitting(false);
@@ -222,7 +222,7 @@ export function JournalEntryForm({
       throw new Error(
         deleteError instanceof Error
           ? deleteError.message
-          : "We could not delete this journal entry.",
+          : "We could not delete this entry.",
       );
     } finally {
       setIsDeleting(false);
@@ -232,7 +232,7 @@ export function JournalEntryForm({
   if (readOnly) {
     return (
       <ModalFrame
-        title="Journal entry details"
+        title="Entry details"
         onClose={onClose}
         withinDialog={withinDialog}
         className="p-3 sm:p-5"
@@ -287,7 +287,7 @@ export function JournalEntryForm({
 
   return (
     <ModalFrame
-      title={mode === "create" ? "Add journal entry" : "Update journal entry"}
+      title={mode === "create" ? "Add entry" : "Update entry"}
       onClose={onClose}
       withinDialog={withinDialog}
       className="p-3 sm:p-5"
@@ -441,12 +441,12 @@ export function JournalEntryForm({
             {mode === "update" ? (
               <DestructiveConfirmDialog
                 actionLabel="Delete entry"
-                description="This journal entry will be permanently removed. This action cannot be undone."
+                description="This entry will be permanently removed. This action cannot be undone."
                 disabled={isSubmitting || isDeleting}
                 onConfirm={deleteEntry}
                 onPendingChange={setIsDeleting}
                 pendingLabel="Deleting..."
-                title="Delete this journal entry?"
+                title="Delete this entry?"
               >
                 <ButtonSecondary
                   className="text-red-700 hover:bg-red-100 hover:text-red-800 border-none bg-none"
