@@ -65,6 +65,7 @@ const sampleAccount: AccountDetail = {
   email: "maya@example.com",
   belt: "purple",
   weight: "middle",
+  donated: false,
   createdAt: 0,
   updatedAt: 0,
 };
@@ -76,6 +77,7 @@ const samplePublicProfile: PublicProfileDetail = {
   lastName: "Chen",
   bio: "Purple belt focused on guard retention, sweeps, and technical rounds.",
   belt: "purple",
+  donated: true,
   relationshipStatus: "none",
   visibility: {
     journalEntries: true,

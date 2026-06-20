@@ -8,6 +8,7 @@ export { CompleteProfile } from "./CompleteProfile";
 export { CustomPartnerInput } from "./CustomPartnerInput";
 export { DateSelector } from "./DateSelector";
 export { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
+export { DonorBadge } from "./DonorBadge";
 export { DonationBanner } from "./DonationBanner";
 export { DonationModal } from "./DonationModal";
 export { EmptyState } from "./EmptyState";

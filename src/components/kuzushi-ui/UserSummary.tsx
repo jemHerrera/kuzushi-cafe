@@ -1,4 +1,5 @@
 import { Avatar } from "./Avatar";
+import { DonorBadge } from "./DonorBadge";
 import { beltBorderStyles, cx, samplePartners, type Partner } from "./shared";
 
 export function UserSummary({
@@ -6,6 +7,7 @@ export function UserSummary({
   identity,
   className,
   meta,
+  donated = false,
 }: {
   partner?: Partner;
   identity?: {
@@ -13,11 +15,14 @@ export function UserSummary({
     lastName?: string;
     belt: Partner["belt"];
     profilePhoto?: string;
+    donated?: boolean;
   };
   className?: string;
   meta?: string;
+  donated?: boolean;
 }) {
   const summary = identity ?? partner ?? samplePartners[0];
+  const isDonor = donated || ("donated" in summary && Boolean(summary.donated));
   const name =
     [summary.firstName, summary.lastName].filter(Boolean).join(" ") ||
     "Kuzushi member";
@@ -42,8 +47,13 @@ export function UserSummary({
         <Avatar initials={initials} src={profilePhoto} size="sm" />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-zinc-950">
-          {name}
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-semibold text-zinc-950">
+            {name}
+          </span>
+          {isDonor ? (
+            <DonorBadge className="px-1.5 py-0 text-[0.65rem]" />
+          ) : null}
         </span>
         <span className="block text-xs capitalize text-zinc-600">
           {meta ?? `${summary.belt ?? "unknown"} belt`}

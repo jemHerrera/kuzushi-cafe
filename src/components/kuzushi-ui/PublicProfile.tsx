@@ -13,12 +13,13 @@ import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
 import { ButtonSecondary } from "./ButtonSecondary";
 import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
+import { DonorBadge } from "./DonorBadge";
 import { ErrorState } from "./ErrorState";
 import { JournalEntryTable } from "./JournalEntryTable";
 import { LoadingState } from "./LoadingState";
 import { Stats } from "./Stats";
 import { TrainingActivity } from "./TrainingActivity";
-import { beltBorderStyles, cx, formatBelt } from "./shared";
+import { BeltMarker, beltBorderStyles, cx, formatBelt } from "./shared";
 
 type DestructiveAction = "remove" | "block";
 
@@ -155,12 +156,16 @@ export function PublicProfile({
             </span>
             <div className="grid min-w-0 flex-1 gap-5">
               <div>
+                {profile.donated ? <DonorBadge className="mb-2" /> : null}
                 <h1 className="text-xl font-black tracking-tight text-zinc-950">
                   {name}
                 </h1>
-                <p className="mt-1 text-sm text-zinc-500">
-                  {profile.belt ? formatBelt(profile.belt) : "Unknown"} belt
-                </p>
+                <div
+                  className="mt-1"
+                  aria-label={`${profile.belt ? formatBelt(profile.belt) : "Unknown"} belt`}
+                >
+                  <BeltMarker belt={profile.belt ?? "unknown"} />
+                </div>
                 {profile.bio ? (
                   <p className="mt-4 max-w-3xl text-sm leading-6 text-zinc-600">
                     {profile.bio}

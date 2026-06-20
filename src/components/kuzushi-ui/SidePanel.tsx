@@ -75,6 +75,7 @@ export function SidePanel({
             lastName: account.lastName,
             belt: account.belt,
             profilePhoto: account.profilePhoto,
+            donated: account.donated,
           }}
         />
       </button>

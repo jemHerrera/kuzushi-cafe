@@ -167,6 +167,10 @@ export function AppShell(props: AppShellProps) {
     setActiveModal(null);
   }
 
+  const handleDonationSuccess = useCallback(() => {
+    setCurrentAccount((account) => ({ ...account, donated: true }));
+  }, []);
+
   function openPublicProfile(profile: PublicAccountSummary) {
     openPublicProfileById(profile.id);
   }
@@ -346,6 +350,7 @@ export function AppShell(props: AppShellProps) {
                 bio: currentAccount.bio ?? "",
               }}
               onSaved={setCurrentAccount}
+              donated={currentAccount.donated}
               onClose={closeModal}
               profilePhoto={currentAccount.profilePhoto}
               withinDialog
@@ -364,6 +369,7 @@ export function AppShell(props: AppShellProps) {
           {displayedModal === "donation" ? (
             <DonationModal
               onClose={closeModal}
+              onSuccess={handleDonationSuccess}
               returnState={donationReturnState}
               sessionId={donationSessionId}
               withinDialog

@@ -110,6 +110,7 @@ export type Database = {
           bio: string | null
           birthday: string | null
           created_date: string
+          donated: boolean
           email: string
           first_name: string | null
           id: string
@@ -125,6 +126,7 @@ export type Database = {
           bio?: string | null
           birthday?: string | null
           created_date?: string
+          donated?: boolean
           email: string
           first_name?: string | null
           id?: string
@@ -140,6 +142,7 @@ export type Database = {
           bio?: string | null
           birthday?: string | null
           created_date?: string
+          donated?: boolean
           email?: string
           first_name?: string | null
           id?: string
@@ -495,6 +498,7 @@ export type Database = {
           can_view_activity: boolean
           can_view_journal_entries: boolean
           can_view_stats: boolean
+          donated: boolean
           first_name: string
           id: string
           last_name: string
@@ -568,6 +572,7 @@ export type Database = {
           bio: string
           birthday: string
           created_date: string
+          donated: boolean
           email: string
           first_name: string
           id: string
@@ -608,6 +613,7 @@ export type Database = {
         Returns: {
           belt: Database["public"]["Enums"]["belt"]
           bio: string
+          donated: boolean
           first_name: string
           id: string
           last_name: string

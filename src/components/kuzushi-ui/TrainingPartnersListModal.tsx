@@ -291,15 +291,6 @@ export function TrainingPartnersListModal({
 
                         openEditPartner(partner);
                       }}
-                      onBlock={
-                        partner.object === "training_partner"
-                          ? () =>
-                              setConfirming({
-                                type: "block",
-                                account: partnerToPublicSummary(partner),
-                              })
-                          : undefined
-                      }
                       onRemove={() =>
                         setConfirming({ type: "remove", partner })
                       }
@@ -482,24 +473,22 @@ export function TrainingPartnersListModal({
 }
 
 function PartnerList({ children }: { children: React.ReactNode }) {
-  return <div className="grid gap-1.5">{children}</div>;
+  return <div className="grid">{children}</div>;
 }
 
 function TrainingPartnerRow({
   disabled,
-  onBlock,
   onOpen,
   onRemove,
   partner,
 }: {
   disabled: boolean;
-  onBlock?: () => void;
   onOpen: () => void;
   onRemove: () => void;
   partner: TrainingPartnerDetail;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 bg-white">
+    <div className="flex flex-wrap items-center bg-white gap-2">
       <ProfileButton
         belt={partner.belt}
         disabled={disabled}
@@ -513,17 +502,6 @@ function TrainingPartnerRow({
         onOpen={onOpen}
       />
       <div className="ml-auto flex flex-wrap gap-2">
-        {onBlock ? (
-          <ButtonSecondary
-            className="h-8 gap-1.5 px-3 text-xs"
-            type="button"
-            onClick={onBlock}
-            disabled={disabled}
-          >
-            <Ban className="size-3.5" />
-            Block
-          </ButtonSecondary>
-        ) : null}
         <ButtonSecondary
           className="h-8 gap-1.5 px-3 text-xs"
           type="button"
@@ -550,7 +528,7 @@ function AccountRow({
   onOpen: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 bg-white p-2">
+    <div className="flex flex-wrap items-center gap-2 bg-white">
       <ProfileButton
         belt={account.belt}
         disabled={disabled}
@@ -581,7 +559,7 @@ function ProfileButton({
 }) {
   return (
     <button
-      className="flex min-w-0 flex-1 items-center gap-3 rounded-md text-left transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none"
+      className="flex min-w-0 flex-1 p-2 items-center gap-3 rounded-md text-left transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none"
       type="button"
       onClick={onOpen}
       disabled={disabled}

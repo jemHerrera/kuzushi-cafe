@@ -38,7 +38,7 @@ export class DonationManager {
         mode: "payment",
         client_reference_id: params.accountId,
         metadata: { accountId: params.accountId, kind: "donation" },
-        success_url: successUrl.toString(),
+        success_url: stripeCheckoutSuccessUrl(successUrl),
         cancel_url: cancelUrl.toString(),
         line_items: [
           {
@@ -130,11 +130,31 @@ export class DonationManager {
 
     const status = checkoutStatus(session);
     if (status !== stored.status) {
-      await this.supabase
+      const { error: statusUpdateError } = await this.supabase
         .from("donation_checkout_sessions")
         .update({ status })
         .eq("id", params.sessionId)
         .eq("account_id", params.accountId);
+      if (statusUpdateError) {
+        throw new ManagerError(
+          "checkout_status_update_failed",
+          statusUpdateError.message,
+          500,
+        );
+      }
+    }
+    if (status === "success") {
+      const { error: accountUpdateError } = await this.supabase
+        .from("accounts")
+        .update({ donated: true })
+        .eq("id", params.accountId);
+      if (accountUpdateError) {
+        throw new ManagerError(
+          "account_donation_update_failed",
+          accountUpdateError.message,
+          500,
+        );
+      }
     }
     return { status };
   }
@@ -174,6 +194,12 @@ function validateCheckoutUrl(value: string) {
       422,
     );
   }
+}
+
+function stripeCheckoutSuccessUrl(url: URL) {
+  return url
+    .toString()
+    .replace("%7BCHECKOUT_SESSION_ID%7D", "{CHECKOUT_SESSION_ID}");
 }
 
 function checkoutStatus(

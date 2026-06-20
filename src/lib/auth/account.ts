@@ -27,6 +27,7 @@ export function toAccountDetail(row: AccountRow): AccountDetail {
     birthday: row.birthday
       ? new Date(`${row.birthday}T00:00:00Z`).getTime()
       : undefined,
+    donated: row.donated,
     createdAt: new Date(row.created_date).getTime(),
     updatedAt: new Date(row.updated_date).getTime(),
   };

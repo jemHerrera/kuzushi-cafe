@@ -8,6 +8,7 @@ import type { AccountDetail, ApiErrorDetail } from "@/lib/managers/types";
 import { AlertBanner } from "./AlertBanner";
 import { Avatar } from "./Avatar";
 import { ButtonPrimary } from "./ButtonPrimary";
+import { DonorBadge } from "./DonorBadge";
 import { ModalFrame } from "./ModalFrame";
 import {
   ProfileFields,
@@ -24,12 +25,14 @@ export function MyProfile({
   onClose,
   withinDialog = false,
   initialProfile = sampleProfileValue,
+  donated = false,
   profilePhoto,
   onSaved,
 }: {
   onClose?: () => void;
   withinDialog?: boolean;
   initialProfile?: ProfileFormValue;
+  donated?: boolean;
   profilePhoto?: string;
   onSaved?: (account: AccountDetail) => void;
 }) {
@@ -98,7 +101,10 @@ export function MyProfile({
         className="grid gap-5 sm:grid-cols-[5rem_minmax(0,1fr)] sm:items-start"
         onSubmit={submitProfile}
       >
-        <Avatar initials={initials} src={profilePhoto} size="lg" />
+        <div className="grid justify-items-start gap-2">
+          <Avatar initials={initials} src={profilePhoto} size="lg" />
+          {donated ? <DonorBadge /> : null}
+        </div>
         <div className="grid gap-4">
           {error ? <AlertBanner message={error} /> : null}
           <ProfileFields

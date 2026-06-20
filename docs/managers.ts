@@ -22,6 +22,7 @@ export type AccountDetail = {
   belt: Belt;
   weight: WeightClass;
   birthday: number;
+  donated?: boolean;
   createdAt: number;
   updatedAt: number;
 };
@@ -66,6 +67,7 @@ export type PublicAccountSummary = {
   bio?: string;
   profilePhoto?: string;
   belt?: Belt;
+  donated: boolean;
   relationshipStatus?: TrainingPartnerRelationshipStatus;
 };
 

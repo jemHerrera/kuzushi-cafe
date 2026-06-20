@@ -21,11 +21,13 @@ type DonationView = "form" | "checking" | DonationCheckoutStatus;
 
 export function DonationModal({
   onClose,
+  onSuccess,
   returnState,
   sessionId,
   withinDialog = false,
 }: {
   onClose?: () => void;
+  onSuccess?: () => void;
   returnState?: DonationReturn;
   sessionId?: string;
   withinDialog?: boolean;
@@ -59,7 +61,9 @@ export function DonationModal({
     setError(undefined);
 
     try {
-      setView(await fetchCheckoutStatusWithRetry(sessionId));
+      const status = await fetchCheckoutStatusWithRetry(sessionId);
+      if (status === "success") onSuccess?.();
+      setView(status);
     } catch (statusError) {
       if (isAbortError(statusError)) return;
       setView("retryable-failure");
@@ -69,7 +73,7 @@ export function DonationModal({
           : "We could not verify the donation.",
       );
     }
-  }, [sessionId]);
+  }, [onSuccess, sessionId]);
 
   useEffect(() => {
     if (returnState !== "success" || !sessionId) return;
@@ -83,7 +87,9 @@ export function DonationModal({
         const status = await fetchCheckoutStatusWithRetry(checkoutSessionId, {
           signal: abortController.signal,
         });
-        if (isActive) setView(status);
+        if (!isActive) return;
+        if (status === "success") onSuccess?.();
+        setView(status);
       } catch (statusError) {
         if (isAbortError(statusError)) return;
         if (!isActive) return;
@@ -101,7 +107,7 @@ export function DonationModal({
       isActive = false;
       abortController.abort();
     };
-  }, [returnState, sessionId]);
+  }, [onSuccess, returnState, sessionId]);
 
   function selectPreset(nextAmount: number) {
     setAmount(String(nextAmount));
@@ -315,7 +321,11 @@ async function fetchCheckoutStatusWithRetry(
 ) {
   let lastError: unknown;
 
-  for (let attempt = 0; attempt <= checkoutStatusRetryDelays.length; attempt++) {
+  for (
+    let attempt = 0;
+    attempt <= checkoutStatusRetryDelays.length;
+    attempt++
+  ) {
     try {
       const status = await fetchCheckoutStatus(sessionId, options);
       if (status !== "retryable-failure") return status;
