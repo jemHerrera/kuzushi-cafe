@@ -1,6 +1,6 @@
 "use client";
 
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/command";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
@@ -135,6 +136,20 @@ export function PublicProfileSearch({
         </DialogDescription>
         <Command shouldFilter={false}>
           <CommandInput
+            endAddon={
+              <DialogClose asChild>
+                <Button
+                  type="button"
+                  aria-label="Close public profile search"
+                  title="Close public profile search"
+                  variant="ghost"
+                  size="icon-xs"
+                >
+                  <XIcon className="size-4" />
+                </Button>
+              </DialogClose>
+            }
+            endAddonClassName="sm:hidden"
             placeholder="Search training partners"
             value={query}
             onValueChange={handleQueryChange}
