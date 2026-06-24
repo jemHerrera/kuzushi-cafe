@@ -265,6 +265,7 @@ export type Database = {
           heading: string
           id: string
           is_read: boolean
+          link_url: string | null
           source_account_id: string | null
           text: string
           updated_date: string
@@ -276,6 +277,7 @@ export type Database = {
           heading: string
           id?: string
           is_read?: boolean
+          link_url?: string | null
           source_account_id?: string | null
           text: string
           updated_date?: string
@@ -287,6 +289,7 @@ export type Database = {
           heading?: string
           id?: string
           is_read?: boolean
+          link_url?: string | null
           source_account_id?: string | null
           text?: string
           updated_date?: string
@@ -680,6 +683,27 @@ export type Database = {
           relationship_status: string
         }[]
       }
+      send_custom_training_partner_details_notification: {
+        Args: { target_account_id: string; training_partner_id: string }
+        Returns: {
+          account_id: string
+          category: Database["public"]["Enums"]["notification_category"]
+          created_date: string
+          heading: string
+          id: string
+          is_read: boolean
+          link_url: string | null
+          source_account_id: string | null
+          text: string
+          updated_date: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "notifications"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       send_journal_entry_assignment_notification: {
         Args: { assigning_account_id: string; journal_entry_id: string }
         Returns: {
@@ -689,6 +713,7 @@ export type Database = {
           heading: string
           id: string
           is_read: boolean
+          link_url: string | null
           source_account_id: string | null
           text: string
           updated_date: string
@@ -709,6 +734,7 @@ export type Database = {
           heading: string
           id: string
           is_read: boolean
+          link_url: string | null
           source_account_id: string | null
           text: string
           updated_date: string
@@ -771,6 +797,7 @@ export type Database = {
         | "journal-entry-partner"
         | "chat"
         | "training-partner-request"
+        | "custom-training-partner"
       privacy_type: "public" | "training-partners" | "private"
       weight_class: "unknown" | "feather" | "light" | "middle" | "heavy"
     }
@@ -939,6 +966,7 @@ export const Constants = {
         "journal-entry-partner",
         "chat",
         "training-partner-request",
+        "custom-training-partner",
       ],
       privacy_type: ["public", "training-partners", "private"],
       weight_class: ["unknown", "feather", "light", "middle", "heavy"],

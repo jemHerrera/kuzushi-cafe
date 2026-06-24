@@ -86,6 +86,7 @@ export function toNotification(row: NotificationRow): NotificationDetail {
     isRead: row.is_read,
     accountId: row.account_id,
     sourceAccountId: row.source_account_id ?? undefined,
+    linkUrl: row.link_url ?? undefined,
     updatedAt: new Date(row.updated_date).getTime(),
   };
 }

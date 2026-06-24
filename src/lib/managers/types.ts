@@ -204,6 +204,7 @@ export type NotificationDetail = {
   isRead: boolean;
   accountId: string;
   sourceAccountId?: string;
+  linkUrl?: string;
   updatedAt: number;
 };
 

@@ -403,6 +403,7 @@ export function JournalEntryForm({
               disabled={isSubmitting || isDeleting}
               partners={partners}
               value={selectedPartner}
+              createCustomPartnerSource="journal-entry"
               onSelectPartner={(partner) => {
                 setSelectedPartner(partner);
                 setIsPartnerTouched(true);

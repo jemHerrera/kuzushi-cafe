@@ -90,11 +90,6 @@ export function TrainingPartnersListModal({
       ? partners.find((partner) => partner.id === selectedPartnerId)
       : selectedPartner;
 
-  useEffect(() => {
-    if (view || (internalView !== "custom" && internalView !== "edit")) return;
-    setInternalView("list");
-  }, [internalView, view]);
-
   const loadPartners = useCallback(async () => {
     setError(undefined);
     setIsPartnersLoading(true);

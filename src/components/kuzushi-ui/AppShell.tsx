@@ -236,8 +236,9 @@ export function AppShell(props: AppShellProps) {
       donationReturn?: string | null;
       donationSessionId?: string | null;
     },
-    mode: "push" | "replace" =
-      displayedPanel || displayedModal ? "replace" : "push",
+    mode: "push" | "replace" = displayedPanel || displayedModal
+      ? "replace"
+      : "push",
   ) {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -308,7 +309,10 @@ export function AppShell(props: AppShellProps) {
               onNotificationsOpen={() => openPanel("notifications")}
               onProfileSearchOpenChange={(open) => {
                 if (open) {
-                  navigateShellOverlay({ panel: null, modal: "profile-search" });
+                  navigateShellOverlay({
+                    panel: null,
+                    modal: "profile-search",
+                  });
                 } else if (displayedModal === "profile-search") {
                   closeModal();
                 }
@@ -417,6 +421,7 @@ export function AppShell(props: AppShellProps) {
           <NotificationList
             className="h-full max-w-none border-l-0 pt-14"
             onIndicatorsChange={refreshIndicators}
+            onOpenLink={(url) => router.push(url)}
             onOpenProfile={openPublicProfileById}
           />
         </SheetContent>

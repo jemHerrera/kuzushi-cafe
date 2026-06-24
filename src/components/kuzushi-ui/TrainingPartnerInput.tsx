@@ -7,6 +7,7 @@ export function TrainingPartnerInput({
   onSelectPartner,
   onSelectUnknownPartner,
   onCreateSavedPartner,
+  createCustomPartnerSource,
   showLabel = true,
   variant = "default",
   ariaLabel,
@@ -17,6 +18,7 @@ export function TrainingPartnerInput({
   onSelectPartner?: (partner: Partner) => void;
   onSelectUnknownPartner?: () => void;
   onCreateSavedPartner?: (partner: TrainingPartnerDetail) => void;
+  createCustomPartnerSource?: "journal-entry";
   showLabel?: boolean;
   variant?: "default" | "property";
   ariaLabel?: string;
@@ -32,6 +34,7 @@ export function TrainingPartnerInput({
         onSelectPartner={onSelectPartner}
         onSelectUnknownPartner={onSelectUnknownPartner}
         onCreateSavedPartner={onCreateSavedPartner}
+        createCustomPartnerSource={createCustomPartnerSource}
         variant={variant}
       />
     );
@@ -50,6 +53,7 @@ export function TrainingPartnerInput({
         onSelectPartner={onSelectPartner}
         onSelectUnknownPartner={onSelectUnknownPartner}
         onCreateSavedPartner={onCreateSavedPartner}
+        createCustomPartnerSource={createCustomPartnerSource}
         variant={variant}
       />
     </div>

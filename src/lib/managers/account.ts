@@ -476,6 +476,7 @@ export class AccountManager {
     partnerWeight?: WeightClass;
     partnerAge?: AgeClass;
     partnerBelt?: Belt;
+    source?: "journal-entry";
   }): Promise<TrainingPartnerDetail> {
     if (
       !params.firstName &&
@@ -511,7 +512,7 @@ export class AccountManager {
       "Could not create custom training partner.",
     );
 
-    return {
+    const partner: TrainingPartnerDetail = {
       id: row.id,
       object: "custom_training_partner",
       firstName: row.first_name ?? undefined,
@@ -522,6 +523,15 @@ export class AccountManager {
       createdAt: new Date(row.created_date).getTime(),
       updatedAt: new Date(row.updated_date).getTime(),
     };
+
+    if (params.source === "journal-entry") {
+      await this.sendCustomPartnerDetailsNotification({
+        accountId: params.accountId,
+        trainingPartnerId: row.id,
+      });
+    }
+
+    return partner;
   }
 
   async updateCustomTrainingPartner(params: {
@@ -643,6 +653,27 @@ export class AccountManager {
       );
     }
     return data;
+  }
+
+  private async sendCustomPartnerDetailsNotification(params: {
+    accountId: string;
+    trainingPartnerId: string;
+  }) {
+    const { error } = await this.supabase.rpc(
+      "send_custom_training_partner_details_notification",
+      {
+        target_account_id: params.accountId,
+        training_partner_id: params.trainingPartnerId,
+      },
+    );
+
+    if (error) {
+      throw new ManagerError(
+        "notification_creation_failed",
+        error.message,
+        500,
+      );
+    }
   }
 }
 

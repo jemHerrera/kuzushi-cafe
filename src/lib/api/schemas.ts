@@ -165,9 +165,17 @@ export const customPartnerSchema = z
     partnerWeight: z.enum(weights).optional(),
     partnerAge: z.enum(ages).optional(),
     partnerBelt: z.enum(belts).optional(),
+    source: z.enum(["journal-entry"]).optional(),
   })
   .refine(
-    (value) => Object.values(value).some((item) => item !== undefined),
+    (value) =>
+      [
+        value.firstName,
+        value.lastName,
+        value.partnerWeight,
+        value.partnerAge,
+        value.partnerBelt,
+      ].some((item) => item !== undefined),
     "At least one partner detail is required.",
   );
 

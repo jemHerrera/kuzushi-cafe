@@ -29,6 +29,7 @@ type TrainingPartnerSelectMenuProps = {
   onSelectUnknownPartner?: () => void;
   onAddCustomPartner?: () => void;
   onCreateSavedPartner?: (partner: TrainingPartnerDetail) => void;
+  createCustomPartnerSource?: "journal-entry";
   variant?: "default" | "property" | "table";
   disabled?: boolean;
 };
@@ -42,6 +43,7 @@ export function TrainingPartnerSelectMenu({
   onSelectUnknownPartner,
   onAddCustomPartner,
   onCreateSavedPartner,
+  createCustomPartnerSource,
   variant = "default",
   disabled = false,
 }: TrainingPartnerSelectMenuProps) {
@@ -99,7 +101,10 @@ export function TrainingPartnerSelectMenu({
     setCreateError(undefined);
     setIsCreating(true);
     try {
-      const created = await createCustomPartnerFromName(trimmedQuery);
+      const created = await createCustomPartnerFromName(
+        trimmedQuery,
+        createCustomPartnerSource,
+      );
       onCreateSavedPartner?.(created);
       selectPartner(toPartner(created));
     } catch (error) {
@@ -281,7 +286,10 @@ export function TrainingPartnerSelectMenu({
   );
 }
 
-async function createCustomPartnerFromName(name: string) {
+async function createCustomPartnerFromName(
+  name: string,
+  source?: "journal-entry",
+) {
   const [firstName, lastName] = name.split(/\s+/).filter(Boolean);
   const response = await fetch("/api/training-partners/custom", {
     method: "POST",
@@ -289,6 +297,7 @@ async function createCustomPartnerFromName(name: string) {
     body: JSON.stringify({
       firstName,
       lastName,
+      source,
     }),
   });
 

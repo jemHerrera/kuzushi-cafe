@@ -20,10 +20,12 @@ const PAGE_SIZE = 10;
 export function NotificationList({
   className,
   onIndicatorsChange,
+  onOpenLink,
   onOpenProfile,
 }: {
   className?: string;
   onIndicatorsChange?: () => void | Promise<void>;
+  onOpenLink?: (url: string) => void;
   onOpenProfile?: (accountId: string) => void;
 }) {
   const [page, setPage] = useState(1);
@@ -117,9 +119,14 @@ export function NotificationList({
   }
 
   function openNotification(notification: NotificationDetail) {
-    if (!notification.sourceAccountId) return;
+    const { linkUrl, sourceAccountId } = notification;
+    if (!sourceAccountId && !linkUrl) return;
     if (!notification.isRead) void markRead(notification);
-    onOpenProfile?.(notification.sourceAccountId);
+    if (linkUrl) {
+      onOpenLink?.(linkUrl);
+      return;
+    }
+    if (sourceAccountId) onOpenProfile?.(sourceAccountId);
   }
 
   const visibleNotifications = notifications.slice(0, PAGE_SIZE);
@@ -168,7 +175,9 @@ export function NotificationList({
               heading={notification.heading}
               body={notification.text}
               unread={!notification.isRead}
-              canOpen={Boolean(notification.sourceAccountId)}
+              canOpen={Boolean(
+                notification.sourceAccountId || notification.linkUrl,
+              )}
               disabled={mutationId !== undefined}
               onMarkRead={() => markRead(notification)}
               onOpen={() => openNotification(notification)}
