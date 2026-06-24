@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +34,7 @@ import {
   type Partner,
   type TrainingPartnerDetail,
 } from "./shared";
+import { useCurrentSearch, writeBrowserUrl } from "./urlState";
 
 const JournalEntryCreate = dynamic(
   () =>
@@ -64,9 +65,12 @@ export function JournalEntryTable({
   refreshToken?: number;
   mobileHeaderContent?: ReactNode;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const currentSearch = useCurrentSearch();
+  const searchParams = useMemo(
+    () => new URLSearchParams(currentSearch),
+    [currentSearch],
+  );
   const [apiEntries, setApiEntries] = useState<JournalEntry[]>(() =>
     initialEntries.map(toJournalEntry),
   );
@@ -76,15 +80,17 @@ export function JournalEntryTable({
   const [refreshKey, setRefreshKey] = useState(0);
   const hasUsedInitialEntries = useRef(false);
   const isStatic = entries !== undefined || (readOnly && !accountId);
+  const journalQueryKey = useMemo(
+    () => journalParamsFrom(searchParams).toString(),
+    [searchParams],
+  );
   const query = useMemo(() => {
-    const parsed = parseJournalQuery(
-      `http://kuzushi.local${pathname}?${searchParams.toString()}`,
-    );
+    const parsed = parseJournalQuery(`http://kuzushi.local?${journalQueryKey}`);
     return {
       ...parsed,
       filter: { ...parsed.filter, isNoGi: undefined },
     };
-  }, [pathname, searchParams]);
+  }, [journalQueryKey]);
 
   useEffect(() => {
     if (isStatic) return;
@@ -152,7 +158,11 @@ export function JournalEntryTable({
   const entryModalId = searchParams.get("entryId");
 
   function replaceQuery(nextQuery: JournalQuery) {
-    const params = serializeJournalQuery(nextQuery);
+    const params = new URLSearchParams(searchParams.toString());
+    for (const key of journalParamKeys) params.delete(key);
+    for (const [key, value] of serializeJournalQuery(nextQuery)) {
+      params.append(key, value);
+    }
     window.history.replaceState(
       null,
       "",
@@ -172,10 +182,10 @@ export function JournalEntryTable({
     const hasEntryModal = parseEntryModal(searchParams.get("entryModal"));
     const url = `${pathname}${params.size ? `?${params}` : ""}`;
     if (hasEntryModal) {
-      router.replace(url, { scroll: false });
+      writeBrowserUrl(url, "replace");
       return;
     }
-    router.push(url, { scroll: false });
+    writeBrowserUrl(url, "push");
   }
 
   function closeEntryModal(entryId: string, modal: EntryModal) {
@@ -186,9 +196,7 @@ export function JournalEntryTable({
     const params = new URLSearchParams(searchParams.toString());
     params.delete("entryModal");
     params.delete("entryId");
-    router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
-      scroll: false,
-    });
+    writeBrowserUrl(`${pathname}${params.size ? `?${params}` : ""}`, "replace");
   }
 
   return (
@@ -473,4 +481,25 @@ function normalize(value: string) {
 
 function parseEntryModal(value: string | null): EntryModal | null {
   return value === "entry" || value === "partner" ? value : null;
+}
+
+const journalParamKeys = [
+  "search",
+  "category",
+  "journalTypes",
+  "isNoGi",
+  "sortField",
+  "sortDirection",
+  "limit",
+  "offset",
+] as const;
+
+function journalParamsFrom(params: URLSearchParams) {
+  const journalParams = new URLSearchParams();
+  for (const key of journalParamKeys) {
+    for (const value of params.getAll(key)) {
+      journalParams.append(key, value);
+    }
+  }
+  return journalParams;
 }

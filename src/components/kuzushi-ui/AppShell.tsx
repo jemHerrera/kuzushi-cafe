@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import {
   Dialog,
@@ -30,6 +30,7 @@ import { SidePanel, type SidePanelAction } from "./SidePanel";
 import { Stats } from "./Stats";
 import { TrainingActivity } from "./TrainingActivity";
 import { UserSummary } from "./UserSummary";
+import { useCurrentSearch, writeBrowserUrl } from "./urlState";
 
 const DonationModal = dynamic(
   () => import("./DonationModal").then((module) => module.DonationModal),
@@ -122,7 +123,11 @@ export function AppShell(props: AppShellProps) {
   const { account } = props;
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const currentSearch = useCurrentSearch();
+  const currentSearchParams = useMemo(
+    () => new URLSearchParams(currentSearch),
+    [currentSearch],
+  );
   const [currentAccount, setCurrentAccount] = useState(account);
   const [hasJournalEntries, setHasJournalEntries] = useState(
     props.profileAccountId === undefined
@@ -134,18 +139,20 @@ export function AppShell(props: AppShellProps) {
     hasUnreadNotifications: false,
     hasInboundTrainingPartnerRequests: false,
   });
-  const routePanel = parseShellPanel(searchParams.get("panel"));
-  const routeModal = parseShellModal(searchParams.get("modal"));
+  const routePanel = parseShellPanel(currentSearchParams.get("panel"));
+  const routeModal = parseShellModal(currentSearchParams.get("modal"));
   const trainingPartnersView = parseTrainingPartnersView(
-    searchParams.get("trainingPartnersView"),
+    currentSearchParams.get("trainingPartnersView"),
   );
-  const trainingPartnerId = searchParams.get("trainingPartnerId") ?? undefined;
-  const donationReturn = searchParams.get("donation");
+  const trainingPartnerId =
+    currentSearchParams.get("trainingPartnerId") ?? undefined;
+  const donationReturn = currentSearchParams.get("donation");
   const donationReturnState =
     donationReturn === "success" || donationReturn === "canceled"
       ? donationReturn
       : undefined;
-  const donationSessionId = searchParams.get("session_id")?.trim() || undefined;
+  const donationSessionId =
+    currentSearchParams.get("session_id")?.trim() || undefined;
   const displayedModal = donationReturnState ? "donation" : routeModal;
   const displayedShellModal =
     displayedModal === "profile-search" ? null : displayedModal;
@@ -240,7 +247,7 @@ export function AppShell(props: AppShellProps) {
       ? "replace"
       : "push",
   ) {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(currentSearchParams);
 
     if ("panel" in next) {
       if (next.panel) params.set("panel", next.panel);
@@ -271,10 +278,10 @@ export function AppShell(props: AppShellProps) {
 
     const url = `${pathname}${params.size ? `?${params}` : ""}`;
     if (mode === "replace") {
-      router.replace(url, { scroll: false });
+      writeBrowserUrl(url, "replace");
       return;
     }
-    router.push(url, { scroll: false });
+    writeBrowserUrl(url, "push");
   }
 
   const handleDonationSuccess = useCallback(() => {
@@ -479,7 +486,7 @@ export function AppShell(props: AppShellProps) {
             view={trainingPartnersView ?? undefined}
             selectedPartnerId={trainingPartnerId}
             onViewChange={(view, partnerId) => {
-              const params = new URLSearchParams(searchParams.toString());
+              const params = new URLSearchParams(currentSearchParams);
               if (view === "custom" || view === "edit") {
                 params.set("panel", "training-partners");
                 params.set("trainingPartnersView", view);
@@ -488,15 +495,16 @@ export function AppShell(props: AppShellProps) {
                 } else {
                   params.delete("trainingPartnerId");
                 }
-                router.push(`${pathname}${params.size ? `?${params}` : ""}`, {
-                  scroll: false,
-                });
+                writeBrowserUrl(
+                  `${pathname}${params.size ? `?${params}` : ""}`,
+                  "push",
+                );
               } else {
                 params.delete("trainingPartnersView");
                 params.delete("trainingPartnerId");
-                router.replace(
+                writeBrowserUrl(
                   `${pathname}${params.size ? `?${params}` : ""}`,
-                  { scroll: false },
+                  "replace",
                 );
               }
             }}

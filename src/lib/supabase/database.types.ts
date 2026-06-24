@@ -798,6 +798,7 @@ export type Database = {
         | "chat"
         | "training-partner-request"
         | "custom-training-partner"
+        | "training-partner-accepted"
       privacy_type: "public" | "training-partners" | "private"
       weight_class: "unknown" | "feather" | "light" | "middle" | "heavy"
     }
@@ -967,6 +968,7 @@ export const Constants = {
         "chat",
         "training-partner-request",
         "custom-training-partner",
+        "training-partner-accepted",
       ],
       privacy_type: ["public", "training-partners", "private"],
       weight_class: ["unknown", "feather", "light", "middle", "heavy"],
