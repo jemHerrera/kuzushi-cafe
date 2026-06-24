@@ -31,6 +31,7 @@ import { TechniqueTagSelectMenu } from "./TechniqueTagSelectMenu";
 import { TrainingPartnerInput } from "./TrainingPartnerInput";
 import {
   BeltMarker,
+  categoryDescriptions,
   cx,
   formatBelt,
   formatCategoryLabel,
@@ -89,6 +90,7 @@ export function JournalEntryForm({
     refresh: refreshOptions,
     retry: retryOptions,
     upsertTag,
+    upsertPartner,
   } = useJournalFormOptions();
   const tagCategory = category === "tap" ? "submission" : category;
   const techniques = useMemo(
@@ -307,12 +309,17 @@ export function JournalEntryForm({
         ) : null}
         <>
           <PropertyField icon={Shapes} label="Category">
-            <TechniqueCategoryPillSelect
-              disabled={isSubmitting || isDeleting}
-              value={category}
-              onValueChange={selectCategory}
-              variant="property"
-            />
+            <div className="grid gap-1.5">
+              <TechniqueCategoryPillSelect
+                disabled={isSubmitting || isDeleting}
+                value={category}
+                onValueChange={selectCategory}
+                variant="property"
+              />
+              <p className="text-xs italic leading-5 text-zinc-500">
+                {categoryDescriptions[category]}
+              </p>
+            </div>
           </PropertyField>
           <PropertyField icon={Tag} label="Technique">
             <TechniqueTagSelectMenu
@@ -404,6 +411,7 @@ export function JournalEntryForm({
                 setSelectedPartner(null);
                 setIsPartnerTouched(true);
               }}
+              onCreateSavedPartner={upsertPartner}
               showLabel={false}
               variant="property"
             />

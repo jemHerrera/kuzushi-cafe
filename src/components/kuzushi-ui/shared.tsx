@@ -79,7 +79,7 @@ export type JournalEntry = {
 };
 
 export const categoryStyles: Record<Category, string> = {
-  submission: "border-rose-200 bg-rose-50 !text-rose-800",
+  submission: "border-blue-200 bg-blue-50 !text-blue-800",
   takedown: "border-orange-200 bg-orange-50 !text-orange-800",
   sweep: "border-amber-200 bg-amber-50 !text-amber-800",
   "guard-pass": "border-emerald-200 bg-emerald-50 !text-emerald-800",
@@ -87,7 +87,7 @@ export const categoryStyles: Record<Category, string> = {
   "back-take": "border-violet-200 bg-violet-50 !text-violet-800",
   "leg-entry": "border-fuchsia-200 bg-fuchsia-50 !text-fuchsia-800",
   escape: "border-cyan-200 bg-cyan-50 !text-cyan-800",
-  tap: "border-zinc-300 bg-zinc-100 !text-zinc-800",
+  tap: "border-rose-200 bg-rose-50 !text-rose-800",
   "off-balance": "border-lime-200 bg-lime-50 !text-lime-800",
   position: "border-indigo-200 bg-indigo-50 !text-indigo-800",
   "guard-retention": "border-teal-200 bg-teal-50 !text-teal-800",
@@ -186,6 +186,21 @@ export function BeltMarker({
 
 export const categories = Object.keys(categoryStyles) as Category[];
 export const savedTagCategories = [...savedTagCategoryValues] as Category[];
+export const categoryDescriptions: Record<Category, string> = {
+  submission: "Attacking with a finishing technique.",
+  takedown: "Bringing a partner from standing to the mat.",
+  sweep: "Reversing from bottom into a top position.",
+  "guard-pass": "Clearing the legs and beating the guard.",
+  reversal: "Escaping a bad position and coming up on top.",
+  "back-take": "Moving to back control.",
+  "leg-entry": "Entering a leg entanglement position.",
+  escape: "Getting out of a pin, control, or submission threat.",
+  tap: "Being submitted and having to tap.",
+  "off-balance": "Breaking posture, balance, or base to create an opening.",
+  position: "Reaching or maintaining a control position.",
+  "guard-retention": "Recovering or keeping guard while being passed.",
+  other: "Anything that does not fit the other categories.",
+};
 export const intensities: Intensity[] = ["playful", "casual", "intense"];
 export const belts: Belt[] = [
   "unknown",

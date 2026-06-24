@@ -24,6 +24,7 @@ type JournalFormOptionsContextValue = {
   retry: () => void;
   upsertTag: (tag: TechniqueTagDetail) => void;
   removeTag: (id: string) => void;
+  upsertPartner: (partner: TrainingPartnerDetail) => void;
 };
 
 const JournalFormOptionsContext =
@@ -93,6 +94,13 @@ export function JournalFormOptionsProvider({
           }),
         removeTag: (id) =>
           setTags((current) => current.filter((tag) => tag.id !== id)),
+        upsertPartner: (partner) =>
+          setPartners((current) => {
+            const withoutPartner = current.filter(
+              (item) => item.id !== partner.id,
+            );
+            return [...withoutPartner, partner];
+          }),
       }}
     >
       {children}
@@ -112,6 +120,7 @@ const emptyJournalFormOptions: JournalFormOptionsContextValue = {
   retry: () => undefined,
   upsertTag: () => undefined,
   removeTag: () => undefined,
+  upsertPartner: () => undefined,
 };
 
 async function loadTechniqueTags() {

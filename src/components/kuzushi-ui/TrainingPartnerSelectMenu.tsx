@@ -28,6 +28,7 @@ type TrainingPartnerSelectMenuProps = {
   onSelectPartner?: (partner: Partner) => void;
   onSelectUnknownPartner?: () => void;
   onAddCustomPartner?: () => void;
+  onCreateSavedPartner?: (partner: TrainingPartnerDetail) => void;
   variant?: "default" | "property" | "table";
   disabled?: boolean;
 };
@@ -40,6 +41,7 @@ export function TrainingPartnerSelectMenu({
   onSelectPartner,
   onSelectUnknownPartner,
   onAddCustomPartner,
+  onCreateSavedPartner,
   variant = "default",
   disabled = false,
 }: TrainingPartnerSelectMenuProps) {
@@ -98,6 +100,7 @@ export function TrainingPartnerSelectMenu({
     setIsCreating(true);
     try {
       const created = await createCustomPartnerFromName(trimmedQuery);
+      onCreateSavedPartner?.(created);
       selectPartner(toPartner(created));
     } catch (error) {
       setCreateError(

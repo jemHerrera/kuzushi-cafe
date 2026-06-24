@@ -34,7 +34,7 @@ const typeOptions: Array<{ value: StatsTypeFilter; label: string }> = [
 ];
 
 const categoryChartColors: Record<Category, string> = {
-  submission: "#be123c",
+  submission: "#1d4ed8",
   takedown: "#c2410c",
   sweep: "#b45309",
   "guard-pass": "#047857",
@@ -42,7 +42,7 @@ const categoryChartColors: Record<Category, string> = {
   "back-take": "#6d28d9",
   "leg-entry": "#a21caf",
   escape: "#0e7490",
-  tap: "#3f3f46",
+  tap: "#be123c",
   "off-balance": "#4d7c0f",
   position: "#4338ca",
   "guard-retention": "#0f766e",

@@ -1,11 +1,12 @@
 import { TrainingPartnerSelectMenu } from "./TrainingPartnerSelectMenu";
-import type { Partner } from "./shared";
+import type { Partner, TrainingPartnerDetail } from "./shared";
 
 export function TrainingPartnerInput({
   partners,
   value,
   onSelectPartner,
   onSelectUnknownPartner,
+  onCreateSavedPartner,
   showLabel = true,
   variant = "default",
   ariaLabel,
@@ -15,6 +16,7 @@ export function TrainingPartnerInput({
   value?: Partner | null;
   onSelectPartner?: (partner: Partner) => void;
   onSelectUnknownPartner?: () => void;
+  onCreateSavedPartner?: (partner: TrainingPartnerDetail) => void;
   showLabel?: boolean;
   variant?: "default" | "property";
   ariaLabel?: string;
@@ -29,6 +31,7 @@ export function TrainingPartnerInput({
         value={value}
         onSelectPartner={onSelectPartner}
         onSelectUnknownPartner={onSelectUnknownPartner}
+        onCreateSavedPartner={onCreateSavedPartner}
         variant={variant}
       />
     );
@@ -46,6 +49,7 @@ export function TrainingPartnerInput({
         value={value}
         onSelectPartner={onSelectPartner}
         onSelectUnknownPartner={onSelectUnknownPartner}
+        onCreateSavedPartner={onCreateSavedPartner}
         variant={variant}
       />
     </div>
