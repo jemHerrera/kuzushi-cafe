@@ -10,12 +10,16 @@ export function Header({
   hasUnreadNotifications = false,
   onMenuOpen,
   onNotificationsOpen,
+  onProfileSearchOpenChange,
   onSelectProfile,
+  isProfileSearchOpen,
 }: {
   alertMessage?: string;
   hasUnreadNotifications?: boolean;
+  isProfileSearchOpen?: boolean;
   onMenuOpen?: () => void;
   onNotificationsOpen?: () => void;
+  onProfileSearchOpenChange?: (open: boolean) => void;
   onSelectProfile?: (profile: PublicAccountSummary) => void;
 }) {
   return (
@@ -32,6 +36,8 @@ export function Header({
         <BrandWordmark href="/app" />
         <div className="flex items-center justify-self-end">
           <PublicProfileSearch
+            open={isProfileSearchOpen}
+            onOpenChange={onProfileSearchOpenChange}
             onSelectProfile={onSelectProfile}
             trigger="icon"
           />
@@ -58,7 +64,11 @@ export function Header({
             onClick={onMenuOpen}
           />
           <div className="w-64 shrink-0">
-            <PublicProfileSearch onSelectProfile={onSelectProfile} />
+            <PublicProfileSearch
+              open={isProfileSearchOpen}
+              onOpenChange={onProfileSearchOpenChange}
+              onSelectProfile={onSelectProfile}
+            />
           </div>
           {alertMessage ? (
             <AlertBanner

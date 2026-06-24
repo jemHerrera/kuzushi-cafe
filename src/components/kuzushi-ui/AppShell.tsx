@@ -72,10 +72,32 @@ type ShellModal =
       SidePanelAction,
       "profile" | "saved-techniques" | "training-partners"
     >
-  | "profile";
+  | "profile"
+  | "profile-search";
+
+type ShellPanel =
+  | "navigation"
+  | "notifications"
+  | "saved-techniques"
+  | "training-partners";
+
+const shellPanels = new Set<string>([
+  "navigation",
+  "notifications",
+  "saved-techniques",
+  "training-partners",
+]);
+const shellModals = new Set<string>([
+  "profile",
+  "profile-search",
+  "new-entry",
+  "settings",
+  "donation",
+]);
 
 const modalDescriptions: Record<ShellModal, string> = {
   profile: "View and update your profile details.",
+  "profile-search": "Search public profiles.",
   "new-entry": "Add an entry with technique, partner, and training details.",
   settings: "Choose who can view your journal, activity, and stats.",
   donation: "Choose a donation amount to support Kuzushi Cafe.",
@@ -107,23 +129,26 @@ export function AppShell(props: AppShellProps) {
       ? props.initialHasJournalEntries
       : false,
   );
-  const [activeModal, setActiveModal] = useState<ShellModal | null>(null);
   const [journalRefreshToken, setJournalRefreshToken] = useState(0);
-  const [isNavigationOpen, setIsNavigationOpen] = useState(false);
-  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [isSavedTechniquesOpen, setIsSavedTechniquesOpen] = useState(false);
-  const [isTrainingPartnersOpen, setIsTrainingPartnersOpen] = useState(false);
   const [indicators, setIndicators] = useState<NotificationIndicators>({
     hasUnreadNotifications: false,
     hasInboundTrainingPartnerRequests: false,
   });
+  const routePanel = parseShellPanel(searchParams.get("panel"));
+  const routeModal = parseShellModal(searchParams.get("modal"));
+  const trainingPartnersView = parseTrainingPartnersView(
+    searchParams.get("trainingPartnersView"),
+  );
   const donationReturn = searchParams.get("donation");
   const donationReturnState =
     donationReturn === "success" || donationReturn === "canceled"
       ? donationReturn
       : undefined;
   const donationSessionId = searchParams.get("session_id")?.trim() || undefined;
-  const displayedModal = donationReturnState ? "donation" : activeModal;
+  const displayedModal = donationReturnState ? "donation" : routeModal;
+  const displayedShellModal =
+    displayedModal === "profile-search" ? null : displayedModal;
+  const displayedPanel = displayedModal ? null : routePanel;
 
   const refreshIndicators = useCallback(async () => {
     try {
@@ -173,29 +198,80 @@ export function AppShell(props: AppShellProps) {
     };
   }, [refreshIndicators]);
 
+  function openPanel(panel: ShellPanel) {
+    navigateShellOverlay({ panel, modal: null });
+  }
+
+  function closePanel(panel: ShellPanel) {
+    const params = new URLSearchParams(window.location.search);
+    if (parseShellModal(params.get("modal")) || params.has("donation")) return;
+    if (parseShellPanel(params.get("panel")) !== panel) return;
+    navigateShellOverlay({ panel: null }, "replace");
+  }
+
   function openModal(action: SidePanelAction) {
-    setIsNavigationOpen(false);
     if (action === "saved-techniques") {
-      setIsSavedTechniquesOpen(true);
+      openPanel("saved-techniques");
       return;
     }
     if (action === "training-partners") {
-      setIsTrainingPartnersOpen(true);
+      openPanel("training-partners");
       return;
     }
-    setActiveModal(action);
+    navigateShellOverlay({ panel: null, modal: action });
   }
 
   function closeModal() {
-    if (donationReturnState) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("donation");
-      params.delete("session_id");
-      router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
-        scroll: false,
-      });
+    navigateShellOverlay(
+      { modal: null, donationReturn: null, donationSessionId: null },
+      "replace",
+    );
+  }
+
+  function navigateShellOverlay(
+    next: {
+      panel?: ShellPanel | null;
+      modal?: ShellModal | null;
+      donationReturn?: string | null;
+      donationSessionId?: string | null;
+    },
+    mode: "push" | "replace" =
+      displayedPanel || displayedModal ? "replace" : "push",
+  ) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if ("panel" in next) {
+      if (next.panel) params.set("panel", next.panel);
+      else params.delete("panel");
+      if (next.panel !== "training-partners") {
+        params.delete("trainingPartnersView");
+      }
     }
-    setActiveModal(null);
+
+    if ("modal" in next) {
+      if (next.modal) params.set("modal", next.modal);
+      else params.delete("modal");
+    }
+
+    if ("donationReturn" in next) {
+      if (next.donationReturn) params.set("donation", next.donationReturn);
+      else params.delete("donation");
+    }
+
+    if ("donationSessionId" in next) {
+      if (next.donationSessionId) {
+        params.set("session_id", next.donationSessionId);
+      } else {
+        params.delete("session_id");
+      }
+    }
+
+    const url = `${pathname}${params.size ? `?${params}` : ""}`;
+    if (mode === "replace") {
+      router.replace(url, { scroll: false });
+      return;
+    }
+    router.push(url, { scroll: false });
   }
 
   const handleDonationSuccess = useCallback(() => {
@@ -207,8 +283,6 @@ export function AppShell(props: AppShellProps) {
   }
 
   function openPublicProfileById(accountId: string) {
-    setIsNavigationOpen(false);
-    setIsNotificationsOpen(false);
     router.push(`/profiles/${encodeURIComponent(accountId)}`);
   }
 
@@ -227,8 +301,16 @@ export function AppShell(props: AppShellProps) {
           <div className="sticky top-0 z-30">
             <Header
               hasUnreadNotifications={indicators.hasUnreadNotifications}
-              onMenuOpen={() => setIsNavigationOpen(true)}
-              onNotificationsOpen={() => setIsNotificationsOpen(true)}
+              isProfileSearchOpen={displayedModal === "profile-search"}
+              onMenuOpen={() => openPanel("navigation")}
+              onNotificationsOpen={() => openPanel("notifications")}
+              onProfileSearchOpenChange={(open) => {
+                if (open) {
+                  navigateShellOverlay({ panel: null, modal: "profile-search" });
+                } else if (displayedModal === "profile-search") {
+                  closeModal();
+                }
+              }}
               onSelectProfile={openPublicProfile}
             />
           </div>
@@ -269,17 +351,18 @@ export function AppShell(props: AppShellProps) {
                       />
                     </button>
                   }
+                  onAddEntry={() => openModal("new-entry")}
                   onEntriesChange={handleJournalEntriesChange}
                   refreshToken={journalRefreshToken}
                 />
                 {hasJournalEntries ? (
                   <>
                     <TrainingActivity
-                      onAddEntry={() => setActiveModal("new-entry")}
+                      onAddEntry={() => openModal("new-entry")}
                       refreshToken={journalRefreshToken}
                     />
                     <Stats
-                      onAddEntry={() => setActiveModal("new-entry")}
+                      onAddEntry={() => openModal("new-entry")}
                       refreshToken={journalRefreshToken}
                     />
                   </>
@@ -290,7 +373,13 @@ export function AppShell(props: AppShellProps) {
         </div>
       </div>
 
-      <Sheet open={isNavigationOpen} onOpenChange={setIsNavigationOpen}>
+      <Sheet
+        open={displayedPanel === "navigation"}
+        onOpenChange={(open) => {
+          if (open) openPanel("navigation");
+          else closePanel("navigation");
+        }}
+      >
         <SheetContent
           className="p-0 data-[side=left]:w-full data-[side=left]:max-w-none data-[side=left]:sm:w-[min(24rem,calc(100vw-2rem))]"
           side="left"
@@ -311,7 +400,13 @@ export function AppShell(props: AppShellProps) {
         </SheetContent>
       </Sheet>
 
-      <Sheet open={isNotificationsOpen} onOpenChange={setIsNotificationsOpen}>
+      <Sheet
+        open={displayedPanel === "notifications"}
+        onOpenChange={(open) => {
+          if (open) openPanel("notifications");
+          else closePanel("notifications");
+        }}
+      >
         <SheetContent className="w-full p-0 sm:max-w-md" side="right">
           <SheetTitle className="sr-only">Notifications</SheetTitle>
           <SheetDescription className="sr-only">
@@ -326,8 +421,11 @@ export function AppShell(props: AppShellProps) {
       </Sheet>
 
       <Sheet
-        open={isSavedTechniquesOpen}
-        onOpenChange={setIsSavedTechniquesOpen}
+        open={displayedPanel === "saved-techniques"}
+        onOpenChange={(open) => {
+          if (open) openPanel("saved-techniques");
+          else closePanel("saved-techniques");
+        }}
       >
         <SheetContent
           className="p-0 data-[side=left]:w-full data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
@@ -340,15 +438,18 @@ export function AppShell(props: AppShellProps) {
           </SheetDescription>
           <SavedTechniqueTagList
             className="h-full"
-            onClose={() => setIsSavedTechniquesOpen(false)}
+            onClose={() => closePanel("saved-techniques")}
             presentation="sheet"
           />
         </SheetContent>
       </Sheet>
 
       <Sheet
-        open={isTrainingPartnersOpen}
-        onOpenChange={setIsTrainingPartnersOpen}
+        open={displayedPanel === "training-partners"}
+        onOpenChange={(open) => {
+          if (open) openPanel("training-partners");
+          else closePanel("training-partners");
+        }}
       >
         <SheetContent
           className="p-0 data-[side=left]:w-full data-[side=left]:max-w-none data-[side=left]:sm:w-[min(28rem,calc(100vw-2rem))]"
@@ -364,10 +465,26 @@ export function AppShell(props: AppShellProps) {
               indicators.hasInboundTrainingPartnerRequests
             }
             onIndicatorsChange={refreshIndicators}
-            onClose={() => setIsTrainingPartnersOpen(false)}
+            onClose={() => closePanel("training-partners")}
             onSelectPartner={(profile) => {
-              setIsTrainingPartnersOpen(false);
               openPublicProfile(profile);
+            }}
+            view={trainingPartnersView ?? undefined}
+            onViewChange={(view) => {
+              const params = new URLSearchParams(searchParams.toString());
+              if (view === "custom") {
+                params.set("panel", "training-partners");
+                params.set("trainingPartnersView", "custom");
+                router.push(`${pathname}${params.size ? `?${params}` : ""}`, {
+                  scroll: false,
+                });
+              } else {
+                params.delete("trainingPartnersView");
+                router.replace(
+                  `${pathname}${params.size ? `?${params}` : ""}`,
+                  { scroll: false },
+                );
+              }
             }}
             presentation="sheet"
           />
@@ -375,7 +492,7 @@ export function AppShell(props: AppShellProps) {
       </Sheet>
 
       <Dialog
-        open={displayedModal !== null}
+        open={displayedShellModal !== null}
         onOpenChange={(open) => {
           if (!open) closeModal();
         }}
@@ -388,6 +505,7 @@ export function AppShell(props: AppShellProps) {
             {displayedModal
               ? {
                   profile: "Profile",
+                  "profile-search": "Search public profiles",
                   "new-entry": "New entry",
                   settings: "Privacy settings",
                   donation: "Donation",
@@ -397,7 +515,7 @@ export function AppShell(props: AppShellProps) {
           <DialogDescription className="sr-only">
             {displayedModal ? modalDescriptions[displayedModal] : ""}
           </DialogDescription>
-          {displayedModal === "profile" ? (
+          {displayedShellModal === "profile" ? (
             <MyProfile
               initialProfile={{
                 firstName: currentAccount.firstName ?? "",
@@ -416,17 +534,17 @@ export function AppShell(props: AppShellProps) {
               withinDialog
             />
           ) : null}
-          {displayedModal === "new-entry" ? (
+          {displayedShellModal === "new-entry" ? (
             <JournalEntryCreate
               onClose={closeModal}
               onSaved={() => handleJournalEntriesChange({ hasEntries: true })}
               withinDialog
             />
           ) : null}
-          {displayedModal === "settings" ? (
+          {displayedShellModal === "settings" ? (
             <PrivacySettings onClose={closeModal} withinDialog />
           ) : null}
-          {displayedModal === "donation" ? (
+          {displayedShellModal === "donation" ? (
             <DonationModal
               onClose={closeModal}
               onSuccess={handleDonationSuccess}
@@ -439,4 +557,16 @@ export function AppShell(props: AppShellProps) {
       </Dialog>
     </main>
   );
+}
+
+function parseShellPanel(value: string | null): ShellPanel | null {
+  return value && shellPanels.has(value) ? (value as ShellPanel) : null;
+}
+
+function parseShellModal(value: string | null): ShellModal | null {
+  return value && shellModals.has(value) ? (value as ShellModal) : null;
+}
+
+function parseTrainingPartnersView(value: string | null): "custom" | null {
+  return value === "custom" ? value : null;
 }

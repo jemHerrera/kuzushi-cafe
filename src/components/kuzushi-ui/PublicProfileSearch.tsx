@@ -30,18 +30,28 @@ import { beltBorderStyles, cx } from "./shared";
 
 export function PublicProfileSearch({
   onSelectProfile,
+  open,
+  onOpenChange,
   trigger = "field",
 }: {
   onSelectProfile?: (profile: PublicAccountSummary) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   trigger?: "field" | "icon";
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [profiles, setProfiles] = useState<PublicAccountSummary[]>([]);
   const [error, setError] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
   const [retryToken, setRetryToken] = useState(0);
+  const isOpen = open ?? internalOpen;
   const searchTerm = query.trim();
+
+  function changeOpen(nextOpen: boolean) {
+    if (open === undefined) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  }
 
   useEffect(() => {
     if (!isOpen) return;
@@ -87,8 +97,8 @@ export function PublicProfileSearch({
   }, [isOpen, retryToken, searchTerm]);
 
   function selectProfile(profile: PublicAccountSummary) {
+    changeOpen(false);
     onSelectProfile?.(profile);
-    setIsOpen(false);
   }
 
   function handleQueryChange(value: string) {
@@ -101,7 +111,7 @@ export function PublicProfileSearch({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={changeOpen}>
       {trigger === "icon" ? (
         <Button
           type="button"
@@ -110,7 +120,7 @@ export function PublicProfileSearch({
           variant="ghost"
           size="icon-lg"
           className="rounded-md text-zinc-700"
-          onClick={() => setIsOpen(true)}
+          onClick={() => changeOpen(true)}
         >
           <SearchIcon className="size-4" />
         </Button>
@@ -118,7 +128,7 @@ export function PublicProfileSearch({
         <button
           type="button"
           className="flex h-11 w-full items-center gap-3 rounded-md border border-input bg-white px-3 text-left text-sm text-zinc-500 transition hover:bg-zinc-50 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          onClick={() => setIsOpen(true)}
+          onClick={() => changeOpen(true)}
         >
           <SearchIcon className="size-4 shrink-0 text-zinc-400" />
           <span className="min-w-0 flex-1 truncate">

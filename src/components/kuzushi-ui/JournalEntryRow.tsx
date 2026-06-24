@@ -24,8 +24,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { ApiErrorDetail } from "@/lib/managers/types";
+import type {
+  ApiErrorDetail,
+  TrainingPartnerDetail,
+} from "@/lib/managers/types";
 import { Avatar } from "./Avatar";
+import { CustomPartnerInput } from "./CustomPartnerInput";
 import { DestructiveConfirmDialog } from "./DestructiveConfirmDialog";
 import { TechniqueCategoryPill } from "./TechniqueCategoryPill";
 import {
@@ -51,6 +55,10 @@ type JournalEntryRowProps = {
   entry: JournalEntry;
   onSaved?: () => void;
   onDeleted?: () => void;
+  isEntryOpen?: boolean;
+  isPartnerOpen?: boolean;
+  onEntryOpenChange?: (open: boolean) => void;
+  onPartnerOpenChange?: (open: boolean) => void;
   readOnly?: boolean;
   publicView?: boolean;
   isLast?: boolean;
@@ -60,24 +68,41 @@ export function JournalEntryRow({
   entry,
   onSaved,
   onDeleted,
+  isEntryOpen,
+  isPartnerOpen,
+  onEntryOpenChange,
+  onPartnerOpenChange,
   readOnly = false,
   publicView = false,
   isLast = false,
 }: JournalEntryRowProps) {
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [internalEntryOpen, setInternalEntryOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [internalPartnerOpen, setInternalPartnerOpen] = useState(false);
   const [mobileDragOffset, setMobileDragOffset] = useState(0);
   const dragStartX = useRef<number | null>(null);
   const dragMoved = useRef(false);
   const canEdit = !readOnly;
   const canOpenDetails = readOnly || canEdit;
+  const entryOpen = isEntryOpen ?? internalEntryOpen;
+  const partnerOpen = isPartnerOpen ?? internalPartnerOpen;
+
+  function changeEntryOpen(open: boolean) {
+    if (isEntryOpen === undefined) setInternalEntryOpen(open);
+    onEntryOpenChange?.(open);
+  }
+
+  function changePartnerOpen(open: boolean) {
+    if (isPartnerOpen === undefined) setInternalPartnerOpen(open);
+    onPartnerOpenChange?.(open);
+  }
 
   function openDetails() {
     if (dragMoved.current) {
       dragMoved.current = false;
       return;
     }
-    if (canOpenDetails) setIsEditOpen(true);
+    if (canOpenDetails) changeEntryOpen(true);
   }
 
   function handleRowKeyDown(event: KeyboardEvent<HTMLTableRowElement>) {
@@ -194,7 +219,7 @@ export function JournalEntryRow({
               <span
                 className={cx(
                   "justify-self-end",
-                  !publicView && entry.partner?.accountId
+                  !publicView && entry.partner
                     ? "relative z-10"
                     : "pointer-events-none",
                 )}
@@ -202,7 +227,10 @@ export function JournalEntryRow({
                 {publicView ? (
                   <BeltIndicator partner={entry.partner} compact />
                 ) : (
-                  <MobilePartnerAvatar partner={entry.partner} />
+                  <MobilePartnerAvatar
+                    partner={entry.partner}
+                    onOpenCustomPartner={() => changePartnerOpen(true)}
+                  />
                 )}
               </span>
             </div>
@@ -254,7 +282,10 @@ export function JournalEntryRow({
           {publicView ? (
             <BeltIndicator partner={entry.partner} />
           ) : (
-            <PartnerCell partner={entry.partner} />
+            <PartnerCell
+              partner={entry.partner}
+              onOpenCustomPartner={() => changePartnerOpen(true)}
+            />
           )}
         </td>
         <td className="overflow-hidden whitespace-nowrap px-2 py-3">
@@ -284,7 +315,7 @@ export function JournalEntryRow({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => setIsEditOpen(true)}>
+                <DropdownMenuItem onSelect={() => changeEntryOpen(true)}>
                   <Pencil className="size-4" />
                   Edit
                 </DropdownMenuItem>
@@ -301,7 +332,7 @@ export function JournalEntryRow({
         ) : null}
       </tr>
       {canOpenDetails ? (
-        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <Dialog open={entryOpen} onOpenChange={changeEntryOpen}>
           <DialogContent
             className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
             showCloseButton={false}
@@ -314,7 +345,7 @@ export function JournalEntryRow({
             </DialogDescription>
             <JournalEntryUpdate
               entry={entry}
-              onClose={() => setIsEditOpen(false)}
+              onClose={() => changeEntryOpen(false)}
               onSaved={onSaved}
               onDeleted={onDeleted}
               readOnly={readOnly}
@@ -334,6 +365,29 @@ export function JournalEntryRow({
           pendingLabel="Deleting..."
           title="Delete this entry?"
         />
+      ) : null}
+      {!publicView && entry.partner && !entry.partner.accountId ? (
+        <Dialog open={partnerOpen} onOpenChange={changePartnerOpen}>
+          <DialogContent
+            className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
+            showCloseButton={false}
+          >
+            <DialogTitle className="sr-only">Edit training partner</DialogTitle>
+            <DialogDescription className="sr-only">
+              Update this custom training partner.
+            </DialogDescription>
+            <CustomPartnerInput
+              partner={toCustomTrainingPartner(entry.partner)}
+              onBack={() => changePartnerOpen(false)}
+              onClose={() => changePartnerOpen(false)}
+              onSaved={() => {
+                changePartnerOpen(false);
+                onSaved?.();
+              }}
+              withinDialog
+            />
+          </DialogContent>
+        </Dialog>
       ) : null}
     </>
   );
@@ -399,7 +453,13 @@ function JournalTypeBadge({
   return <span className="text-xs text-zinc-400">—</span>;
 }
 
-function PartnerCell({ partner }: { partner?: Partner }) {
+function PartnerCell({
+  partner,
+  onOpenCustomPartner,
+}: {
+  partner?: Partner;
+  onOpenCustomPartner?: () => void;
+}) {
   if (!partner) {
     return <span className="text-sm text-zinc-500">No partner</span>;
   }
@@ -434,11 +494,27 @@ function PartnerCell({ partner }: { partner?: Partner }) {
       {content}
     </Link>
   ) : (
-    <span className="flex min-w-0 items-center gap-2">{content}</span>
+    <button
+      aria-label={`Edit ${
+        [partner.firstName, partner.lastName].filter(Boolean).join(" ") ||
+        "training partner"
+      }`}
+      className="flex min-w-0 items-center gap-2 rounded-md text-left hover:text-zinc-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      type="button"
+      onClick={onOpenCustomPartner}
+    >
+      {content}
+    </button>
   );
 }
 
-function MobilePartnerAvatar({ partner }: { partner?: Partner }) {
+function MobilePartnerAvatar({
+  partner,
+  onOpenCustomPartner,
+}: {
+  partner?: Partner;
+  onOpenCustomPartner?: () => void;
+}) {
   if (!partner) {
     return (
       <span
@@ -483,6 +559,34 @@ function MobilePartnerAvatar({ partner }: { partner?: Partner }) {
       {avatar}
     </Link>
   ) : (
-    avatar
+    <button
+      aria-label={`Edit ${
+        [partner.firstName, partner.lastName].filter(Boolean).join(" ") ||
+        "training partner"
+      }`}
+      className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        onOpenCustomPartner?.();
+      }}
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      {avatar}
+    </button>
   );
+}
+
+function toCustomTrainingPartner(partner: Partner): TrainingPartnerDetail {
+  return {
+    id: partner.id ?? "",
+    object: "custom_training_partner",
+    firstName: partner.firstName,
+    lastName: partner.lastName,
+    weight: partner.weight,
+    age: partner.age,
+    belt: partner.belt,
+    createdAt: 0,
+    updatedAt: 0,
+  };
 }

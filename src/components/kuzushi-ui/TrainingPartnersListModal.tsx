@@ -50,6 +50,8 @@ export function TrainingPartnersListModal({
   onClose,
   onTitleChange,
   onSelectPartner,
+  view,
+  onViewChange,
   presentation = "modal",
   withinDialog = false,
 }: {
@@ -58,10 +60,14 @@ export function TrainingPartnersListModal({
   onClose?: () => void;
   onTitleChange?: (title: string) => void;
   onSelectPartner?: (partner: PublicAccountSummary) => void;
+  view?: "list" | "custom";
+  onViewChange?: (view: "list" | "custom") => void;
   presentation?: "modal" | "sheet";
   withinDialog?: boolean;
 }) {
-  const [view, setView] = useState<"list" | "custom" | "edit">("list");
+  const [internalView, setInternalView] = useState<"list" | "custom" | "edit">(
+    "list",
+  );
   const [activeTab, setActiveTab] = useState<"partners" | "requests">(
     "partners",
   );
@@ -75,6 +81,12 @@ export function TrainingPartnersListModal({
   const [isRequestsLoading, setIsRequestsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirming, setConfirming] = useState<ConfirmAction | null>(null);
+  const currentView = view === "custom" ? "custom" : internalView;
+
+  useEffect(() => {
+    if (view === "custom" || internalView !== "custom") return;
+    setInternalView("list");
+  }, [internalView, view]);
 
   const loadPartners = useCallback(async () => {
     setError(undefined);
@@ -130,38 +142,40 @@ export function TrainingPartnersListModal({
   }, []);
 
   useEffect(() => {
-    if (view !== "list") return;
+    if (currentView !== "list") return;
     const timeout = window.setTimeout(() => {
       loadPartners();
     }, 200);
 
     return () => window.clearTimeout(timeout);
-  }, [loadPartners, view]);
+  }, [currentView, loadPartners]);
 
   useEffect(() => {
-    if (view !== "list") return;
+    if (currentView !== "list") return;
     const timeout = window.setTimeout(() => {
       loadRequests();
     }, 0);
 
     return () => window.clearTimeout(timeout);
-  }, [loadRequests, view]);
+  }, [currentView, loadRequests]);
 
   function openList() {
-    setView("list");
+    setInternalView("list");
+    onViewChange?.("list");
     setActiveTab("partners");
     setSelectedPartner(undefined);
     onTitleChange?.("My training partners");
   }
 
   function openCustomPartner() {
-    setView("custom");
+    setInternalView("custom");
+    onViewChange?.("custom");
     onTitleChange?.("Add custom partner");
   }
 
   function openEditPartner(partner: TrainingPartnerDetail) {
     setSelectedPartner(partner);
-    setView("edit");
+    setInternalView("edit");
     onTitleChange?.("Edit training partner");
   }
 
@@ -195,7 +209,7 @@ export function TrainingPartnersListModal({
     }
   }
 
-  if (view === "custom") {
+  if (currentView === "custom") {
     return (
       <CustomPartnerInput
         onBack={openList}
@@ -210,7 +224,7 @@ export function TrainingPartnersListModal({
     );
   }
 
-  if (view === "edit" && selectedPartner) {
+  if (currentView === "edit" && selectedPartner) {
     return (
       <CustomPartnerInput
         partner={selectedPartner}

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +41,8 @@ const JournalEntryCreate = dynamic(
   { loading: () => null },
 );
 
+type EntryModal = "entry" | "partner";
+
 export function JournalEntryTable({
   accountId,
   entries,
@@ -50,16 +52,19 @@ export function JournalEntryTable({
   readOnly = false,
   refreshToken = 0,
   mobileHeaderContent,
+  onAddEntry,
 }: {
   accountId?: string;
   entries?: JournalEntry[];
   initialEntries?: JournalEntryDetail[];
   initialQueryKey?: string;
   onEntriesChange?: () => void;
+  onAddEntry?: () => void;
   readOnly?: boolean;
   refreshToken?: number;
   mobileHeaderContent?: ReactNode;
 }) {
+  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [apiEntries, setApiEntries] = useState<JournalEntry[]>(() =>
@@ -143,6 +148,8 @@ export function JournalEntryTable({
     : tableEntries.slice(0, query.limit);
   const hasNext = isStatic ? false : tableEntries.length > query.limit;
   const page = Math.floor(query.offset / query.limit) + 1;
+  const entryModal = parseEntryModal(searchParams.get("entryModal"));
+  const entryModalId = searchParams.get("entryId");
 
   function replaceQuery(nextQuery: JournalQuery) {
     const params = serializeJournalQuery(nextQuery);
@@ -156,6 +163,32 @@ export function JournalEntryTable({
   function refreshEntries() {
     setRefreshKey((key) => key + 1);
     onEntriesChange?.();
+  }
+
+  function openEntryModal(entryId: string, modal: EntryModal) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("entryModal", modal);
+    params.set("entryId", entryId);
+    const hasEntryModal = parseEntryModal(searchParams.get("entryModal"));
+    const url = `${pathname}${params.size ? `?${params}` : ""}`;
+    if (hasEntryModal) {
+      router.replace(url, { scroll: false });
+      return;
+    }
+    router.push(url, { scroll: false });
+  }
+
+  function closeEntryModal(entryId: string, modal: EntryModal) {
+    const currentParams = new URLSearchParams(window.location.search);
+    if (parseEntryModal(currentParams.get("entryModal")) !== modal) return;
+    if (currentParams.get("entryId") !== entryId) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("entryModal");
+    params.delete("entryId");
+    router.replace(`${pathname}${params.size ? `?${params}` : ""}`, {
+      scroll: false,
+    });
   }
 
   return (
@@ -187,7 +220,7 @@ export function JournalEntryTable({
             }),
           )
         }
-        onAddEntry={() => setIsCreateOpen(true)}
+        onAddEntry={onAddEntry ?? (() => setIsCreateOpen(true))}
         mobileLeadingContent={mobileHeaderContent}
         showAddEntry={!readOnly}
       />
@@ -223,6 +256,22 @@ export function JournalEntryTable({
               <JournalEntryRow
                 key={entry.id}
                 entry={entry}
+                isEntryOpen={
+                  entryModal === "entry" && entryModalId === entry.id
+                }
+                isPartnerOpen={
+                  entryModal === "partner" && entryModalId === entry.id
+                }
+                onEntryOpenChange={(open) =>
+                  open
+                    ? openEntryModal(entry.id, "entry")
+                    : closeEntryModal(entry.id, "entry")
+                }
+                onPartnerOpenChange={(open) =>
+                  open
+                    ? openEntryModal(entry.id, "partner")
+                    : closeEntryModal(entry.id, "partner")
+                }
                 readOnly={readOnly}
                 publicView={readOnly && Boolean(accountId)}
                 isLast={index === visibleEntries.length - 1}
@@ -259,7 +308,7 @@ export function JournalEntryTable({
           />
         ) : null}
       </div>
-      {!readOnly ? (
+      {!readOnly && !onAddEntry ? (
         <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
           <DialogContent
             className="h-dvh max-h-dvh max-w-none overflow-y-auto bg-transparent p-0 ring-0 sm:h-auto sm:max-h-[calc(100vh-2rem)] sm:max-w-2xl"
@@ -420,4 +469,8 @@ function sortValue(entry: JournalEntry, field: JournalQuery["sort"]["field"]) {
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
+}
+
+function parseEntryModal(value: string | null): EntryModal | null {
+  return value === "entry" || value === "partner" ? value : null;
 }
