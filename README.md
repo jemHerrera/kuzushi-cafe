@@ -161,10 +161,10 @@ protocol-relative destinations are discarded.
 - [x] Need to be able to edit custom training partners
 - [x] Removing training partner does not work (try both custom and real person)
 - [x] Improve overall performance
-- [ ] Adding new training partner from journal entry does not persist right away. On next entry, the added partner did not show up
-  - [ ] Double check if this happens on techniques
-- [ ] Change Submission to maybe Green? (more positive) and Tap to Red
-- [ ] Hitting back button on mobile does not go back from modals
-- [ ] Knowing about "My Training Partners" and "My Custom Techniques" is not as intuitive. Maybe add some sort of hook from home?
-- [ ] Click on training partner on mobile should open the custom training partner modal or public profile
+- [x] Adding new training partner from journal entry does not persist right away. On next entry, the added partner did not show up
+  - [x] Double check if this happens on techniques
+- [x] Change Submission to maybe Green? (more positive) and Tap to Red
+- [x] Hitting back button on mobile does not go back from modals
+- [x] Knowing about "My Training Partners" and "My Custom Techniques" is not as intuitive. Maybe add some sort of hook from home?
+- [x] Click on training partner on mobile should open the custom training partner modal or public profile
 - [ ] S3 bucket and profile upload. Maybe supabase already supports this?

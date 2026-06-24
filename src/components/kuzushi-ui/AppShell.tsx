@@ -139,6 +139,7 @@ export function AppShell(props: AppShellProps) {
   const trainingPartnersView = parseTrainingPartnersView(
     searchParams.get("trainingPartnersView"),
   );
+  const trainingPartnerId = searchParams.get("trainingPartnerId") ?? undefined;
   const donationReturn = searchParams.get("donation");
   const donationReturnState =
     donationReturn === "success" || donationReturn === "canceled"
@@ -245,6 +246,7 @@ export function AppShell(props: AppShellProps) {
       else params.delete("panel");
       if (next.panel !== "training-partners") {
         params.delete("trainingPartnersView");
+        params.delete("trainingPartnerId");
       }
     }
 
@@ -470,16 +472,23 @@ export function AppShell(props: AppShellProps) {
               openPublicProfile(profile);
             }}
             view={trainingPartnersView ?? undefined}
-            onViewChange={(view) => {
+            selectedPartnerId={trainingPartnerId}
+            onViewChange={(view, partnerId) => {
               const params = new URLSearchParams(searchParams.toString());
-              if (view === "custom") {
+              if (view === "custom" || view === "edit") {
                 params.set("panel", "training-partners");
-                params.set("trainingPartnersView", "custom");
+                params.set("trainingPartnersView", view);
+                if (view === "edit" && partnerId) {
+                  params.set("trainingPartnerId", partnerId);
+                } else {
+                  params.delete("trainingPartnerId");
+                }
                 router.push(`${pathname}${params.size ? `?${params}` : ""}`, {
                   scroll: false,
                 });
               } else {
                 params.delete("trainingPartnersView");
+                params.delete("trainingPartnerId");
                 router.replace(
                   `${pathname}${params.size ? `?${params}` : ""}`,
                   { scroll: false },
@@ -567,6 +576,8 @@ function parseShellModal(value: string | null): ShellModal | null {
   return value && shellModals.has(value) ? (value as ShellModal) : null;
 }
 
-function parseTrainingPartnersView(value: string | null): "custom" | null {
-  return value === "custom" ? value : null;
+function parseTrainingPartnersView(
+  value: string | null,
+): "custom" | "edit" | null {
+  return value === "custom" || value === "edit" ? value : null;
 }

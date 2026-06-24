@@ -43,6 +43,7 @@ import {
 type ConfirmAction =
   | { type: "remove"; partner: TrainingPartnerDetail }
   | { type: "block"; account: PublicAccountSummary | AccountDetail };
+type TrainingPartnersView = "list" | "custom" | "edit";
 
 export function TrainingPartnersListModal({
   hasInboundTrainingPartnerRequests = false,
@@ -51,6 +52,7 @@ export function TrainingPartnersListModal({
   onTitleChange,
   onSelectPartner,
   view,
+  selectedPartnerId,
   onViewChange,
   presentation = "modal",
   withinDialog = false,
@@ -60,8 +62,9 @@ export function TrainingPartnersListModal({
   onClose?: () => void;
   onTitleChange?: (title: string) => void;
   onSelectPartner?: (partner: PublicAccountSummary) => void;
-  view?: "list" | "custom";
-  onViewChange?: (view: "list" | "custom") => void;
+  view?: TrainingPartnersView;
+  selectedPartnerId?: string;
+  onViewChange?: (view: TrainingPartnersView, partnerId?: string) => void;
   presentation?: "modal" | "sheet";
   withinDialog?: boolean;
 }) {
@@ -81,10 +84,14 @@ export function TrainingPartnersListModal({
   const [isRequestsLoading, setIsRequestsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirming, setConfirming] = useState<ConfirmAction | null>(null);
-  const currentView = view === "custom" ? "custom" : internalView;
+  const currentView = view ?? internalView;
+  const activePartner =
+    currentView === "edit" && selectedPartnerId
+      ? partners.find((partner) => partner.id === selectedPartnerId)
+      : selectedPartner;
 
   useEffect(() => {
-    if (view === "custom" || internalView !== "custom") return;
+    if (view || (internalView !== "custom" && internalView !== "edit")) return;
     setInternalView("list");
   }, [internalView, view]);
 
@@ -142,7 +149,7 @@ export function TrainingPartnersListModal({
   }, []);
 
   useEffect(() => {
-    if (currentView !== "list") return;
+    if (currentView !== "list" && currentView !== "edit") return;
     const timeout = window.setTimeout(() => {
       loadPartners();
     }, 200);
@@ -176,6 +183,7 @@ export function TrainingPartnersListModal({
   function openEditPartner(partner: TrainingPartnerDetail) {
     setSelectedPartner(partner);
     setInternalView("edit");
+    onViewChange?.("edit", partner.id);
     onTitleChange?.("Edit training partner");
   }
 
@@ -224,10 +232,10 @@ export function TrainingPartnersListModal({
     );
   }
 
-  if (currentView === "edit" && selectedPartner) {
+  if (currentView === "edit" && activePartner) {
     return (
       <CustomPartnerInput
-        partner={selectedPartner}
+        partner={activePartner}
         onBack={openList}
         onClose={onClose}
         onSaved={() => {
